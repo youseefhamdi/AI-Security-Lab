@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+  <title id="title">Zodiac Spartan emblem</title>
+  <desc id="desc">Original geometric Spartan helmet emblem for Zodiac AI Security Lab.</desc>
+  <defs>
+    <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset=".52" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e2e8f0"/>
+      <stop offset=".45" stop-color="#94a3b8"/>
+      <stop offset="1" stop-color="#475569"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="320" cy="320" r="294" fill="#070b1c" stroke="url(#shield)" stroke-width="10"/>
+  <circle cx="320" cy="320" r="265" fill="none" stroke="#94a3b8" stroke-opacity=".18" stroke-width="2" stroke-dasharray="5 13"/>
+  <path d="M320 78 L512 146 V302 C512 431 430 523 320 567 C210 523 128 431 128 302 V146 Z" fill="#0f172a" stroke="url(#shield)" stroke-width="8" filter="url(#glow)"/>
+  <!-- plume -->
+  <path d="M320 116 C270 68 208 86 175 128 C228 121 260 146 289 182 Z" fill="#22d3ee" fill-opacity=".85"/>
+  <path d="M320 116 C370 68 432 86 465 128 C412 121 380 146 351 182 Z" fill="#ec4899" fill-opacity=".8"/>
+  <!-- helmet crown and brow -->
+  <path d="M214 292 C212 204 252 157 320 151 C388 157 428 204 426 292 L389 259 C373 232 352 218 320 218 C288 218 267 232 251 259 Z" fill="url(#metal)"/>
+  <path d="M205 279 C244 265 278 258 320 258 C362 258 396 265 435 279 L421 321 C384 305 352 298 320 298 C288 298 256 305 219 321 Z" fill="#cbd5e1"/>
+  <!-- face guard -->
+  <path d="M229 316 C244 336 264 349 290 357 L290 412 L260 474 L211 425 L211 344 Z" fill="url(#metal)"/>
+  <path d="M411 316 C396 336 376 349 350 357 L350 412 L380 474 L429 425 L429 344 Z" fill="url(#metal)"/>
+  <path d="M290 355 L320 371 L350 355 L350 430 L320 478 L290 430 Z" fill="#64748b"/>
+  <!-- eye slit and nose -->
+  <path d="M231 312 C264 300 285 301 310 310 L286 331 L244 330 Z" fill="#070b1c"/>
+  <path d="M409 312 C376 300 355 301 330 310 L354 331 L396 330 Z" fill="#070b1c"/>
+  <path d="M320 302 L345 350 L320 382 L295 350 Z" fill="#94a3b8"/>
+  <path d="M278 424 H362" stroke="#070b1c" stroke-width="12" stroke-linecap="round"/>
+  <path d="M263 446 H377" stroke="#070b1c" stroke-width="7" stroke-linecap="round" opacity=".7"/>
+  <!-- zodiac mark -->
+  <circle cx="320" cy="535" r="17" fill="none" stroke="#67e8f9" stroke-width="4"/>
+  <path d="M308 547 L332 523 M308 523 L332 547" stroke="#f9a8d4" stroke-width="3"/>
+</svg>

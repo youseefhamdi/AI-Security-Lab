@@ -1,16 +1,19 @@
 <div align="center">
 
 <a href="https://github.com/youseefhamdi/AI-Security-Lab">
-  <img src="docs/assets/ai-security-lab-banner.svg" alt="AI Security Lab — Recon, Attack, Observe, Detect" width="100%" />
+  <img src="docs/assets/ai-security-lab-banner.svg" alt="Zodiac AI Security Lab — Spartan-inspired security banner" width="100%" />
 </a>
 
+<img src="docs/assets/zodiac-spartan-logo.svg" alt="Zodiac Spartan emblem" width="96" />
+
+[![Brand](https://img.shields.io/badge/Brand-ZODIAC-0F172A?logo=target&logoColor=67E8F9)](#-what-is-this)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose%20v2-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![Model](https://img.shields.io/badge/Model-PrismML%20Bonsai%2027B-7C3AED)](https://huggingface.co/prism-ml/bonsai-27b)
 [![Inference](https://img.shields.io/badge/Inference-llama.cpp-111827)](https://github.com/ggml-org/llama.cpp)
 [![Security Lab](https://img.shields.io/badge/Purpose-AI%20Security%20Training-EF4444)](#-security-boundary)
 [![Build Policy](https://img.shields.io/badge/VPS-Build--only-F59E0B)](#-vps-build-only-policy)
 
-> **An isolated AI security lab for practicing model fingerprinting, prompt injection, RAG attacks, agent protocol abuse, memory poisoning, supply-chain scenarios, and SIEM detection.**
+> **ZODIAC AI Security Lab** — an isolated environment for model fingerprinting, prompt injection, RAG attacks, agent protocol abuse, memory poisoning, supply-chain scenarios, and SIEM detection.
 
 </div>
 
@@ -18,7 +21,7 @@
 
 ## ✨ What is this?
 
-**AI Red Team Lab** is a local-first training environment based on OffSec AI-300 Module 2 concepts. It combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, and detection tooling into one reproducible lab.
+**ZODIAC AI Security Lab** is a local-first training environment based on OffSec AI-300 Module 2 concepts. It combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, and detection tooling into one reproducible lab.
 
 The project is intentionally unsafe by design. It includes debug leaks, exposed tool schemas, synthetic credentials, prompt-injection weaknesses, unauthenticated protocol exercises, and honeypot data. Run it only on a machine you control and keep all services bound to localhost.
 
@@ -26,7 +29,7 @@ The project is intentionally unsafe by design. It includes debug leaks, exposed 
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│                         AI SECURITY LAB                              │
+│                      ZODIAC AI SECURITY LAB                          │
 ├──────────────────────────────────────────────────────────────────────┤
 │  CORE                                                               │
 │  Bonsai 27B / llama.cpp → Aurora · Phoenix · Assistant              │
@@ -253,7 +256,7 @@ Never expose the lab to the public internet, reuse its credentials, place real s
 
 <div align="center">
 
-### Built for controlled AI security research
+### ZODIAC // Built for controlled AI security research
 
 `Recon → Exploit → Detect → Harden`
 
