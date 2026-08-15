@@ -1,0 +1,21 @@
+.env
+.env.*
+
+# Docker volumes and runtime state
+volumes/
+**/volumes/
+logs/
+
+# Python artifacts
+*.pyc
+__pycache__/
+
+# Local agent/tool state
+.ua/
+
+# Local model weights; models must be transferred separately
+models/*.gguf
+
+# Local build and tooling artifacts
+*.egg-info/
+.pytest_cache/

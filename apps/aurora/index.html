@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aurora Support Chat</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
+    #messages { min-height: 240px; border: 1px solid #ccc; border-radius: 8px; padding: 1rem; white-space: pre-wrap; }
+    form { display: flex; gap: .5rem; margin-top: 1rem; }
+    input { flex: 1; padding: .7rem; }
+    button { padding: .7rem 1rem; cursor: pointer; }
+    .user { color: #245; }
+    .assistant { color: #152; }
+    .sources { color: #666; font-size: .9rem; margin-top: .5rem; }
+  </style>
+</head>
+<body>
+  <h1>Aurora Support</h1>
+  <div id="messages" aria-live="polite">Ask a NovaTech support question.</div>
+  <form id="chat-form">
+    <input id="query" name="query" placeholder="Ask about a policy..." autocomplete="off" required>
+    <button type="submit">Send</button>
+  </form>
+  <script>
+    const form = document.querySelector('#chat-form');
+    const queryInput = document.querySelector('#query');
+    const messages = document.querySelector('#messages');
+    const sessionId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const query = queryInput.value.trim();
+      if (!query) return;
+      messages.textContent += `\n\nYou: ${query}\nAurora: thinking...`;
+      queryInput.value = '';
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({query, session_id: sessionId})
+        });
+        const data = await response.json();
+        const sourceText = (data.sources || []).map(source => `${source.title} (${source.chunk_id})`).join(', ');
+        messages.textContent = messages.textContent.replace('Aurora: thinking...', `Aurora: ${data.response || data.error}\nSources: ${sourceText || 'none'}`);
+      } catch (error) {
+        messages.textContent = messages.textContent.replace('Aurora: thinking...', `Aurora: request failed: ${error}`);
+      }
+    });
+  </script>
+</body>
+</html>
