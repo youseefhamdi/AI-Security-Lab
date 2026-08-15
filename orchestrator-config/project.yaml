@@ -16,7 +16,7 @@ workers:
     name: Aurora
     role: support
     endpoint: http://127.0.0.1:5000
-    model: llama3.2:1b
+    model: bonsai-27b
   - id: phoenix
     name: Phoenix
     role: code_review
@@ -26,7 +26,7 @@ workers:
     name: Assistant
     role: general
     endpoint: http://127.0.0.1:5002
-    model: llama3.2:1b
+    model: bonsai-27b
 watch:
   repository: ~/ai-redteam-lab
   include:

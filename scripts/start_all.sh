@@ -2,8 +2,8 @@
 set -euo pipefail
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
-PULL_MODELS="${PULL_MODELS:-0}"
-SEED_DATA="${SEED_DATA:-1}"
+LAB_MODE="${LAB_MODE:-lite}"
+SEED_DATA="${SEED_DATA:-0}"
 
 log() {
   printf '[start-all] %s\n' "$*"
@@ -16,58 +16,38 @@ fail() {
 
 if [[ "${RUNTIME:-0}" != "1" ]]; then
   log "Static/VPS mode: no Docker startup, model pull, seed, or network action will run"
-  log "Local execution: RUNTIME=1 ./scripts/start_all.sh"
+  log "Local lite mode: RUNTIME=1 ./scripts/start_all.sh"
+  log "Local full mode: RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh"
   exit 0
 fi
 
 command -v docker >/dev/null 2>&1 || fail "RUNTIME=1 requires docker"
+./scripts/pull_models.sh
 docker compose -f "$COMPOSE_FILE" config >/dev/null
 
-available_services="$(docker compose -f "$COMPOSE_FILE" config --services)"
-service_available() {
-  printf '%s\n' "$available_services" | grep -Fxq "$1"
-}
-
-start_group() {
-  local group="$1"
-  shift
-  local service
-  log "Starting ${group}"
-  for service in "$@"; do
-    if service_available "$service"; then
-      docker compose -f "$COMPOSE_FILE" up -d "$service"
+case "$LAB_MODE" in
+  lite)
+    log "Starting lite core: one Bonsai backend, apps, A2A, MCP, and local document retrieval"
+    docker compose -f "$COMPOSE_FILE" up -d \
+      bonsai mcp-server mcp-wrapper a2a-knowledge a2a-router aurora phoenix assistant
+    ;;
+  full)
+    log "Starting full profile: lite core plus gateway, storage, memory, and SIEM"
+    docker compose -f "$COMPOSE_FILE" --profile full up -d
+    if [[ "$SEED_DATA" == "1" ]]; then
+      log "Seeding full-profile storage and memories"
+      RUNTIME=1 python3 ./scripts/seed_storage.py
+      RUNTIME=1 python3 ./scripts/seed_memories.py
     else
-      log "Skipping unavailable Compose service: ${service}"
+      log "SEED_DATA=0: skipping storage and memory seeding"
     fi
-  done
-}
+    log "Configuring Kong and detection rules"
+    RUNTIME=1 ./scripts/configure_kong.sh
+    RUNTIME=1 ./scripts/create_detection_rules.sh
+    ;;
+  *)
+    fail "LAB_MODE must be lite or full"
+    ;;
+esac
 
-start_group "infrastructure" kong-database kong-migration kong milvus chromadb redis
-start_group "SIEM" elasticsearch kibana filebeat
-start_group "inference" ollama-llama bonsai
-
-if [[ "$PULL_MODELS" == "1" ]]; then
-  log "PULL_MODELS=1: invoking the explicitly requested local model setup"
-  RUNTIME=1 ./scripts/pull_models.sh
-else
-  log "Skipping model pulls; using pre-existing local model assets"
-fi
-
-start_group "protocols" a2a-agent a2a-router a2a-knowledge mcp-server mcp-wrapper
-start_group "applications" aurora phoenix assistant
-start_group "memory" mem0
-start_group "LightRAG" lightrag
-
-if [[ "$SEED_DATA" == "1" ]]; then
-  log "Seeding storage and memories"
-  RUNTIME=1 python3 ./scripts/seed_storage.py
-  RUNTIME=1 python3 ./scripts/seed_memories.py
-else
-  log "SEED_DATA=0: skipping storage and memory seeding"
-fi
-
-log "Configuring Kong"
-RUNTIME=1 ./scripts/configure_kong.sh
-log "Creating detection rules"
-RUNTIME=1 ./scripts/create_detection_rules.sh
-log "All available lab phases started"
+log "Startup complete; no model pull was requested"

@@ -1,22 +1,22 @@
-# Mem0 OSS configuration used by local integration helpers.
+# Optional Mem0 OSS SDK configuration for full mode.
 # Upstream: https://github.com/mem0ai/mem0
-# The API server itself is authenticated; see ADMIN_API_KEY/JWT_SECRET in Compose.
+# Lite mode does not start Mem0 and needs no embedding model.
+# Bonsai provides generation, not embeddings; configure an embedding provider
+# before enabling the full profile.
 
 llm:
-  provider: ollama
+  provider: openai
   config:
-    model: llama3.2:1b
-    ollama_base_url: http://ollama-llama:11434
+    model: bonsai-27b
+    openai_base_url: http://bonsai:8000/v1
     temperature: 0.2
 
 embedder:
-  provider: ollama
+  provider: ${MEM0_EMBEDDER_PROVIDER:-openai}
   config:
-    model: nomic-embed-text
-    ollama_base_url: http://ollama-llama:11434
+    model: ${MEM0_EMBEDDER_MODEL:-text-embedding-3-small}
+    openai_base_url: ${MEM0_EMBEDDER_HOST:-https://api.openai.com/v1}
 
-# The OSS SDK uses vector_store rather than a generic storage.mode key.
-# ChromaDB keeps this lab self-contained; the history path is file-backed.
 vector_store:
   provider: chroma
   config:

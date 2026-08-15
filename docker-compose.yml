@@ -1,60 +1,8 @@
 version: '3.8'
 
 services:
-  # ============= LAYER 1: GATEWAY =============
-  kong-database:
-    image: postgres:13-alpine
-    container_name: lab-kong-db
-    environment:
-      POSTGRES_USER: kong
-      POSTGRES_DB: kong
-      POSTGRES_PASSWORD: kongpass
-    volumes:
-      - kong_data:/var/lib/postgresql/data
-
-  kong-migration:
-    image: kong:3.9
-    container_name: lab-kong-migration
-    command: kong migrations bootstrap
-    depends_on:
-      - kong-database
-    environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_PASSWORD: kongpass
-    restart: on-failure
-
-  kong:
-    image: kong:3.9
-    container_name: lab-kong
-    ports:
-      - "127.0.0.1:8000:8000"
-      - "127.0.0.1:8001:8001"
-    environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_PASSWORD: kongpass
-      KONG_ADMIN_LISTEN: 0.0.0.0:8001
-    depends_on:
-      - kong-migration
-
-  # ============= LAYER 2: INFERENCE =============
-  # Models are expected to be preloaded locally. No pull command is defined here.
-  ollama-llama:
-    image: ollama/ollama:latest
-    container_name: lab-ollama-llama
-    ports:
-      - "127.0.0.1:11434:11434"
-    volumes:
-      - ollama_llama_data:/root/.ollama
-    environment:
-      OLLAMA_CONTEXT_LENGTH: "2048"
-      OLLAMA_NUM_PARALLEL: "1"
-    deploy:
-      resources:
-        limits:
-          memory: 8G
-
+  # ============= CORE: SINGLE LOCAL INFERENCE BACKEND =============
+  # The core profile runs with Bonsai only. No Ollama container or model pull is used.
   bonsai:
     image: ghcr.io/ggml-org/llama.cpp:server
     container_name: lab-bonsai
@@ -62,94 +10,25 @@ services:
       - "127.0.0.1:11435:8000"
     volumes:
       - ./models:/models:ro
+    environment:
+      BONSAI_MODEL_FILE: ${BONSAI_MODEL_FILE:-bonsai-27b.gguf}
     command: >
-      -m /models/bonsai-27b.gguf
+      -m /models/${BONSAI_MODEL_FILE:-bonsai-27b.gguf}
       --host 0.0.0.0 --port 8000
-      -c 8192
+      -c ${BONSAI_CONTEXT_SIZE:-4096}
+      --parallel ${BONSAI_PARALLEL:-1}
       --jinja
-      -ngl 0
+      -ngl ${BONSAI_GPU_LAYERS:-0}
     deploy:
       resources:
         limits:
-          memory: 10G
+          memory: ${BONSAI_MEMORY_LIMIT:-6G}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
 
-  # ============= LAYER 3: STORAGE =============
-  milvus:
-    image: milvusdb/milvus:v2.4.0
-    container_name: lab-milvus
-    ports:
-      - "127.0.0.1:19530:19530"
-    volumes:
-      - milvus_data:/var/lib/milvus
-    environment:
-      ETCD_USE_EMBED: "true"
-      COMMON_STORAGETYPE: local
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-
-  chromadb:
-    image: chromadb/chroma:latest
-    container_name: lab-chromadb
-    ports:
-      - "127.0.0.1:8010:8000"
-    volumes:
-      - chroma_data:/chroma/chroma
-      - ./rag-docs:/data:ro
-
-  redis:
-    image: redis:7-alpine
-    container_name: lab-redis
-    ports:
-      - "127.0.0.1:6379:6379"
-
-  lightrag:
-    image: ghcr.io/hkuds/lightrag:latest
-    container_name: lab-lightrag
-    ports:
-      - "127.0.0.1:9621:9621"
-    volumes:
-      - lightrag_data:/app/data
-      - ./rag-docs:/app/rag-docs:ro
-    environment:
-      LLM_MODEL: ollama/llama3.2:1b
-      LLM_BINDING_HOST: http://ollama-llama:11434
-      LLM_BINDING: ollama
-      EMBEDDING_MODEL: ollama/nomic-embed-text
-      EMBEDDING_BINDING: ollama
-      EMBEDDING_BINDING_HOST: http://ollama-llama:11434
-      EMBEDDING_DIM: "768"
-      KV_STORAGE: file
-      VECTOR_STORAGE: file
-      GRAPH_STORAGE: file
-      DOC_STATUS_STORAGE: file
-    depends_on:
-      - ollama-llama
-
-  # ============= LAYER 4: MEMORY =============
-  mem0:
-    image: mem0/mem0-api-server:latest
-    container_name: lab-mem0
-    ports:
-      - "127.0.0.1:8888:8000"
-    volumes:
-      - mem0_data:/app/data
-      - ./mem0-config:/app/config:ro
-    environment:
-      # Mem0 OSS API server: auth is enabled by default.
-      ADMIN_API_KEY: ${MEM0_ADMIN_API_KEY:-mem0_lab_admin_key_change_me}
-      JWT_SECRET: ${MEM0_JWT_SECRET:-mem0_lab_jwt_secret_change_me}
-      LLM_PROVIDER: ollama
-      LLM_MODEL: llama3.2:1b
-      LLM_BASE_URL: http://ollama-llama:11434
-      EMBEDDING_PROVIDER: ollama
-      EMBEDDING_MODEL: nomic-embed-text
-      EMBEDDING_BASE_URL: http://ollama-llama:11434
-    depends_on:
-      - ollama-llama
-
-  # ============= LAYER 5: PROTOCOLS =============
   mcp-server:
     build: ./mcp-server
     container_name: lab-mcp-server
@@ -170,35 +49,25 @@ services:
     environment:
       MCP_UPSTREAM: http://mcp-server:3000
       MCP_WRAPPER_MODE: lab
+    depends_on:
+      - mcp-server
 
-  mcp-memory:
-    image: mcp/memory:latest
-    container_name: lab-mcp-memory
-    command: ["npx", "-y", "@modelcontextprotocol/server-memory"]
+  a2a-knowledge:
+    build: ./a2a-agents/knowledge
+    container_name: lab-a2a-knowledge
     ports:
-      - "127.0.0.1:3004:3000"
-
-  mcp-filesystem:
-    image: mcp/filesystem:latest
-    container_name: lab-mcp-filesystem
-    command: ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/data"]
-    ports:
-      - "127.0.0.1:3002:3000"
+      - "127.0.0.1:5011:5000"
+    environment:
+      AGENT_NAME: Knowledge Agent
+      PUBLIC_URL: http://127.0.0.1:5011
+      OPENAI_BASE_URL: http://bonsai:8000/v1
+      MODEL_NAME: bonsai-27b
+      RAG_DOCS_DIR: /app/rag-docs
+      ENABLE_EXTERNAL_CONTEXT: ${ENABLE_EXTERNAL_CONTEXT:-0}
     volumes:
-      - ./sensitive-data:/data:ro
-
-  mcp-fetch:
-    image: mcp/fetch:latest
-    container_name: lab-mcp-fetch
-    command: ["npx", "-y", "@modelcontextprotocol/server-fetch"]
-    ports:
-      - "127.0.0.1:3003:3000"
-
-  a2a-agent:
-    build: ./a2a-agent
-    container_name: lab-a2a-agent
-    ports:
-      - "127.0.0.1:4000:4000"
+      - ./rag-docs:/app/rag-docs:ro
+    depends_on:
+      - bonsai
 
   a2a-router:
     build: ./a2a-agents/router
@@ -209,41 +78,27 @@ services:
       AGENT_NAME: Support Router
       PUBLIC_URL: http://127.0.0.1:5010
       KNOWLEDGE_AGENT_URL: http://a2a-knowledge:5000
-      OLLAMA_HOST: http://ollama-llama:11434
+      OPENAI_BASE_URL: http://bonsai:8000/v1
+      MODEL_NAME: bonsai-27b
     depends_on:
-      - ollama-llama
+      - bonsai
       - a2a-knowledge
 
-  a2a-knowledge:
-    build: ./a2a-agents/knowledge
-    container_name: lab-a2a-knowledge
-    ports:
-      - "127.0.0.1:5011:5000"
-    environment:
-      AGENT_NAME: Knowledge Agent
-      PUBLIC_URL: http://127.0.0.1:5011
-      LIGHTRAG_URL: http://lightrag:9621
-      OLLAMA_HOST: http://ollama-llama:11434
-    depends_on:
-      - lightrag
-      - ollama-llama
-
-  # ============= LAYER 6: APPS =============
   aurora:
     build: ./apps/aurora
     container_name: lab-aurora
     ports:
       - "127.0.0.1:5000:5000"
     environment:
-      OLLAMA_HOST: http://ollama-llama:11434
-      LIGHTRAG_URL: http://lightrag:9621
-      MEM0_URL: http://mem0:8000
+      OPENAI_BASE_URL: http://bonsai:8000/v1
+      MODEL_NAME: bonsai-27b
+      RAG_DOCS_DIR: /app/rag-docs
+      ENABLE_EXTERNAL_CONTEXT: ${ENABLE_EXTERNAL_CONTEXT:-0}
       MEM0_API_KEY: ${MEM0_ADMIN_API_KEY:-mem0_lab_admin_key_change_me}
-      MODEL_NAME: llama3.2:1b
+    volumes:
+      - ./rag-docs:/app/rag-docs:ro
     depends_on:
-      - ollama-llama
-      - lightrag
-      - mem0
+      - bonsai
 
   phoenix:
     build: ./apps/phoenix
@@ -253,12 +108,8 @@ services:
     environment:
       OPENAI_BASE_URL: http://bonsai:8000/v1
       MODEL_NAME: bonsai-27b
-      LIGHTRAG_URL: http://lightrag:9621
-      MEM0_URL: http://mem0:8000
     depends_on:
       - bonsai
-      - lightrag
-      - mem0
 
   assistant:
     build: ./apps/assistant
@@ -266,19 +117,177 @@ services:
     ports:
       - "127.0.0.1:5002:5000"
     environment:
-      OLLAMA_HOST: http://ollama-llama:11434
-      MODEL_NAME: llama3.2:1b
+      OPENAI_BASE_URL: http://bonsai:8000/v1
+      MODEL_NAME: bonsai-27b
     depends_on:
-      - ollama-llama
+      - bonsai
 
-  # ============= LAYER 9: SIEM =============
+  # ============= FULL PROFILE: GATEWAY =============
+  kong-database:
+    profiles: ["full"]
+    image: postgres:13-alpine
+    container_name: lab-kong-db
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
+      POSTGRES_PASSWORD: kongpass
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+
+  kong-migration:
+    profiles: ["full"]
+    image: kong:3.9
+    container_name: lab-kong-migration
+    command: kong migrations bootstrap
+    depends_on:
+      - kong-database
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_PASSWORD: kongpass
+    restart: on-failure
+
+  kong:
+    profiles: ["full"]
+    image: kong:3.9
+    container_name: lab-kong
+    ports:
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8001:8001"
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_PASSWORD: kongpass
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    depends_on:
+      - kong-migration
+
+  # ============= FULL PROFILE: STORAGE =============
+  chromadb:
+    profiles: ["full"]
+    image: chromadb/chroma:latest
+    container_name: lab-chromadb
+    ports:
+      - "127.0.0.1:8010:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+      - ./rag-docs:/data:ro
+
+  milvus:
+    profiles: ["full"]
+    image: milvusdb/milvus:v2.4.0
+    container_name: lab-milvus
+    ports:
+      - "127.0.0.1:19530:19530"
+    volumes:
+      - milvus_data:/var/lib/milvus
+    environment:
+      ETCD_USE_EMBED: "true"
+      COMMON_STORAGETYPE: local
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+
+  redis:
+    profiles: ["full"]
+    image: redis:7-alpine
+    container_name: lab-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  # LightRAG is optional in lite mode. It still needs a compatible embedding
+  # provider; Bonsai itself is a generator and does not expose embeddings.
+  lightrag:
+    profiles: ["full"]
+    image: ghcr.io/hkuds/lightrag:latest
+    container_name: lab-lightrag
+    ports:
+      - "127.0.0.1:9621:9621"
+    volumes:
+      - lightrag_data:/app/data
+      - ./rag-docs:/app/rag-docs:ro
+    environment:
+      PORT: "9621"
+      LLM_MODEL: bonsai-27b
+      LLM_BINDING_HOST: http://bonsai:8000/v1
+      LLM_BINDING: openai
+      LLM_BINDING_API_KEY: local
+      # Set these in .env for full-mode graph embeddings. Bonsai is text-only.
+      EMBEDDING_BINDING: ${LIGHTRAG_EMBEDDING_BINDING:-openai}
+      EMBEDDING_MODEL: ${LIGHTRAG_EMBEDDING_MODEL:-text-embedding-3-small}
+      EMBEDDING_BINDING_HOST: ${LIGHTRAG_EMBEDDING_HOST:-https://api.openai.com/v1}
+      EMBEDDING_BINDING_API_KEY: ${LIGHTRAG_EMBEDDING_API_KEY:-}
+      EMBEDDING_DIM: ${LIGHTRAG_EMBEDDING_DIM:-1536}
+      KV_STORAGE: file
+      VECTOR_STORAGE: file
+      GRAPH_STORAGE: file
+      DOC_STATUS_STORAGE: file
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - bonsai
+
+  # The stock Mem0 API image is optional because its bundled server providers
+  # do not include Ollama. Use a locally customized Mem0 image for full mode.
+  mem0:
+    profiles: ["full"]
+    image: mem0/mem0-api-server:latest
+    container_name: lab-mem0
+    ports:
+      - "127.0.0.1:8888:8000"
+    volumes:
+      - mem0_data:/app/data
+      - ./mem0-config:/app/config:ro
+    environment:
+      ADMIN_API_KEY: ${MEM0_ADMIN_API_KEY:-mem0_lab_admin_key_change_me}
+      JWT_SECRET: ${MEM0_JWT_SECRET:-mem0_lab_jwt_secret_change_me}
+    depends_on:
+      - bonsai
+
+  # ============= FULL PROFILE: EXTRA PROTOCOLS =============
+  a2a-agent:
+    profiles: ["full"]
+    build: ./a2a-agent
+    container_name: lab-a2a-agent
+    ports:
+      - "127.0.0.1:4000:4000"
+
+  mcp-memory:
+    profiles: ["full"]
+    image: mcp/memory:latest
+    container_name: lab-mcp-memory
+    command: ["npx", "-y", "@modelcontextprotocol/server-memory"]
+    ports:
+      - "127.0.0.1:3004:3000"
+
+  mcp-filesystem:
+    profiles: ["full"]
+    image: mcp/filesystem:latest
+    container_name: lab-mcp-filesystem
+    command: ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/data"]
+    ports:
+      - "127.0.0.1:3002:3000"
+    volumes:
+      - ./sensitive-data:/data:ro
+
+  mcp-fetch:
+    profiles: ["full"]
+    image: mcp/fetch:latest
+    container_name: lab-mcp-fetch
+    command: ["npx", "-y", "@modelcontextprotocol/server-fetch"]
+    ports:
+      - "127.0.0.1:3003:3000"
+
+  # ============= FULL PROFILE: SIEM =============
   elasticsearch:
+    profiles: ["full"]
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
     container_name: lab-elasticsearch
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
     ports:
       - "127.0.0.1:9200:9200"
     volumes:
@@ -286,9 +295,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 1G
 
   kibana:
+    profiles: ["full"]
     image: docker.elastic.co/kibana/kibana:8.15.0
     container_name: lab-kibana
     environment:
@@ -299,6 +309,7 @@ services:
       - elasticsearch
 
   filebeat:
+    profiles: ["full"]
     image: docker.elastic.co/beats/filebeat:8.15.0
     container_name: lab-filebeat
     user: root
@@ -313,10 +324,8 @@ services:
 
 volumes:
   kong_data:
-  ollama_llama_data:
-  milvus_data:
   chroma_data:
+  milvus_data:
   lightrag_data:
   mem0_data:
   es_data:
-  redis_data:

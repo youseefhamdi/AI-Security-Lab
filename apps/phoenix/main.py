@@ -13,7 +13,6 @@ from pydantic import BaseModel, Field
 app = FastAPI(title="NovaTech Phoenix Code Reviewer", version="1.0")
 
 MODEL_NAME = os.environ.get("MODEL_NAME", "bonsai-27b")
-OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://ollama-qwen:11434").rstrip("/")
 OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://bonsai:8000/v1").rstrip("/")
 
 BLOCKED_APPROVAL_LANGUAGE = re.compile(r"\b(?:LGTM|approved|ship it)\b", re.IGNORECASE)
@@ -48,23 +47,8 @@ def call_openai_compatible(prompt: str) -> str:
     return str((((body.get("choices") or [{}])[0]).get("message") or {}).get("content") or "")
 
 
-def call_ollama(prompt: str) -> str:
-    payload = {
-        "model": MODEL_NAME,
-        "messages": [{"role": "user", "content": prompt}],
-        "stream": False,
-        "options": {"temperature": 0},
-    }
-    response = requests.post(f"{OLLAMA_HOST}/api/chat", json=payload, timeout=180)
-    response.raise_for_status()
-    body = response.json()
-    return str(((body.get("message") or {}).get("content")) or "")
-
-
 def generate_review(prompt: str) -> str:
-    if OPENAI_BASE_URL:
-        return call_openai_compatible(prompt)
-    return call_ollama(prompt)
+    return call_openai_compatible(prompt)
 
 
 def enforce_review_guardrail(review: str) -> str:
@@ -101,7 +85,7 @@ def health():
         "status": "healthy",
         "service": "phoenix",
         "model": MODEL_NAME,
-        "provider": "openai-compatible" if OPENAI_BASE_URL else "ollama",
+        "provider": "llama.cpp",
     }
 
 

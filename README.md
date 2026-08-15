@@ -11,7 +11,7 @@ This repository is **build-only on the VPS**:
 - Use static checks only: shell syntax, Python compilation, file existence, and Compose parsing.
 - Run the stack on the local machine after transferring the repository and pre-pulled model assets.
 
-Models are intentionally not pulled by this project. Provide the existing local Ollama model volume and/or `models/bonsai-27b.gguf` separately. The Mem0 OSS API server keeps authentication enabled and uses the lab-only `MEM0_ADMIN_API_KEY` fallback unless you provide a stronger local secret.
+Models are intentionally not pulled by this project. The core lab uses the already-downloaded PrismML Bonsai 27B GGUF, approximately 4 GB. Set `BONSAI_MODEL_FILE` if its filename differs from `models/bonsai-27b.gguf`. The Mem0 OSS API server is optional and keeps authentication enabled.
 
 ## Authoritative upstream projects
 
@@ -33,30 +33,57 @@ Models are intentionally not pulled by this project. Provide the existing local 
 │ 6. A2A orchestration          Router and knowledge agent     │
 │ 5. Applications                Aurora, Phoenix, Assistant    │
 │ 4. Protocol servers            MCP, MCP wrapper, A2A         │
-│ 3. Data services               ChromaDB and Redis             │
-│ 2. Inference                   Existing Ollama + Bonsai       │
+│ 3. Data services               Optional Chroma/Milvus/RAG    │
+│ 2. Inference                   One Bonsai llama.cpp server    │
 │ 1. API gateway                 Kong + PostgreSQL              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Requirements on the local machine
+## Resource profiles
+
+### Lite mode (recommended)
+
+The default runtime starts one Bonsai server, the three applications, A2A agents, MCP, and dependency-free local Markdown retrieval.
+
+- 4+ CPU cores; 8 cores recommended
+- 10 GB RAM minimum; 12–16 GB recommended
+- 25 GB free SSD minimum; 40 GB recommended
+- One approximately 4 GB `Bonsai 27B` GGUF file
+
+Bonsai is configured for a 4K context and one concurrent request by default. Increase `BONSAI_CONTEXT_SIZE` only when additional memory is available.
+
+### Full mode
+
+The optional profile adds Kong, ChromaDB, Milvus, LightRAG, Mem0, MCP extras, Elasticsearch, Kibana, and Filebeat.
+
+- 32 GB RAM minimum
+- 48 GB recommended
+- 100 GB disk minimum
+- 12+ CPU cores recommended
+
+### Software
 
 - Docker Engine and Docker Compose v2
-- 32GB RAM recommended
-- 100GB available disk space
-- Pre-pulled local AI model assets
+- 64-bit Linux or Docker Desktop
+- Internet access for container images and application builds; no model download is performed
+- Pre-downloaded `Bonsai 27B` GGUF under `models/`
 
 ## Quick start on the local machine
 
 Transfer or rsync this repository and model assets to the local machine first. Then, from the project root:
 
 ```bash
-# Configure Kong after the stack is running.
+# Start the resource-efficient core.
 docker compose up -d
-./scripts/configure_kong.sh
+
+# Or use the guarded orchestrator.
+RUNTIME=1 ./scripts/start_all.sh
+
+# Full stack, only when the machine has sufficient resources.
+RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh
 ```
 
-No model-pull command is included in the Compose architecture. Use the model already installed on the local device.
+No model-pull command is included in the Compose architecture. The core path does not start Ollama and does not pull any model; it mounts the local GGUF from `./models/` into llama.cpp. Verify the file with `./scripts/pull_models.sh` before starting.
 
 ### Mem0 upstream caveat
 
@@ -68,7 +95,6 @@ The official `mem0/mem0-api-server` image is the real Mem0 REST server and is au
 | --- | --- |
 | Kong proxy | http://127.0.0.1:8000 |
 | Kong Admin API | http://127.0.0.1:8001 |
-| Ollama | http://127.0.0.1:11434 |
 | Bonsai llama.cpp | http://127.0.0.1:11435 |
 | Milvus | http://127.0.0.1:19530 |
 | ChromaDB | http://127.0.0.1:8010 |

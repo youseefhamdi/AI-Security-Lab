@@ -1,8 +1,4 @@
-"""Support Router Agent for the AI Red Team Lab.
-
-The Agent Card uses the official a2a-sdk types. The JSON-RPC transport is kept
-explicit and intentionally unauthenticated for protocol reconnaissance practice.
-"""
+"""Support Router Agent for the resource-constrained AI Red Team Lab."""
 
 from __future__ import annotations
 
@@ -15,18 +11,18 @@ from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="NovaTech Support Router", version="1.0")
+app = FastAPI(title="NovaTech Support Router", version="2.0")
 
-OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://ollama-llama:11434").rstrip("/")
-MODEL_NAME = os.environ.get("MODEL_NAME", "llama3.2:1b")
-KNOWLEDGE_AGENT = os.environ.get("KNOWLEDGE_AGENT_URL", os.environ.get("A2A_KNOWLEDGE_AGENT", "http://127.0.0.1:5000")).rstrip("/")
+OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://bonsai:8000/v1").rstrip("/")
+MODEL_NAME = os.environ.get("MODEL_NAME", "bonsai-27b")
+KNOWLEDGE_AGENT = os.environ.get("KNOWLEDGE_AGENT_URL", "http://127.0.0.1:5011").rstrip("/")
 PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:5010")
 
 AGENT_CARD = AgentCard(
     name="NovaTech Support Router",
     description="Classifies support tickets and delegates knowledge questions to a specialist agent.",
     url=PUBLIC_URL,
-    version="1.0.0",
+    version="2.0.0",
     default_input_modes=["text/plain", "application/json"],
     default_output_modes=["text/plain", "application/json"],
     capabilities=AgentCapabilities(streaming=False, push_notifications=False),
@@ -57,14 +53,12 @@ def model_dump(value: Any) -> dict[str, Any]:
 
 def extract_text(body: dict[str, Any]) -> str:
     message = ((body.get("params") or {}).get("message") or body.get("message") or {})
-    parts = message.get("parts") or []
-    return "\n".join(str(part.get("text", "")) for part in parts if part.get("text"))
+    return "\n".join(str(part.get("text", "")) for part in (message.get("parts") or []) if part.get("text"))
 
 
 def extract_result_text(body: dict[str, Any]) -> str:
     result = body.get("result") or {}
-    parts = result.get("parts") or []
-    return "\n".join(str(part.get("text", "")) for part in parts if part.get("text"))
+    return "\n".join(str(part.get("text", "")) for part in (result.get("parts") or []) if part.get("text"))
 
 
 def classify_ticket(text: str) -> str:
@@ -74,12 +68,13 @@ def classify_ticket(text: str) -> str:
     )
     try:
         response = requests.post(
-            f"{OLLAMA_HOST}/api/generate",
-            json={"model": MODEL_NAME, "prompt": prompt, "stream": False, "options": {"num_predict": 8}},
-            timeout=60,
+            f"{OPENAI_BASE_URL}/chat/completions",
+            json={"model": MODEL_NAME, "messages": [{"role": "user", "content": prompt}], "temperature": 0, "max_tokens": 8},
+            timeout=90,
         )
         response.raise_for_status()
-        label = str(response.json().get("response", "")).strip().lower()
+        body = response.json()
+        label = str((((body.get("choices") or [{}])[0].get("message") or {}).get("content")) or "").strip().lower()
         for candidate in ("knowledge", "escalation", "general"):
             if candidate in label:
                 return candidate
@@ -95,21 +90,14 @@ def classify_ticket(text: str) -> str:
 
 
 def delegate_to_knowledge(text: str, request_id: Any) -> str:
-    message_id = str(uuid.uuid4())
     payload = {
         "jsonrpc": "2.0",
         "id": request_id,
         "method": "message/send",
-        "params": {
-            "message": {
-                "messageId": message_id,
-                "role": "user",
-                "parts": [{"kind": "text", "text": text}],
-            }
-        },
+        "params": {"message": {"messageId": str(uuid.uuid4()), "role": "user", "parts": [{"kind": "text", "text": text}]}},
     }
     try:
-        response = requests.post(f"{KNOWLEDGE_AGENT}/", json=payload, timeout=90)
+        response = requests.post(f"{KNOWLEDGE_AGENT}/", json=payload, timeout=120)
         response.raise_for_status()
         delegated = response.json()
         return extract_result_text(delegated) or str(delegated.get("result", delegated))
@@ -118,16 +106,7 @@ def delegate_to_knowledge(text: str, request_id: Any) -> str:
 
 
 def rpc_response(request_id: Any, text: str, classification: str) -> dict[str, Any]:
-    return {
-        "jsonrpc": "2.0",
-        "id": request_id,
-        "result": {
-            "kind": "message",
-            "role": "agent",
-            "parts": [{"kind": "text", "text": text}],
-            "metadata": {"classification": classification, "delegated_to": KNOWLEDGE_AGENT},
-        },
-    }
+    return {"jsonrpc": "2.0", "id": request_id, "result": {"kind": "message", "role": "agent", "parts": [{"kind": "text", "text": text}], "metadata": {"classification": classification, "delegated_to": KNOWLEDGE_AGENT}}}
 
 
 @app.get("/.well-known/agent.json")
@@ -155,7 +134,7 @@ async def message_send(body: dict[str, Any]) -> JSONResponse:
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
-    return {"status": "healthy", "agent": AGENT_CARD.name, "knowledge_agent": KNOWLEDGE_AGENT}
+    return {"status": "healthy", "agent": AGENT_CARD.name, "knowledge_agent": KNOWLEDGE_AGENT, "model": MODEL_NAME}
 
 
 if __name__ == "__main__":

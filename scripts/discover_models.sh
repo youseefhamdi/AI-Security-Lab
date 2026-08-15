@@ -6,7 +6,13 @@ PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 RAW_OUTPUT=false
 [[ "${1:-}" == "--raw" ]] && RAW_OUTPUT=true
 
-OLLAMA_CONTAINER="${LLAMA_CONTAINER:-lab-ollama-llama}"
+if [[ "${RUNTIME:-0}" != "1" ]]; then
+  printf 'Static/VPS mode: model-provider discovery is disabled.\n'
+  printf 'Local execution: RUNTIME=1 ./scripts/discover_models.sh\n'
+  exit 0
+fi
+
+OLLAMA_CONTAINER="${LLAMA_CONTAINER:-}"
 OLLAMA_URL="${LLAMA_URL:-http://127.0.0.1:11434}"
 BONSAI_URL="${BONSAI_URL:-http://127.0.0.1:11435}"
 LM_STUDIO_URL="${LM_STUDIO_URL:-http://127.0.0.1:1234}"
@@ -55,8 +61,8 @@ add_openai_endpoint_models() {
   )
 }
 
-# Models currently available inside the lab Ollama container.
-if docker inspect "$OLLAMA_CONTAINER" >/dev/null 2>&1; then
+# Optional models currently available inside an Ollama container.
+if [[ -n "$OLLAMA_CONTAINER" ]] && command -v docker >/dev/null 2>&1 && docker inspect "$OLLAMA_CONTAINER" >/dev/null 2>&1; then
   while IFS= read -r model; do
     [[ -n "$model" ]] && add_candidate "ollama-lab" "$model" "$OLLAMA_URL"
   done < <(docker exec "$OLLAMA_CONTAINER" ollama list 2>/dev/null | awk 'NR > 1 && NF {print $1}')

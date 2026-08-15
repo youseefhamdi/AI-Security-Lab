@@ -14,24 +14,23 @@ flowchart TD
     end
 
     subgraph L2["Layer 2: Inference"]
-        OLLAMA["🧠 Ollama :11434<br/>Llama 3.2 1B"]:::inf
-        BONSAI["🌳 llama.cpp :11435<br/>Bonsai 27B"]:::inf
+        BONSAI["🌳 llama.cpp :11435<br/>Bonsai 27B<br/>Lite: 4K context"]:::inf
     end
 
     subgraph L3["Layer 3: Storage"]
         MILVUS["💾 Milvus :19530<br/>Production Vector DB"]:::sto
-        CHROMA["📚 ChromaDB :8001<br/>Lightweight Vector"]:::sto
+        CHROMA["📚 ChromaDB :8010<br/>Optional Vector Store"]:::sto
         LR["🔗 LightRAG :9621<br/>Graph RAG"]:::sto
     end
 
     subgraph L4["Layer 4: Memory"]
-        MEM0["🧬 Mem0 :8081<br/>Multi-level Memory"]:::mem
+        MEM0["🧬 Mem0 :8888<br/>Optional Memory"]:::mem
     end
 
     subgraph L5["Layer 5: Protocols"]
         A2A1["🔗 A2A Router :5010"]:::proto
         A2A2["🔗 A2A Knowledge :5011"]:::proto
-        MCP1["🛠️ MCP Memory :3001"]:::proto
+        MCP1["🛠️ MCP Wrapper :3001"]:::proto
         MCP2["📁 MCP Filesystem :3002"]:::proto
         MCP3["🌐 MCP Fetch :3003"]:::proto
     end
@@ -57,9 +56,9 @@ flowchart TD
     end
 
     KONG --> A1 & A2 & A3
-    A1 --> OLLAMA & MEM0 & MILVUS & LR
+    A1 --> BONSAI & MEM0 & MILVUS & LR
     A2 --> BONSAI & MEM0 & MILVUS & LR
-    A3 --> OLLAMA
+    A3 --> BONSAI
     A1 & A2 --> A2A1 & MCP1 & MCP2
     A2A1 --> A2A2
     A2A2 --> LR
