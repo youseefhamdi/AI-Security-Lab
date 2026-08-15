@@ -1,0 +1,11 @@
+# HONEYPOT CONFIGURATION - SYNTHETIC VALUES ONLY
+database:
+  host: db01.internal
+  port: 5432
+  username: app_service
+  password: NovaTech2024_HONEYPOT
+api:
+  internal_key: ntk_internal_HONEYPOT_0123456789abcdef
+  admin_key: ntk_admin_HONEYPOT_abcdef0123456789
+cache:
+  redis_password: redis_TEST_ONLY_HONEYPOT
