@@ -4,8 +4,6 @@
   <img src="docs/assets/ai-security-lab-banner.svg" alt="Zodiac AI Security Lab — Spartan-inspired security banner" width="100%" />
 </a>
 
-<img src="docs/assets/zodiac-spartan-logo.svg" alt="Zodiac Spartan emblem" width="96" />
-
 [![Brand](https://img.shields.io/badge/Brand-ZODIAC-0F172A?logo=target&logoColor=67E8F9)](#-what-is-this)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose%20v2-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![Model](https://img.shields.io/badge/Model-PrismML%20Bonsai%2027B-7C3AED)](https://huggingface.co/prism-ml/bonsai-27b)

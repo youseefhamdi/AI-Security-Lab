@@ -8,6 +8,14 @@ SEED_DATA="${SEED_DATA:-0}"
 
 print_brand() {
   printf '\n'
+  if [[ "${RUNTIME:-0}" == "1" && -t 1 && "${NO_ANIMATION:-0}" != "1" ]]; then
+    local frame
+    for frame in '◐' '◓' '◑' '◒'; do
+      printf '\r  [ZODIAC] Spartan core activation %s' "$frame"
+      sleep 0.12
+    done
+    printf '\033[2K\r'
+  fi
   cat <<'BANNER'
   ╔══════════════════════════════════════════════════════════════╗
   ║                     Z O D I A C                              ║

@@ -25,8 +25,8 @@
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <style>
-      .title { font: 800 58px 'Inter', 'Segoe UI', sans-serif; letter-spacing: 7px; }
-      .subtitle { font: 600 18px 'Inter', 'Segoe UI', sans-serif; letter-spacing: 5px; }
+      .title { font: 800 58px 'Inter', 'Segoe UI', sans-serif; letter-spacing: 7px; animation: titleGlow 3.2s ease-in-out infinite; }
+      .subtitle { font: 600 18px 'Inter', 'Segoe UI', sans-serif; letter-spacing: 5px; animation: subtitleFade 3.2s ease-in-out .35s infinite; }
       .micro { font: 500 13px 'JetBrains Mono', 'SFMono-Regular', monospace; letter-spacing: 2px; }
       .badge { font: 700 13px 'Inter', 'Segoe UI', sans-serif; letter-spacing: 1px; }
       .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.8s ease-in-out infinite; }
@@ -36,10 +36,12 @@
       .scan { animation: scan 4.5s linear infinite; }
       .dash { animation: dash 3s linear infinite; }
       @keyframes pulse { 0%,100% { opacity: .35; transform: scale(.75); } 50% { opacity: 1; transform: scale(1.25); } }
+      @keyframes titleGlow { 0%,100% { opacity: .78; filter: drop-shadow(0 0 2px #67e8f9); } 50% { opacity: 1; filter: drop-shadow(0 0 12px #c4b5fd); } }
+      @keyframes subtitleFade { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
       @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
       @keyframes scan { from { transform: translateX(-260px); } to { transform: translateX(1460px); } }
       @keyframes dash { to { stroke-dashoffset: -80; } }
-      @media (prefers-reduced-motion: reduce) { .pulse,.pulse2,.float,.float2,.scan,.dash { animation: none; } }
+      @media (prefers-reduced-motion: reduce) { .pulse,.pulse2,.float,.float2,.scan,.dash,.title,.subtitle { animation: none; } }
     </style>
   </defs>
 
