@@ -4,7 +4,7 @@
   <img src="docs/assets/ai-security-lab-banner.svg" alt="Animated AI Security Lab banner with a Spartan fighter emblem" width="100%" />
 </a>
 
-[![Brand](https://img.shields.io/badge/Brand-ZODIAC-0F172A?logo=target&logoColor=67E8F9)](#-what-is-this)
+[![Brand](https://img.shields.io/badge/Brand-ZODIAC-0F172A?logo=target&logoColor=67E8F9)](#-zodiac-brand)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose%20v2-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![Model](https://img.shields.io/badge/Model-PrismML%20Bonsai%2027B-7C3AED)](https://huggingface.co/prism-ml/bonsai-27b)
 [![Inference](https://img.shields.io/badge/Inference-llama.cpp-111827)](https://github.com/ggml-org/llama.cpp)
@@ -17,13 +17,42 @@
 
 ---
 
-## ✨ What is this?
+## 📚 Contents
+
+- [What this project is](#-what-this-project-is)
+- [ZODIAC brand](#-zodiac-brand)
+- [Choose a runtime profile](#-choose-a-runtime-profile)
+- [Requirements](#-requirements)
+- [Install on any platform](#-install-on-any-platform)
+- [Prepare an inference provider](#-prepare-an-inference-provider)
+- [Start the lab](#-start-the-lab)
+- [Verify the lab](#-verify-the-lab)
+- [Run the training exercises](#-run-the-training-exercises)
+- [Automatic provider detection](#-automatic-provider-detection)
+- [Endpoints](#-endpoints)
+- [Stop, restart, and clean](#-stop-restart-and-clean)
+- [Troubleshooting](#-troubleshooting)
+- [VPS build-only policy](#-vps-build-only-policy)
+- [Security boundary](#-security-boundary)
+- [Authoritative upstreams](#-authoritative-upstreams)
+
+## ✨ What this project is
 
 **ZODIAC AI Security Lab** is a local-first training environment based on OffSec AI-300 Module 2 concepts. It combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, and detection tooling into one reproducible lab.
 
 The project is intentionally unsafe by design. It includes debug leaks, exposed tool schemas, synthetic credentials, prompt-injection weaknesses, unauthenticated protocol exercises, and honeypot data. Run it only on a machine you control and keep all services bound to localhost.
 
-## 🧭 Architecture at a glance
+## ⚔️ ZODIAC brand
+
+When the lab is launched through the startup helper, it displays an animated **ZODIAC Spartan** activation banner before starting services:
+
+```bash
+RUNTIME=1 ./scripts/start_all.sh
+```
+
+The README hero uses a generic animated AI Security Lab banner. The ZODIAC name is reserved for the runtime identity and terminal startup experience.
+
+## 🧭 Architecture
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -43,157 +72,375 @@ The project is intentionally unsafe by design. It includes debug leaks, exposed 
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🎯 Training coverage
+## ⚡ Choose a runtime profile
 
-| Area | Lab components |
-| --- | --- |
-| Model reconnaissance | Identity, contradiction, cutoff, capability, context, arithmetic probes |
-| Prompt security | Aurora injection, system-prompt extraction, guardrail bypass |
-| RAG security | Document enumeration, chunk probing, similarity-threshold testing |
-| Agent protocols | A2A Agent Cards, trust mapping, MCP schema discovery and invocation |
-| Memory security | Mem0 poisoning, extraction, persistence, cross-user isolation |
-| Codebase intelligence | Understand-Anything graph manipulation and architecture leakage |
-| Detection engineering | Filebeat, Elasticsearch, Kibana, E01–E05 and D02–D03 rules |
-| Orchestration | Task injection, worker impersonation, loop and CI/CD poisoning |
+Start with **core**. Add protocols or the full stack only when you need them.
 
-## ⚡ Resource profiles
+| Profile | Services | Typical resources | Start command |
+| --- | --- | --- | --- |
+| `core` | Bonsai or detected provider, Aurora, Phoenix, Assistant | 8 GB RAM minimum; 10–12 GB recommended | `RUNTIME=1 ./scripts/start_all.sh` |
+| `lite` | Core + A2A Router, Knowledge Agent, MCP server, MCP wrapper | 10 GB minimum; 12–16 GB recommended | `RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh` |
+| `full` | Lite + Kong, storage, Mem0, LightRAG, extra MCP, ELK | 32 GB minimum; 48 GB recommended | `RUNTIME=1 LAB_MODE=full SEED_DATA=0 ./scripts/start_all.sh` |
 
-### `core` — default and smallest footprint
+### Core profile
 
-Starts only four containers:
+Starts four application containers and one inference container only when a local Bonsai fallback is selected:
 
-- Bonsai llama.cpp
+- Bonsai llama.cpp, if no external provider is available
 - Aurora support chatbot
 - Phoenix code reviewer
 - Assistant OpenAI-compatible API
+- Dependency-free local Markdown retrieval
 
-Aurora uses dependency-free local Markdown retrieval, so the core does not require ChromaDB, Milvus, LightRAG, Mem0, A2A, MCP, Kong, or ELK.
+### Lite profile
 
-| Resource | Minimum | Recommended |
-| --- | ---: | ---: |
-| CPU | 4 cores | 6–8 cores |
-| RAM | 8 GB | 10–12 GB |
-| SSD | 15 GB free | 25 GB free |
+Adds protocol reconnaissance targets:
 
-### `lite` — core + protocol exercises
+- A2A Router
+- A2A Knowledge Agent
+- MCP server
+- MCP wrapper
 
-Adds the A2A Router, Knowledge Agent, MCP server, and MCP wrapper.
+### Full profile
 
-| Resource | Minimum | Recommended |
-| --- | ---: | ---: |
-| CPU | 4 cores | 8 cores |
-| RAM | 10 GB | 12–16 GB |
-| SSD | 20 GB free | 30 GB free |
+Adds infrastructure and detection services:
 
-### `full` — complete lab stack
+- Kong and PostgreSQL
+- ChromaDB, Milvus, Redis, LightRAG, Mem0
+- MCP memory, filesystem, and fetch services
+- Elasticsearch, Kibana, and Filebeat
 
-Adds Kong, ChromaDB, Milvus, LightRAG, Mem0, extra MCP servers, Elasticsearch, Kibana, and Filebeat.
+> **Important:** full mode requires an embedding provider for LightRAG/Mem0. Bonsai is a text-generation backend and does not provide embeddings.
 
-- 32 GB RAM minimum
-- 48 GB recommended
-- 100 GB disk minimum
-- 12+ CPU cores recommended
+## 💻 Requirements
 
-> **Bonsai serving defaults:** 2K context, one concurrent request, CPU mode, and a 5 GB container memory limit. Increase `BONSAI_CONTEXT_SIZE` only when the host has additional memory.
+### All platforms
 
-## 🌳 Model setup — no model pulls
+- Docker Engine or Docker Desktop
+- Docker Compose v2
+- Git
+- `curl`
+- 64-bit operating system
+- Internet access for Docker images and application builds
+- A pre-downloaded model from one supported provider, or the local Bonsai GGUF
 
-The lab uses the already-downloaded **PrismML Bonsai 27B** GGUF, approximately 4 GB:
+### Recommended resources
+
+| Profile | CPU | RAM | Disk |
+| --- | ---: | ---: | ---: |
+| Core | 4 cores | 8 GB minimum / 10–12 GB recommended | 15 GB minimum / 25 GB recommended |
+| Lite | 4 cores | 10 GB minimum / 12–16 GB recommended | 20 GB minimum / 30 GB recommended |
+| Full | 12+ cores | 32 GB minimum / 48 GB recommended | 100 GB minimum |
+
+Bonsai defaults to a 2K context, one concurrent request, CPU mode, and a 5 GB container memory limit. Increase `BONSAI_CONTEXT_SIZE` only when the host has additional memory.
+
+## 📥 Install on any platform
+
+### Linux
+
+```bash
+git clone https://github.com/youseefhamdi/AI-Security-Lab.git
+cd AI-Security-Lab
+
+docker --version
+docker compose version
+```
+
+If the scripts are not executable after transfer:
+
+```bash
+chmod +x scripts/*.sh exercises/*.sh
+```
+
+### macOS
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+2. Open Docker Desktop and wait until it reports that Docker is running.
+3. Clone the repository:
+
+```bash
+git clone https://github.com/youseefhamdi/AI-Security-Lab.git
+cd AI-Security-Lab
+```
+
+4. Verify Docker:
+
+```bash
+docker --version
+docker compose version
+```
+
+### Windows
+
+Use either **PowerShell with Docker Desktop**, **Git Bash**, or **WSL2**.
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) with the WSL2 backend enabled.
+2. Start Docker Desktop.
+3. Clone the repository in Git Bash or WSL2:
+
+```bash
+git clone https://github.com/youseefhamdi/AI-Security-Lab.git
+cd AI-Security-Lab
+```
+
+4. Verify Docker:
+
+```bash
+docker --version
+docker compose version
+```
+
+If Bash scripts do not run directly, invoke them explicitly:
+
+```bash
+bash scripts/start_all.sh
+```
+
+Docker Desktop normally provides `host.docker.internal`, allowing containers to reach Ollama or LM Studio running on Windows or macOS.
+
+## 🌳 Prepare an inference provider
+
+The lab never pulls models. It automatically detects an already-running provider.
+
+Supported providers:
+
+| Provider | Default endpoint | Model listing endpoint |
+| --- | --- | --- |
+| Ollama | `http://127.0.0.1:11434` | `/api/tags` |
+| LM Studio / LMS | `http://127.0.0.1:1234/v1` | `/models` |
+| Existing llama.cpp/Bonsai | `http://127.0.0.1:11435/v1` | `/models` |
+| Local Bonsai fallback | `./models/*.gguf` | File existence check |
+
+### Option A: Use Ollama
+
+1. Start Ollama on the host.
+2. Make sure at least one chat model is already available.
+3. Confirm it responds:
+
+```bash
+curl http://127.0.0.1:11434/api/tags
+```
+
+If the provider runs outside Docker on Linux, it must listen on an address reachable from Docker. Configure Ollama according to your host installation; do not expose it beyond your trusted local network.
+
+### Option B: Use LM Studio
+
+1. Start LM Studio.
+2. Download or import a model in LM Studio yourself.
+3. Start its local server on port `1234`.
+4. Confirm the OpenAI-compatible endpoint:
+
+```bash
+curl http://127.0.0.1:1234/v1/models
+```
+
+### Option C: Use the local Bonsai GGUF
+
+Place the already-downloaded file under `models/`:
 
 ```text
 models/bonsai-27b.gguf
 ```
 
-If the downloaded filename differs, set it in a local `.env` file:
+If its filename is different, create a local `.env` file:
 
 ```env
 BONSAI_MODEL_FILE=your-actual-bonsai-file.gguf
 ```
 
-The project does **not** pull models. Verify the local fallback file without downloading anything:
+Verify the fallback file without downloading anything:
 
 ```bash
 ./scripts/pull_models.sh
 ```
 
-All three applications and the A2A agents reuse the selected provider through one OpenAI-compatible interface. Bonsai is started only when no external provider is detected or when `INFERENCE_PROVIDER=bonsai` is selected.
+## 🚀 Start the lab
 
-## 🔎 Automatic provider detection
+### 1. Start the smallest core
 
-`RUNTIME=1 ./scripts/start_all.sh` probes providers in this order:
-
-| Provider | Default local endpoint | Container endpoint passed to apps |
-| --- | --- | --- |
-| Ollama | `http://127.0.0.1:11434` | `http://host.docker.internal:11434/v1` |
-| LM Studio (LMS) | `http://127.0.0.1:1234/v1` | `http://host.docker.internal:1234/v1` |
-| llama.cpp / existing Bonsai | `http://127.0.0.1:11435/v1` | `http://host.docker.internal:11435/v1` |
-| Local Bonsai fallback | project `models/*.gguf` | `http://bonsai:8000/v1` |
-
-Override automatic selection when needed:
-
-```bash
-INFERENCE_PROVIDER=ollama INFERENCE_MODEL=llama3.2:1b RUNTIME=1 ./scripts/start_all.sh
-INFERENCE_PROVIDER=lmstudio INFERENCE_MODEL=your-model RUNTIME=1 ./scripts/start_all.sh
-INFERENCE_PROVIDER=bonsai RUNTIME=1 ./scripts/start_all.sh
-```
-
-You can also provide any OpenAI-compatible provider with:
-
-```bash
-INFERENCE_DISCOVERY_URL=http://127.0.0.1:8000/v1 \\
-INFERENCE_CONTAINER_URL=http://host.docker.internal:8000/v1 \\
-RUNTIME=1 ./scripts/start_all.sh
-```
-
-The inference smoke test uses the same provider detection logic:
-
-```bash
-RUNTIME=1 ./scripts/test_inference.sh
-```
-
-## 🚀 Quick start
-
-> Run these commands on your local machine—not on the build-only VPS.
-
-### Core mode
-
-Use the branded startup helper. It displays the animated ZODIAC Spartan activation before launching the lab, and Compose uses the project name `zodiac-ai-security-lab`.
+Use the branded helper so the ZODIAC Spartan activation appears in the terminal:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
 ```
 
-Direct Compose startup is also supported, but bypasses the terminal brand animation:
+The helper will:
 
-```bash
-docker compose up -d
-```
+1. Display the ZODIAC startup banner.
+2. Detect Ollama, LM Studio, or an existing llama.cpp provider.
+3. Select the first available model.
+4. Use the local Bonsai container only if no external provider is found.
+5. Start Aurora, Phoenix, and Assistant with the selected backend.
 
-### Lite protocol mode
+### 2. Start protocol services
 
 ```bash
 RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh
 ```
 
-### Full mode
+### 3. Start the complete lab
 
-Use this only on a sufficiently provisioned machine:
+First start the full stack without seeding:
+
+```bash
+RUNTIME=1 LAB_MODE=full SEED_DATA=0 ./scripts/start_all.sh
+```
+
+Only enable seeding after ChromaDB, Milvus, LightRAG, Mem0, and the required embedding provider are configured:
 
 ```bash
 RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh
 ```
 
-### Inference smoke test
+### Direct Compose startup
+
+Direct Compose startup uses the local Bonsai fallback values and bypasses provider detection and the terminal brand animation:
+
+```bash
+docker compose up -d
+```
+
+The provider-aware startup path is recommended.
+
+## 🔎 Automatic provider detection
+
+The detection helper is:
+
+```text
+scripts/detect_provider.sh
+```
+
+It exports these values for Compose:
+
+```text
+INFERENCE_PROVIDER
+INFERENCE_BASE_URL
+INFERENCE_LOCAL_BASE_URL
+INFERENCE_MODEL
+```
+
+The applications all use one OpenAI-compatible interface, regardless of which provider was selected.
+
+Override selection when needed:
+
+```bash
+INFERENCE_PROVIDER=ollama \
+INFERENCE_MODEL=llama3.2:1b \
+RUNTIME=1 ./scripts/start_all.sh
+```
+
+```bash
+INFERENCE_PROVIDER=lmstudio \
+INFERENCE_MODEL=your-lm-studio-model \
+RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh
+```
+
+```bash
+INFERENCE_PROVIDER=bonsai \
+RUNTIME=1 ./scripts/start_all.sh
+```
+
+For another OpenAI-compatible server:
+
+```bash
+INFERENCE_DISCOVERY_URL=http://127.0.0.1:8000/v1 \
+INFERENCE_CONTAINER_URL=http://host.docker.internal:8000/v1 \
+RUNTIME=1 ./scripts/start_all.sh
+```
+
+## ✅ Verify the lab
+
+### Check containers
+
+```bash
+docker compose ps
+```
+
+For full mode:
+
+```bash
+docker compose --profile protocols --profile full ps
+```
+
+### Check core health endpoints
+
+```bash
+curl --fail http://127.0.0.1:5000/health
+curl --fail http://127.0.0.1:5001/api/health
+curl --fail http://127.0.0.1:5002/health
+```
+
+If the local Bonsai container is selected:
+
+```bash
+curl --fail http://127.0.0.1:11435/health
+```
+
+If Ollama or LM Studio was selected, check that provider’s host endpoint instead.
+
+### Run the inference smoke test
 
 ```bash
 RUNTIME=1 ./scripts/test_inference.sh
 ```
 
-### Stop and clean local services
+The test automatically detects the provider, sends `Reply: BACKEND_OK`, and validates the OpenAI-compatible response shape.
+
+### Test the application APIs
+
+Aurora:
 
 ```bash
-RUNTIME=1 ./scripts/stop_all.sh
-RUNTIME=1 CONFIRM_CLEAN=1 ./scripts/clean_all.sh
+curl -sS http://127.0.0.1:5000/api/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"How many PTO days does a first-year employee receive?","session_id":"demo"}'
+```
+
+Phoenix:
+
+```bash
+curl -sS http://127.0.0.1:5001/api/review \
+  -H 'Content-Type: application/json' \
+  -d '{"language":"python","code":"password = input()\nprint(password)"}'
+```
+
+Assistant:
+
+```bash
+curl -sS http://127.0.0.1:5002/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"auto","messages":[{"role":"user","content":"Reply: ASSISTANT_OK"}]}'
+```
+
+## 🧪 Run the training exercises
+
+All exercises are for authorized local use only. Runtime exercises are guarded by `RUNTIME=1`.
+
+```bash
+# Model fingerprinting
+RUNTIME=1 ./scripts/test_inference.sh
+
+# A2A and MCP reconnaissance
+RUNTIME=1 ./exercises/protocol_recon.sh
+
+# Aurora, Phoenix, and Assistant attack exercises
+RUNTIME=1 ./exercises/app_attacks.sh
+
+# Mem0 poisoning and extraction exercises
+RUNTIME=1 ./exercises/mem0_attacks.sh
+
+# Storage backend reconnaissance (requires full-mode vector settings)
+RUNTIME=1 CHROMA_COLLECTION_ID=... QUERY_EMBEDDING_JSON='...' ./scripts/storage_recon.sh
+
+# Noisy versus stealthy detection practice
+RUNTIME=1 ./exercises/evasion_practice.sh
+```
+
+The written exercises and attack notes are available in:
+
+```text
+exercises/
+docs/
 ```
 
 ## 🔌 Endpoints
@@ -202,7 +449,8 @@ RUNTIME=1 CONFIRM_CLEAN=1 ./scripts/clean_all.sh
 
 | Service | Endpoint |
 | --- | --- |
-| Bonsai llama.cpp | `http://127.0.0.1:11435` |
+| Selected inference provider | Host-specific; see startup output |
+| Local Bonsai fallback | `http://127.0.0.1:11435` |
 | Aurora | `http://127.0.0.1:5000` |
 | Phoenix | `http://127.0.0.1:5001` |
 | Assistant | `http://127.0.0.1:5002` |
@@ -251,11 +499,104 @@ mem0-config/           Optional Mem0 configuration
 models/                Local GGUF files; ignored by Git
 ```
 
-## 🔐 VPS build-only policy
+## 🛑 Stop, restart, and clean
+
+### Stop services
+
+```bash
+RUNTIME=1 ./scripts/stop_all.sh
+```
+
+### Restart the current profile
+
+```bash
+RUNTIME=1 ./scripts/start_all.sh
+```
+
+Use the same `LAB_MODE` and provider variables used for the original launch.
+
+### Remove containers and networks
+
+```bash
+RUNTIME=1 ./scripts/stop_all.sh
+```
+
+### Remove containers, networks, and volumes
+
+> This permanently deletes local lab data, including indexed documents, memory records, and SIEM data.
+
+```bash
+RUNTIME=1 CONFIRM_CLEAN=1 ./scripts/clean_all.sh
+```
+
+The cleanup script never deletes model files under `models/`.
+
+## 🧯 Troubleshooting
+
+### `Missing Bonsai GGUF`
+
+Either start Ollama/LM Studio first, or place a GGUF file under `models/` and set:
+
+```env
+BONSAI_MODEL_FILE=your-file.gguf
+```
+
+### Provider was not detected
+
+Check the provider directly:
+
+```bash
+curl http://127.0.0.1:11434/api/tags
+curl http://127.0.0.1:1234/v1/models
+curl http://127.0.0.1:11435/v1/models
+```
+
+Then select the provider explicitly with `INFERENCE_PROVIDER`.
+
+### Containers cannot reach a host provider
+
+The Compose services use `host.docker.internal` for host-provider access. On Linux, the Compose file maps it to the Docker host using `host-gateway`. Confirm that the provider listens on an address reachable from Docker and that the host firewall allows local Docker traffic.
+
+### Model name is wrong
+
+Set the exact provider model identifier:
+
+```bash
+INFERENCE_PROVIDER=lmstudio INFERENCE_MODEL=exact-model-id RUNTIME=1 ./scripts/start_all.sh
+```
+
+### A port is already in use
+
+Find the process using the port and stop it, or change the host port in `docker-compose.yml`. Core ports are `11435`, `5000`, `5001`, and `5002`; full mode adds the ports listed in the endpoint tables.
+
+### A service is unhealthy
+
+Inspect logs without starting anything new:
+
+```bash
+docker compose logs --tail=100 bonsai
+docker compose logs --tail=100 aurora
+```
+
+For full mode:
+
+```bash
+docker compose --profile protocols --profile full logs --tail=100
+```
+
+### Docker Desktop runs out of memory
+
+Use core mode, reduce `BONSAI_CONTEXT_SIZE`, close other containers, or increase Docker Desktop memory. Do not start full mode on a small machine.
+
+### Mem0 or LightRAG fails in full mode
+
+Full mode needs an embedding provider. Bonsai only generates text. Configure the embedding variables in `.env` and review `mem0-config/config.yaml` before enabling storage seeding.
+
+## 🛡️ VPS build-only policy
 
 The VPS is for building and static verification only:
 
-- Do **not** run `docker compose up` or `docker run`.
+- Do **not** run `docker compose up` or `docker run` on the VPS.
 - Do **not** pull models.
 - Do **not** install OS packages.
 - Do **not** contact runtime services.
@@ -275,7 +616,7 @@ The official `mem0/mem0-api-server` image is optional and authenticated by defau
 - [LightRAG](https://github.com/HKUDS/LightRAG)
 - [llama.cpp](https://github.com/ggml-org/llama.cpp)
 
-## 🛡️ Security boundary
+## 🔐 Security boundary
 
 This project is for **authorized local training only**. It intentionally contains:
 
