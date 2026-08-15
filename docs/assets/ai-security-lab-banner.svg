@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="360" viewBox="0 0 1400 360" role="img" aria-labelledby="title desc">
-  <title id="title">AI Security Lab</title>
-  <desc id="desc">Animated neon banner with a Spartan fighter emblem for an AI security lab.</desc>
+  <title id="title">Zodiac Bank AI Security Lab</title>
+  <desc id="desc">Animated neon Zodiac Bank banner for a synthetic AI security training range.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#070b1c"/>
@@ -72,8 +72,8 @@
 
   <g class="float2" opacity=".7">
     <rect x="1028" y="150" width="252" height="74" rx="10" fill="#020617" fill-opacity=".65" stroke="#64748b" stroke-opacity=".45"/>
-    <text x="1050" y="177" class="micro" fill="#67e8f9">THREAT_SURFACE</text>
-    <text x="1050" y="203" class="micro" fill="#c4b5fd">RAG / A2A / MCP / SIEM</text>
+    <text x="1050" y="177" class="micro" fill="#67e8f9">BANK_AI_SURFACE</text>
+    <text x="1050" y="203" class="micro" fill="#c4b5fd">RAG / GRAPH / A2A / MCP</text>
   </g>
 
   <g class="orbit" fill="none" stroke-linecap="round">
@@ -88,22 +88,22 @@
   <image href="spartan-emblem.svg" x="58" y="82" width="178" height="178" class="float"/>
 
   <g transform="translate(270 76)">
-    <text class="micro" fill="#67e8f9">[ LOCAL-FIRST // AUTHORIZED RESEARCH ]</text>
-    <text y="78" class="title" fill="url(#titleGradient)">AI SECURITY LAB</text>
-    <text y="119" class="subtitle" fill="#e2e8f0">RED TEAM WORKBENCH  ·  RECON  ·  ATTACK</text>
-    <text y="160" class="micro" fill="#94a3b8">OBSERVE  /  DETECT  /  HARDEN</text>
+    <text class="micro" fill="#67e8f9">[ LOCAL-FIRST // SYNTHETIC BANKING RANGE ]</text>
+    <text y="78" class="title" fill="url(#titleGradient)">ZODIAC BANK</text>
+    <text y="119" class="subtitle" fill="#e2e8f0">AI SECURITY LAB  ·  RECON  ·  ATTACK</text>
+    <text y="160" class="micro" fill="#94a3b8">DETECT  /  CONTAIN  /  HARDEN  /  ADVANCE</text>
 
     <g transform="translate(0 194)">
       <rect width="138" height="34" rx="17" fill="#0e7490" fill-opacity=".28" stroke="#22d3ee" stroke-opacity=".7"/>
-      <text x="69" y="22" text-anchor="middle" class="badge" fill="#a5f3fc">BONSAI 27B</text>
+      <text x="69" y="22" text-anchor="middle" class="badge" fill="#a5f3fc">HARD-GATED</text>
       <rect x="150" width="126" height="34" rx="17" fill="#6d28d9" fill-opacity=".25" stroke="#a78bfa" stroke-opacity=".7"/>
-      <text x="213" y="22" text-anchor="middle" class="badge" fill="#ddd6fe">LLAMA.CPP</text>
+      <text x="213" y="22" text-anchor="middle" class="badge" fill="#ddd6fe">GRAPH RAG</text>
       <rect x="288" width="150" height="34" rx="17" fill="#be185d" fill-opacity=".22" stroke="#f472b6" stroke-opacity=".7"/>
-      <text x="363" y="22" text-anchor="middle" class="badge" fill="#fbcfe8">DOCKER LAB</text>
+      <text x="363" y="22" text-anchor="middle" class="badge" fill="#fbcfe8">APT RANGE</text>
     </g>
   </g>
 
   <rect class="scan" x="0" y="30" width="2" height="300" fill="#67e8f9" opacity=".6" filter="url(#glow)"/>
   <circle cx="1330" cy="310" r="4" fill="#22d3ee" class="pulse"/>
-  <text x="1320" y="322" text-anchor="end" class="micro" fill="#64748b">STATUS: LAB_READY</text>
+  <text x="1320" y="322" text-anchor="end" class="micro" fill="#64748b">STATUS: ZODIAC_BANK_READY</text>
 </svg>

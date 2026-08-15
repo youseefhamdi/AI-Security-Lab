@@ -1,14 +1,16 @@
 <div align="center">
 
 <a href="https://github.com/youseefhamdi/AI-Security-Lab">
-  <img src="docs/assets/ai-security-lab-banner.svg" alt="Animated AI Security Lab banner with a Spartan fighter emblem" width="100%" />
+  <img src="docs/assets/ai-security-lab-banner.svg" alt="Animated Zodiac Bank AI Security Lab banner with a Spartan emblem" width="100%" />
 </a>
 
-[![Brand](https://img.shields.io/badge/Brand-ZODIAC-0F172A?logo=target&logoColor=67E8F9)](#-zodiac-brand)
+[![Brand](https://img.shields.io/badge/Brand-ZODIAC%20BANK-0F172A?logo=target&logoColor=67E8F9)](#-zodiac-bank-brand)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose%20v2-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![Model](https://img.shields.io/badge/Model-PrismML%20Bonsai%2027B-7C3AED)](https://huggingface.co/prism-ml/bonsai-27b)
 [![Inference](https://img.shields.io/badge/Inference-llama.cpp-111827)](https://github.com/ggml-org/llama.cpp)
 [![Security Lab](https://img.shields.io/badge/Purpose-AI%20Security%20Training-EF4444)](#-security-boundary)
+[![Curriculum](https://img.shields.io/badge/Curriculum-10%20Hard--Gated%20Stages-F97316)](#-zodiac-bank-progression)
+[![Data](https://img.shields.io/badge/Data-Synthetic%20%26%20Local--Only-22C55E)](#-security-boundary)
 
 > **Zodiac Bank AI Security Lab** — an isolated synthetic banking environment for model fingerprinting, prompt injection, RAG attacks, agent protocol abuse, memory poisoning, supply-chain scenarios, and SIEM detection.
 
@@ -19,7 +21,7 @@
 ## 📚 Contents
 
 - [What this project is](#-what-this-project-is)
-- [ZODIAC brand](#-zodiac-brand)
+- [ZODIAC BANK brand](#-zodiac-bank-brand)
 - [Choose a runtime profile](#-choose-a-runtime-profile)
 - [Requirements](#-requirements)
 - [Install on any platform](#-install-on-any-platform)
@@ -42,17 +44,25 @@
 
 **Zodiac Bank AI Security Lab** is a local-first training environment based on OffSec AI-300 Module 2 concepts. It combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, progression gates, and detection tooling into one reproducible lab.
 
-The project is intentionally unsafe by design. It includes debug leaks, exposed tool schemas, synthetic credentials, prompt-injection weaknesses, unauthenticated protocol exercises, and honeypot data. Run it only on a machine you control and keep all services bound to localhost.
+The project is intentionally unsafe by design inside its challenge surfaces. It includes debug leaks, exposed tool schemas, synthetic credentials, prompt-injection weaknesses, unauthenticated protocol exercises, and honeypot data. The surrounding progression, graph/context, and workflow controls are bounded and authenticated where configured. Run it only on a machine you control and keep all services bound to localhost.
 
-## ⚔️ ZODIAC brand
+## ⚔️ ZODIAC BANK brand
 
-When the lab is launched through the startup helper, it displays an animated **ZODIAC Spartan** activation banner before starting services:
+The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Spartan defense emblem, hard-gated progression, graph RAG, and APT-range training.
+
+The animated banner communicates the lab identity without exposing credentials, model paths, or runtime secrets. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
 ```
 
-The README hero uses a generic animated AI Security Lab banner. The ZODIAC name is reserved for the runtime identity and terminal startup experience.
+Brand assets:
+
+- Hero banner: `docs/assets/ai-security-lab-banner.svg`
+- Spartan emblem: `docs/assets/zodiac-spartan-logo.svg`
+- Runtime identity: `ZODIAC BANK SECURITY LAB`
+
+All branding represents a synthetic training environment; it is not affiliated with a real bank.
 
 ## 🧭 Architecture
 
@@ -80,13 +90,13 @@ Start with **core**. Add protocols or the full stack only when you need them.
 
 | Profile | Services | Typical resources | Start command |
 | --- | --- | --- | --- |
-| `core` | Bonsai or detected provider, Training Gate, Aurora, Phoenix, Assistant | 8 GB RAM minimum; 10–12 GB recommended | `RUNTIME=1 ./scripts/start_all.sh` |
+| `core` | Inference provider, Training Gate, Challenge Surface, Graph Context, Aurora, Phoenix, Assistant | 8 GB RAM minimum; 10–12 GB recommended | `RUNTIME=1 ./scripts/start_all.sh` |
 | `lite` | Core + A2A Router, Knowledge Agent, MCP server, MCP wrapper | 10 GB minimum; 12–16 GB recommended | `RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh` |
 | `full` | Lite + Kong, storage, Mem0, LightRAG, extra MCP, ELK | 32 GB minimum; 48 GB recommended | `RUNTIME=1 LAB_MODE=full SEED_DATA=0 ./scripts/start_all.sh` |
 
 ### Core profile
 
-Starts the Training Gate and three application containers, plus one inference container when a local Bonsai fallback is selected:
+Starts the progression and context-control plane plus three application containers, and one inference container only when the local Bonsai fallback is selected:
 
 - Bonsai llama.cpp, if no external provider is available
 - Aurora support chatbot
@@ -95,6 +105,7 @@ Starts the Training Gate and three application containers, plus one inference co
 - Zodiac Bank hard-flag Training Gate and unique Challenge Surface
 - Zodiac Bank Graph Context service with bounded graph traversal and context packets
 - Dependency-free local Markdown retrieval
+- Offline security evaluation before service startup
 
 ### Lite profile
 
@@ -339,11 +350,26 @@ Verify the fallback file without downloading anything:
 
 ### Recommended first run
 
-From the repository root, run these commands in order. If `.env` contains `BONSAI_MODEL_DIR`, the local Bonsai model takes precedence over a running Ollama server:
+From the repository root, configure strong local secrets first. Docker Compose reads `.env` automatically:
 
 ```bash
 cd /path/to/AI-Security-Lab  # replace with your clone path
 chmod +x scripts/*.sh exercises/*.sh
+```
+
+Create or edit `.env` with values that are at least the documented lengths:
+
+```env
+TRAINING_SECURITY_MODE=strict
+TRAINING_FLAG_SECRET=<at-least-32-character-random-local-secret>
+TRAINING_ADMIN_KEY=<at-least-24-character-separate-instructor-key>
+GRAPH_CONTEXT_SECURITY_MODE=strict
+GRAPH_CONTEXT_API_KEY=<at-least-24-character-separate-context-key>
+```
+
+Then verify the configuration and local model without starting services. If `.env` contains `BONSAI_MODEL_DIR`, the local Bonsai model takes precedence over a detected host provider:
+
+```bash
 docker compose config >/tmp/zodiac-compose.yml
 ./scripts/pull_models.sh
 RUNTIME=1 LAB_MODE=core ./scripts/start_all.sh
@@ -365,12 +391,16 @@ The helper will:
 2. Prefer a configured `BONSAI_MODEL_DIR` and use the local Bonsai GGUF.
 3. Otherwise detect Ollama, LM Studio, or an existing llama.cpp provider.
 4. Select the first available external model when no local Bonsai directory is configured.
-5. Start Aurora, Phoenix, and Assistant with the selected backend.
+5. Run `scripts/zodiac_bank_eval.py` without contacting runtime services.
+6. Start the Training Gate, Challenge Surface, Graph Context service, Aurora, Phoenix, Assistant, and the selected inference backend.
 
 Check the result:
 
 ```bash
 docker compose ps
+curl --fail http://127.0.0.1:5050/health
+curl --fail http://127.0.0.1:5060/health
+curl --fail http://127.0.0.1:5070/health
 curl --fail http://127.0.0.1:5000/health
 curl --fail http://127.0.0.1:5001/api/health
 curl --fail http://127.0.0.1:5002/health
@@ -500,13 +530,13 @@ The response includes `retrieval_backend: "chromadb"` and each source includes i
 
 ### Direct Compose startup
 
-Direct Compose startup uses the local Bonsai fallback values and bypasses provider detection and the terminal brand animation:
+Direct Compose startup bypasses provider detection and the terminal brand animation. It starts the default Compose services, including the local Bonsai container, and still requires strong `.env` secrets:
 
 ```bash
 docker compose up -d
 ```
 
-The provider-aware startup path is recommended.
+The provider-aware `scripts/start_all.sh` path is recommended because it runs offline evaluation, selects the available inference provider, and starts the correct profile.
 
 ## 🔎 Automatic provider detection
 
@@ -571,9 +601,12 @@ docker compose --profile protocols --profile full ps
 ### Check core health endpoints
 
 ```bash
-curl --fail http://127.0.0.1:5000/health
-curl --fail http://127.0.0.1:5001/api/health
-curl --fail http://127.0.0.1:5002/health
+curl --fail http://127.0.0.1:5050/health  # progression gate
+curl --fail http://127.0.0.1:5060/health  # challenge surface
+curl --fail http://127.0.0.1:5070/health  # graph/context plane
+curl --fail http://127.0.0.1:5000/health   # Aurora
+curl --fail http://127.0.0.1:5001/api/health # Phoenix
+curl --fail http://127.0.0.1:5002/health   # Assistant
 ```
 
 If the local Bonsai container is selected:
@@ -583,6 +616,15 @@ curl --fail http://127.0.0.1:11435/health
 ```
 
 If Ollama or LM Studio was selected, check that provider’s host endpoint instead.
+
+### Run the offline posture evaluator
+
+```bash
+python3 scripts/zodiac_bank_eval.py
+python3 scripts/zodiac_bank_eval.py --format json --output logs/zodiac-bank-evaluation.json
+```
+
+This evaluator never calls Docker, models, databases, or external URLs. It checks progression, graph provenance, context budgets, scope isolation, workflow approvals, orchestrator symmetry, and security wiring.
 
 ### Run the inference smoke test
 
@@ -640,7 +682,15 @@ Start the core profile to run the gate:
 RUNTIME=1 ./scripts/start_all.sh
 ```
 
-Inspect the current learner state:
+Create a cohort and enroll the learner before using strict learner APIs:
+
+```bash
+export TRAINING_ADMIN_KEY='<instructor-key>'
+python3 scripts/zodiac_bank_admin.py cohort-create cohort-2026 "Zodiac Bank 2026 Cohort"
+python3 scripts/zodiac_bank_admin.py cohort-add cohort-2026 analyst-01
+```
+
+Store the returned learner token privately, then inspect the current learner state:
 
 ```bash
 export LEARNER_TOKEN='<token returned by cohort-add>'
@@ -769,7 +819,7 @@ docs/
 | Assistant | `http://127.0.0.1:5002` |
 | Zodiac Bank Training Gate | `http://127.0.0.1:5050` |
 | Zodiac Bank Challenge Surface | `http://127.0.0.1:5060` |
-| Zodiac Bank Graph Context | `http://127.0.0.1:5070` |
+| Zodiac Bank Graph Context | `http://127.0.0.1:5070` — data routes require `X-Graph-Context-Key` in strict mode |
 
 ### Protocol services — `lite` / `full`
 
@@ -811,7 +861,8 @@ a2a-agents/            A2A Router and Knowledge Agent
 rag-docs/              Synthetic Zodiac Bank knowledge corpus
 sensitive-data/        Honeypot credentials and internal fixtures
 exercises/             Recon, attack, evasion, and fingerprint exercises
-scripts/               Startup, seeding, detection, verification, and progression helpers
+scripts/               Startup, seeding, detection, evaluation, verification, and progression helpers
+graph-context/         Authenticated graph and context engineering service
 docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
 loop-config/           Synthetic workflow inputs for Loop Engineering
@@ -922,6 +973,28 @@ docker compose --profile protocols --profile full logs --tail=100
 ### Docker Desktop runs out of memory
 
 Use core mode, reduce `BONSAI_CONTEXT_SIZE`, close other containers, or increase Docker Desktop memory. Do not start full mode on a small machine.
+
+### Training Gate or Graph Context is unhealthy
+
+Strict mode rejects placeholder secrets. Confirm `.env` contains separate strong values for:
+
+```env
+TRAINING_FLAG_SECRET=<at-least-32-character-secret>
+TRAINING_ADMIN_KEY=<at-least-24-character-secret>
+GRAPH_CONTEXT_API_KEY=<at-least-24-character-secret>
+```
+
+Then recreate only the affected services:
+
+```bash
+docker compose up -d --force-recreate training-gate training-challenges zodiac-context aurora
+```
+
+Inspect logs:
+
+```bash
+docker compose logs --tail=100 training-gate zodiac-context aurora
+```
 
 ### Mem0 or LightRAG fails in full mode
 
