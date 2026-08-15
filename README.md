@@ -171,10 +171,16 @@ find models -maxdepth 1 -type f -printf '%f\t%k KB\n'
 docker compose config >/tmp/zodiac-compose.yml
 ```
 
-If the Bonsai model is outside the repository, set its directory in `.env`:
+If the Bonsai model is outside the repository, the lab automatically searches common LM Studio directories under your home directory. Try the model check first:
 
 ```bash
-printf 'BONSAI_MODEL_DIR=/mnt/nvme5/lmstudio/models/lmstudio-community/Bonsai-27B-GGUF\n' > .env
+./scripts/pull_models.sh
+```
+
+For a custom model directory, set an absolute path in `.env`:
+
+```bash
+printf 'BONSAI_MODEL_DIR=%s\n' "$HOME/path/to/model-directory" > .env
 ```
 
 The lab recursively discovers the `.gguf` file in that directory. Do not leave the placeholder `your-actual-file.gguf` in `.env`.
@@ -289,10 +295,26 @@ If its filename is different, create a local `.env` file:
 BONSAI_MODEL_FILE=your-actual-bonsai-file.gguf
 ```
 
-If the model is stored outside the repository—for example in your LM Studio hub on another partition—point the lab at that directory. The scripts recursively discover the first `.gguf` file and Compose mounts the directory read-only:
+If the model is stored outside the repository—for example in your LM Studio hub—try the standard home-directory locations first:
 
 ```bash
-printf 'BONSAI_MODEL_DIR=/mnt/nvme5/lmstudio/models/lmstudio-community/Bonsai-27B-GGUF\n' > .env
+./scripts/pull_models.sh
+```
+
+The default search includes:
+
+```text
+./models
+$HOME/.lmstudio/hub/models
+$HOME/.lmstudio/models
+$HOME/.cache/lm-studio/models
+$HOME/.cache/lmstudio/models
+```
+
+For a non-standard location, configure it explicitly:
+
+```bash
+printf 'BONSAI_MODEL_DIR=%s\n' "$HOME/path/to/model-directory" > .env
 ./scripts/pull_models.sh
 ```
 

@@ -39,10 +39,26 @@ provider_load_model_settings() {
 provider_find_bonsai_model() {
   provider_load_model_settings
 
-  local model_dir="${BONSAI_MODEL_DIR:-${PROJECT_ROOT}/models}"
   local requested="${BONSAI_MODEL_FILE:-bonsai-27b.gguf}"
-  local candidate relative
-  model_dir="${model_dir%/}"
+  local candidate relative model_dir
+  local -a search_dirs=()
+
+  if [[ -n "${BONSAI_MODEL_DIR:-}" ]]; then
+    # An explicit directory is authoritative; do not search unrelated paths.
+    search_dirs+=("${BONSAI_MODEL_DIR}")
+  else
+    # Portable defaults: project-local models first, then common LM Studio
+    # locations under the current user's home directory.
+    search_dirs+=("${PROJECT_ROOT}/models")
+    if [[ -n "${HOME:-}" ]]; then
+      search_dirs+=(
+        "${HOME}/.lmstudio/hub/models"
+        "${HOME}/.lmstudio/models"
+        "${HOME}/.cache/lm-studio/models"
+        "${HOME}/.cache/lmstudio/models"
+      )
+    fi
+  fi
 
   if [[ "$requested" = /* && -s "$requested" ]]; then
     export BONSAI_MODEL_DIR="$(dirname -- "$requested")"
@@ -50,22 +66,27 @@ provider_find_bonsai_model() {
     return 0
   fi
 
-  if [[ "$requested" != /* && -s "${model_dir}/${requested}" ]]; then
-    export BONSAI_MODEL_DIR="$model_dir"
-    export BONSAI_MODEL_FILE="$requested"
-    return 0
-  fi
+  for model_dir in "${search_dirs[@]}"; do
+    model_dir="${model_dir%/}"
+    [[ -d "$model_dir" ]] || continue
 
-  candidate="$(find "$model_dir" -type f -iname '*.gguf' -print -quit 2>/dev/null || true)"
-  if [[ -n "$candidate" ]]; then
-    relative="${candidate#"${model_dir}/"}"
-    export BONSAI_MODEL_DIR="$model_dir"
-    export BONSAI_MODEL_FILE="$relative"
-    provider_log "Discovered Bonsai GGUF: ${candidate}"
-    return 0
-  fi
+    if [[ "$requested" != /* && -s "${model_dir}/${requested}" ]]; then
+      export BONSAI_MODEL_DIR="$model_dir"
+      export BONSAI_MODEL_FILE="$requested"
+      return 0
+    fi
 
-  export BONSAI_MODEL_DIR="$model_dir"
+    candidate="$(find "$model_dir" -type f -iname '*.gguf' -print -quit 2>/dev/null || true)"
+    if [[ -n "$candidate" ]]; then
+      relative="${candidate#"${model_dir}/"}"
+      export BONSAI_MODEL_DIR="$model_dir"
+      export BONSAI_MODEL_FILE="$relative"
+      provider_log "Discovered Bonsai GGUF: ${candidate}"
+      return 0
+    fi
+  done
+
+  export BONSAI_MODEL_DIR="${BONSAI_MODEL_DIR:-${PROJECT_ROOT}/models}"
   export BONSAI_MODEL_FILE="$requested"
   return 1
 }
