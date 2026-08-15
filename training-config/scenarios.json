@@ -1,0 +1,514 @@
+{
+  "schema_version": 1,
+  "pack_id": "zodiac-bank-hard-range-v1",
+  "scope": {
+    "classification": "synthetic-training-only",
+    "network": "localhost-only",
+    "real_targets": false,
+    "real_credentials": false,
+    "side_effects": false,
+    "max_active_scenarios_per_learner": 2
+  },
+  "design": {
+    "principle": "flags require multi-step evidence plus synthesis; a single endpoint response is never sufficient",
+    "branches": ["attack", "defense", "forensics", "recovery"],
+    "every_step_requires": ["event_name", "bounded_evidence", "observation"],
+    "unknown_events": "rejected",
+    "wrong_order": "rejected",
+    "replay": "rejected"
+  },
+  "stage_requirements": {
+    "L00-foundation": {"scenario_ids": ["scope-integrity", "scope-boundary-matrix"], "detection_rule_ids": ["ZB-AI-003"], "required_controls": ["scope", "evidence-custody"], "concepts": ["localhost", "scope"]},
+    "L01-recon": {"scenario_ids": ["model-fingerprint", "service-graph-recon"], "detection_rule_ids": ["ZB-AI-003", "ZB-AI-010"], "required_controls": ["asset-inventory", "baseline"], "concepts": ["inventory", "baseline"]},
+    "L02-prompt-injection": {"scenario_ids": ["direct-goal-hijack", "web-indirect-injection", "multimodal-ocr-injection"], "detection_rule_ids": ["ZB-AI-001", "ZB-AI-006"], "required_controls": ["trust-boundary", "output-validation", "approval"], "concepts": ["direct", "indirect", "approval"]},
+    "L03-rag": {"scenario_ids": ["vector-tenant-leak", "embedding-inversion-canary", "federated-retrieval-conflict"], "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"], "required_controls": ["tenant-filter", "provenance", "quarantine"], "concepts": ["vector", "provenance", "quarantine"]},
+    "L04-agent-protocols": {"scenario_ids": ["mcp-tool-poisoning", "mcp-rug-pull-shadowing", "tool-output-injection"], "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-008"], "required_controls": ["manifest-pinning", "tool-allowlist", "reapproval"], "concepts": ["poisoning", "drift", "reapproval"]},
+    "L05-memory": {"scenario_ids": ["persistent-memory-poisoning", "memory-tenant-isolation", "feedback-summary-poisoning"], "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"], "required_controls": ["memory-provenance", "tenant-isolation", "rollback"], "concepts": ["memory", "tenant", "rollback"]},
+    "L06-identity-control-plane": {"scenario_ids": ["agent-identity-confusion", "oauth-scope-replay", "deepfake-identity-claim"], "detection_rule_ids": ["ZB-AI-004", "ZB-AI-008"], "required_controls": ["audience-binding", "least-privilege", "approval-binding"], "concepts": ["identity", "scope", "approval"]},
+    "L07-supply-chain": {"scenario_ids": ["artifact-path-poisoning", "model-manifest-drift", "workflow-expression", "dependency-confusion"], "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-010"], "required_controls": ["digest-pinning", "workspace-allowlist", "two-person-review"], "concepts": ["digest", "allowlist", "review"]},
+    "L08-detection-evasion": {"scenario_ids": ["normalization-gap", "volume-and-egress-anomaly", "canary-exfil", "model-abuse-budget"], "detection_rule_ids": ["ZB-AI-003", "ZB-AI-006", "ZB-AI-010"], "required_controls": ["canonicalization", "behavioral-baseline", "circuit-breaker"], "concepts": ["normalization", "baseline", "circuit"]},
+    "L09-apt-capstone": {"scenario_ids": ["campaign-correlation", "containment-recovery", "residual-risk-review"], "detection_rule_ids": ["ZB-AI-002", "ZB-AI-004", "ZB-AI-005", "ZB-AI-008", "ZB-AI-010"], "required_controls": ["timeline", "containment", "identity-rotation", "recovery-verification"], "concepts": ["timeline", "containment", "recovery", "residual"]}
+  },
+  "scenarios": [
+    {
+      "id": "scope-integrity",
+      "stage_id": "L00-foundation",
+      "difficulty": 1,
+      "branch": "forensics",
+      "title": "Scope Integrity and Evidence Custody",
+      "objective": "Prove that the target is local synthetic infrastructure and preserve a tamper-evident observation record.",
+      "clues": ["Compare the same resource with two HTTP methods.", "Record headers separately from body content.", "The scope assertion must include the network boundary."],
+      "detection_rule_ids": ["ZB-AI-003"],
+      "required_controls": ["scope", "evidence-custody"],
+      "steps": [
+        {"id": "s1", "event": "baseline_get", "match": {"method": "GET", "surface": "/public/scope"}, "observation": "The public scope response identifies the synthetic service."},
+        {"id": "s2", "event": "header_compare", "match": {"method": "HEAD", "surface": "/public/scope", "header": "X-Zodiac-Bank-Training-Flag"}, "observation": "The complete metadata is exposed only through the alternate method."},
+        {"id": "s3", "event": "scope_assertion", "match": {"network": "127.0.0.1", "classification": "synthetic-training-only"}, "observation": "The evidence record binds the exercise to localhost and synthetic data."}
+      ]
+    },
+    {
+      "id": "scope-boundary-matrix",
+      "stage_id": "L00-foundation",
+      "difficulty": 2,
+      "branch": "forensics",
+      "title": "Asset and Trust-Boundary Matrix",
+      "objective": "Classify application, model, data, control-plane, and evidence assets without treating any one layer as an authorization source.",
+      "clues": ["Use the documented health surfaces as the seed inventory.", "Separate data plane from control plane.", "A graph relationship is evidence, not permission."],
+      "detection_rule_ids": ["ZB-AI-003"],
+      "required_controls": ["scope", "evidence-custody"],
+      "steps": [
+        {"id": "s1", "event": "asset_inventory", "match": {"asset": "training-challenges", "class": "application"}, "observation": "The challenge surface is an application asset."},
+        {"id": "s2", "event": "trust_classify", "match": {"asset": "zodiac-context", "class": "evidence-not-authority"}, "observation": "The graph/context plane must not authorize banking actions."},
+        {"id": "s3", "event": "boundary_record", "match": {"source": "canonical-data", "destination": "model-context", "authorization": "forbidden"}, "observation": "Canonical evidence is bounded before entering model context."}
+      ]
+    },
+    {
+      "id": "model-fingerprint",
+      "stage_id": "L01-recon",
+      "difficulty": 3,
+      "branch": "forensics",
+      "title": "Provider Fingerprint and Metadata Drift",
+      "objective": "Distinguish provider claims, model metadata, and application behavior without trusting a self-reported model identity.",
+      "clues": ["Capture normal inventory before enabling diagnostics.", "Compare response metadata with the provider header.", "A model name is a claim until corroborated."],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-010"],
+      "required_controls": ["asset-inventory", "baseline"],
+      "steps": [
+        {"id": "s1", "event": "inventory_normal", "match": {"route": "/api/models", "debug": 0}, "observation": "The normal inventory provides a baseline."},
+        {"id": "s2", "event": "inventory_verbose", "match": {"route": "/api/models", "debug": 1, "metadata": "present"}, "observation": "Diagnostic mode exposes synthetic control-plane metadata."},
+        {"id": "s3", "event": "provider_correlate", "match": {"header": "X-Zodiac-Bank-Provider", "identity": "unverified"}, "observation": "The provider header and model response are correlated but not treated as proof."}
+      ]
+    },
+    {
+      "id": "service-graph-recon",
+      "stage_id": "L01-recon",
+      "difficulty": 4,
+      "branch": "forensics",
+      "title": "Service Graph Reconnaissance",
+      "objective": "Build a minimum service graph and identify high-value control paths while preserving request-rate boundaries.",
+      "clues": ["Start with one request per documented service.", "Correlate ports to service roles.", "A rapid fan-out is itself telemetry."],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-010"],
+      "required_controls": ["asset-inventory", "baseline"],
+      "steps": [
+        {"id": "s1", "event": "health_matrix", "match": {"services": "core", "rate": "bounded"}, "observation": "Core health endpoints establish service availability."},
+        {"id": "s2", "event": "model_route", "match": {"service": "inference", "interface": "openai-compatible"}, "observation": "The application and provider boundary is identified."},
+        {"id": "s3", "event": "correlation", "match": {"graph": "service-to-data", "approval": "required"}, "observation": "Data and control paths are mapped without granting access."}
+      ]
+    },
+    {
+      "id": "direct-goal-hijack",
+      "stage_id": "L02-prompt-injection",
+      "difficulty": 5,
+      "branch": "attack",
+      "title": "Direct Goal Hijack with Output Validation",
+      "objective": "Demonstrate direct goal hijack, then prove why output validation and approval are required.",
+      "clues": ["Record a benign baseline first.", "The injected instruction must be harmless and local.", "Classify the output change rather than celebrating the response."],
+      "detection_rule_ids": ["ZB-AI-001", "ZB-AI-006"],
+      "required_controls": ["trust-boundary", "output-validation", "approval"],
+      "steps": [
+        {"id": "s1", "event": "prompt_baseline", "match": {"route": "/api/support/chat", "class": "benign"}, "observation": "A baseline support response is captured."},
+        {"id": "s2", "event": "prompt_direct", "match": {"route": "/api/support/chat", "injection": "direct", "side_effect": "none"}, "observation": "A direct instruction-like message changes the synthetic response path."},
+        {"id": "s3", "event": "output_classify", "match": {"impact": "goal-hijack", "control": "approval-required"}, "observation": "The result is classified as a control-boundary failure, not an authorized action."}
+      ]
+    },
+    {
+      "id": "web-indirect-injection",
+      "stage_id": "L02-prompt-injection",
+      "difficulty": 6,
+      "branch": "attack",
+      "title": "Web-Based Indirect Prompt Injection",
+      "objective": "Model hidden, obfuscated, and cross-origin content entering an agent workflow without fetching any external page.",
+      "clues": ["The source is content, not a user instruction.", "Compare visible and model-parsed representations.", "The browser boundary and the model boundary are different controls."],
+      "detection_rule_ids": ["ZB-AI-001", "ZB-AI-006"],
+      "required_controls": ["trust-boundary", "output-validation", "approval"],
+      "steps": [
+        {"id": "s1", "event": "web_fetch", "match": {"source": "synthetic-page", "origin": "untrusted", "network": "disabled"}, "observation": "The page is represented as a local fixture and never fetched from the internet."},
+        {"id": "s2", "event": "hidden_content", "match": {"representation": "parsed-only", "visibility": "hidden", "instruction": "present"}, "observation": "Content can be invisible to a human while visible to a parser or model."},
+        {"id": "s3", "event": "action_boundary", "match": {"cross_origin": "denied", "transaction": "approval-required"}, "observation": "Origin isolation and human approval stop the content from becoming an action."}
+      ]
+    },
+    {
+      "id": "vector-tenant-leak",
+      "stage_id": "L03-rag",
+      "difficulty": 7,
+      "branch": "attack",
+      "title": "Vector Retrieval Tenant Confusion",
+      "objective": "Prove that vector similarity is not authorization by testing a synthetic cross-customer retrieval request.",
+      "clues": ["Start with a permitted customer scope.", "Change the filter, not the natural-language question.", "Compare distance relevance with authorization decision."],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "required_controls": ["tenant-filter", "provenance", "quarantine"],
+      "steps": [
+        {"id": "s1", "event": "vector_query", "match": {"collection": "zodiac_bank_docs", "scope": "ZB-CUS-001", "result": "permitted"}, "observation": "The permitted retrieval establishes the baseline."},
+        {"id": "s2", "event": "scope_swap", "match": {"requested_scope": "ZB-CUS-004", "authenticated_scope": "ZB-CUS-001", "result": "suspicious"}, "observation": "A caller-controlled scope differs from the authenticated scope."},
+        {"id": "s3", "event": "provenance_check", "match": {"distance": "not-authorization", "decision": "deny-and-quarantine"}, "observation": "Similarity cannot override tenant authorization or provenance."}
+      ]
+    },
+    {
+      "id": "embedding-inversion-canary",
+      "stage_id": "L03-rag",
+      "difficulty": 8,
+      "branch": "defense",
+      "title": "Embedding Metadata and Inversion Canary",
+      "objective": "Detect metadata leakage and demonstrate that a canary embedding must not reveal source text.",
+      "clues": ["Inspect metadata and source references before inspecting content.", "Use a synthetic canary string only.", "The correct result is a blocked reconstruction, not recovered text."],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "required_controls": ["tenant-filter", "provenance", "quarantine"],
+      "steps": [
+        {"id": "s1", "event": "embedding_metadata", "match": {"field": "source", "classification": "synthetic", "secret": "absent"}, "observation": "Metadata is inspected without exposing secrets."},
+        {"id": "s2", "event": "nearest_neighbor", "match": {"query": "canary", "collection": "zodiac_bank_docs", "scope": "authorized"}, "observation": "A bounded nearest-neighbor query returns only permitted evidence."},
+        {"id": "s3", "event": "inversion_canary", "match": {"reconstruction": "blocked", "alert": "ZB-AI-005"}, "observation": "The canary proves that retrieval and embeddings are not a text-recovery interface."}
+      ]
+    },
+    {
+      "id": "mcp-tool-poisoning",
+      "stage_id": "L04-agent-protocols",
+      "difficulty": 9,
+      "branch": "attack",
+      "title": "MCP Tool Poisoning and Argument Confusion",
+      "objective": "Identify hidden tool-description instructions and prove that user-visible tool names are insufficient evidence of safety.",
+      "clues": ["Hash the complete description, not just the tool name.", "Separate schema from natural-language metadata.", "Do not read files or call a real tool."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-008"],
+      "required_controls": ["manifest-pinning", "tool-allowlist", "reapproval"],
+      "steps": [
+        {"id": "s1", "event": "tool_manifest", "match": {"server": "synthetic-mcp", "version": "pinned", "description_hash": "baseline"}, "observation": "The approved tool manifest is recorded."},
+        {"id": "s2", "event": "tool_argument", "match": {"tool": "add_numbers", "metadata": "instruction-like", "argument": "untrusted"}, "observation": "Tool metadata can influence arguments even when the code appears harmless."},
+        {"id": "s3", "event": "tool_approval", "match": {"host_access": "denied", "approval": "required", "alert": "ZB-AI-007"}, "observation": "The tool is quarantined before any side effect."}
+      ]
+    },
+    {
+      "id": "mcp-rug-pull-shadowing",
+      "stage_id": "L04-agent-protocols",
+      "difficulty": 10,
+      "branch": "forensics",
+      "title": "MCP Rug Pull and Cross-Server Shadowing",
+      "objective": "Detect a post-approval description change and a malicious server influencing a trusted tool.",
+      "clues": ["Compare the manifest at approval time and execution time.", "Inspect all connected servers, not only the selected tool.", "A trusted tool can be manipulated by untrusted context."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-008"],
+      "required_controls": ["manifest-pinning", "tool-allowlist", "reapproval"],
+      "steps": [
+        {"id": "s1", "event": "shadow_tool", "match": {"server": "untrusted-mcp", "influence": "trusted-tool", "approval": "absent"}, "observation": "A separate server attempts to alter trusted-tool behavior."},
+        {"id": "s2", "event": "trusted_route", "match": {"tool": "send_notification", "recipient": "policy-bound", "description_hash": "changed"}, "observation": "The trusted route has drifted after integration."},
+        {"id": "s3", "event": "cross_server", "match": {"server_identity": "mismatch", "decision": "stop-and-reapprove", "alert": "ZB-AI-002"}, "observation": "Cross-server trust is revoked until explicit re-approval."}
+      ]
+    },
+    {
+      "id": "persistent-memory-poisoning",
+      "stage_id": "L05-memory",
+      "difficulty": 11,
+      "branch": "attack",
+      "title": "Persistent Memory Poisoning",
+      "objective": "Show how a low-trust interaction can persist into a later session and how provenance-aware rollback limits the blast radius.",
+      "clues": ["Use a marked synthetic memory only.", "Separate write provenance from later recall.", "A later session must not inherit an unreviewed control instruction."],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "required_controls": ["memory-provenance", "tenant-isolation", "rollback"],
+      "steps": [
+        {"id": "s1", "event": "memory_write", "match": {"user_id": "ZB-CUS-001", "trust": "untrusted", "approval": "absent"}, "observation": "An untrusted memory write is marked but not trusted."},
+        {"id": "s2", "event": "memory_recall", "match": {"session": "later-synthetic-session", "instruction": "present", "source": "untrusted"}, "observation": "The later recall exposes persistence risk."},
+        {"id": "s3", "event": "memory_rollback", "match": {"action": "quarantine-and-rollback", "scope": "ZB-CUS-001", "alert": "ZB-AI-005"}, "observation": "Rollback is scoped to the synthetic customer and preserves audit evidence."}
+      ]
+    },
+    {
+      "id": "memory-tenant-isolation",
+      "stage_id": "L05-memory",
+      "difficulty": 12,
+      "branch": "defense",
+      "title": "Memory Tenant Isolation and Summary Provenance",
+      "objective": "Test cross-user memory access and detect provenance loss during summarization.",
+      "clues": ["Keep authenticated and requested identities separate.", "Compare raw source scope with summary scope.", "A summary without source lineage is not safe context."],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "required_controls": ["memory-provenance", "tenant-isolation", "rollback"],
+      "steps": [
+        {"id": "s1", "event": "tenant_swap", "match": {"authenticated_user": "ZB-CUS-001", "requested_user": "ZB-CUS-002", "decision": "deny"}, "observation": "The memory store denies a cross-user query."},
+        {"id": "s2", "event": "scope_denial", "match": {"run_id": "unrelated-run", "result": "empty", "telemetry": "recorded"}, "observation": "Negative authorization is observable without leaking data."},
+        {"id": "s3", "event": "isolation_proof", "match": {"summary_source": "preserved", "cross_scope": "false", "control": "tenant-isolation"}, "observation": "The summary retains source scope and cannot widen identity."}
+      ]
+    },
+    {
+      "id": "agent-identity-confusion",
+      "stage_id": "L06-identity-control-plane",
+      "difficulty": 13,
+      "branch": "attack",
+      "title": "Non-Human Identity and Confused Deputy",
+      "objective": "Break the assumption that a worker name or proxy header proves identity, then bind actions to authenticated audience and role.",
+      "clues": ["Compare claimed and authenticated worker identities.", "A proxy header is input unless cryptographically bound.", "Privileged route selection requires an approval object."],
+      "detection_rule_ids": ["ZB-AI-004", "ZB-AI-008"],
+      "required_controls": ["audience-binding", "least-privilege", "approval-binding"],
+      "steps": [
+        {"id": "s1", "event": "identity_claim", "match": {"claimed_worker": "risk-engine", "authenticated_worker": "support-router", "decision": "mismatch"}, "observation": "The claimed worker is not the authenticated worker."},
+        {"id": "s2", "event": "role_check", "match": {"requested_role": "admin", "source": "proxy-header", "trust": "untrusted"}, "observation": "A role header cannot grant administrative authority."},
+        {"id": "s3", "event": "approval_verify", "match": {"route": "privileged", "approval": "missing", "decision": "deny-and-alert"}, "observation": "The confused-deputy path is blocked and recorded."}
+      ]
+    },
+    {
+      "id": "oauth-scope-replay",
+      "stage_id": "L06-identity-control-plane",
+      "difficulty": 14,
+      "branch": "attack",
+      "title": "OAuth Scope Confusion and Approval Replay",
+      "objective": "Detect a synthetic non-human identity using an audience-mismatched scope and a replayed approval.",
+      "clues": ["Scope is not the same as identity.", "Bind token audience and action to the same case.", "A valid-looking approval can be stale or replayed."],
+      "detection_rule_ids": ["ZB-AI-004", "ZB-AI-008"],
+      "required_controls": ["audience-binding", "least-privilege", "approval-binding"],
+      "steps": [
+        {"id": "s1", "event": "oauth_scope", "match": {"identity": "synthetic-agent", "scope": "read-only", "requested_action": "write", "decision": "deny"}, "observation": "A read-only scope cannot authorize a write operation."},
+        {"id": "s2", "event": "audience_check", "match": {"token_audience": "case-ZB-CASE-002", "requested_case": "ZB-CASE-006", "decision": "mismatch"}, "observation": "The token is valid-shaped but bound to another case."},
+        {"id": "s3", "event": "token_replay", "match": {"approval": "stale", "nonce": "reused", "control": "approval-binding"}, "observation": "Replay is blocked by case, nonce, and approval binding."}
+      ]
+    },
+    {
+      "id": "artifact-path-poisoning",
+      "stage_id": "L07-supply-chain",
+      "difficulty": 15,
+      "branch": "attack",
+      "title": "CI Artifact Path and Workspace Confusion",
+      "objective": "Test artifact path normalization and prove that a report name cannot escape an allowlisted synthetic workspace.",
+      "clues": ["Use names only; never create or execute files.", "Normalize before authorization, not after.", "The workspace boundary is part of the evidence."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-010"],
+      "required_controls": ["digest-pinning", "workspace-allowlist", "two-person-review"],
+      "steps": [
+        {"id": "s1", "event": "artifact_baseline", "match": {"name": "dependency-report.json", "workspace": "synthetic-artifacts", "digest": "pinned"}, "observation": "The approved artifact and workspace are recorded."},
+        {"id": "s2", "event": "path_variant", "match": {"name_class": "traversal-shaped", "filesystem": "not-accessed", "decision": "quarantine"}, "observation": "A suspicious name is handled as metadata only and quarantined."},
+        {"id": "s3", "event": "digest_verify", "match": {"digest": "mismatch", "reviewers": "two", "decision": "deny"}, "observation": "Digest mismatch requires independent review and denial."}
+      ]
+    },
+    {
+      "id": "model-manifest-drift",
+      "stage_id": "L07-supply-chain",
+      "difficulty": 16,
+      "branch": "forensics",
+      "title": "Model Manifest and Dependency Drift",
+      "objective": "Correlate model, embedding, dependency, and tool manifest changes without downloading or loading a model.",
+      "clues": ["Pin identity by digest, not mutable name.", "Compare the full dependency graph.", "An unapproved change is an incident even before execution."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-010"],
+      "required_controls": ["digest-pinning", "workspace-allowlist", "two-person-review"],
+      "steps": [
+        {"id": "s1", "event": "model_manifest", "match": {"model": "zodiac-bank-support", "digest": "approved", "embedding": "approved"}, "observation": "The baseline model and embedding identities are pinned."},
+        {"id": "s2", "event": "digest_change", "match": {"component": "dependency-or-tool", "digest": "changed", "approval": "missing"}, "observation": "A changed component is detected before runtime use."},
+        {"id": "s3", "event": "quarantine", "match": {"action": "deny-capability-refresh", "case": "ai-security-alert", "control": "two-person-review"}, "observation": "The changed manifest is quarantined for independent review."}
+      ]
+    },
+    {
+      "id": "workflow-expression",
+      "stage_id": "L07-supply-chain",
+      "difficulty": 17,
+      "branch": "defense",
+      "title": "Workflow Metadata and Expression Injection",
+      "objective": "Identify untrusted workflow metadata reaching a synthetic agent prompt or CI decision without executing a workflow.",
+      "clues": ["Treat issue, branch, and comment text as data.", "Separate expressions from execution.", "Require a review gate before any workflow mutation."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-010"],
+      "required_controls": ["digest-pinning", "workspace-allowlist", "two-person-review"],
+      "steps": [
+        {"id": "s1", "event": "workflow_input", "match": {"source": "synthetic-comment", "trust": "untrusted", "execution": "disabled"}, "observation": "Workflow metadata is treated as untrusted input."},
+        {"id": "s2", "event": "expression_boundary", "match": {"field": "branch-or-comment", "sink": "agent-prompt", "sanitization": "required"}, "observation": "The tainted field is isolated from execution and control instructions."},
+        {"id": "s3", "event": "review_gate", "match": {"workflow_change": "pending", "reviewers": "two", "decision": "hold"}, "observation": "The workflow remains paused until independent review."}
+      ]
+    },
+    {
+      "id": "normalization-gap",
+      "stage_id": "L08-detection-evasion",
+      "difficulty": 18,
+      "branch": "defense",
+      "title": "Canonicalization and Detector Differential",
+      "objective": "Find a detector differential caused by encoding or Unicode/whitespace normalization and propose a model-independent fix.",
+      "clues": ["Run a benign baseline and retain hashes.", "Compare canonical forms, not raw strings only.", "A detection gap is the finding; do not bypass a real system."],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-006", "ZB-AI-010"],
+      "required_controls": ["canonicalization", "behavioral-baseline", "circuit-breaker"],
+      "steps": [
+        {"id": "s1", "event": "normal_query", "match": {"route": "/api/logs/search", "mode": "normal", "decision": "logged"}, "observation": "The baseline query is visible to telemetry."},
+        {"id": "s2", "event": "encoded_query", "match": {"route": "/api/logs/search", "mode": "stealth", "encoding": "url-or-whitespace", "decision": "different"}, "observation": "Equivalent harmless markers produce a different detector result."},
+        {"id": "s3", "event": "detector_compare", "match": {"normalization": "before-match", "alert": "ZB-AI-006", "fix": "model-independent"}, "observation": "The learner proposes canonicalization before policy matching."}
+      ]
+    },
+    {
+      "id": "volume-and-egress-anomaly",
+      "stage_id": "L08-detection-evasion",
+      "difficulty": 19,
+      "branch": "defense",
+      "title": "Agent Fan-Out, Unbounded Consumption, and Egress",
+      "objective": "Detect a bounded synthetic burst and stop it before collection becomes an export.",
+      "clues": ["Use counters, not real data.", "Compare declared loop budget to observed fan-out.", "Circuit breaking is part of detection, not an afterthought."],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-006", "ZB-AI-010"],
+      "required_controls": ["canonicalization", "behavioral-baseline", "circuit-breaker"],
+      "steps": [
+        {"id": "s1", "event": "volume_baseline", "match": {"requests": "baseline", "worker_fan_out": "declared", "data": "counters-only"}, "observation": "The normal request and fan-out budget is recorded."},
+        {"id": "s2", "event": "fanout_burst", "match": {"requests": "above-baseline", "worker_fan_out": "over-limit", "records": "not-exported"}, "observation": "A synthetic burst exceeds the declared loop budget."},
+        {"id": "s3", "event": "circuit_breaker", "match": {"action": "stop-loop", "egress": "denied", "approval": "required"}, "observation": "The circuit breaker prevents the synthetic collection path from becoming egress."}
+      ]
+    },
+    {
+      "id": "canary-exfil",
+      "stage_id": "L08-detection-evasion",
+      "difficulty": 20,
+      "branch": "forensics",
+      "title": "Canary Dataflow and Privacy-Safe Telemetry",
+      "objective": "Track a synthetic canary through agent context and prove that telemetry preserves detection value without logging secrets.",
+      "clues": ["Use a canary ID, never a credential.", "Hash values in logs.", "The expected result is a blocked egress decision and a useful audit trail."],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-005", "ZB-AI-010"],
+      "required_controls": ["canonicalization", "behavioral-baseline", "circuit-breaker"],
+      "steps": [
+        {"id": "s1", "event": "canary_marker", "match": {"value": "ZB-CANARY-001", "classification": "synthetic", "logged": "hash-only"}, "observation": "A synthetic canary is inserted without sensitive data."},
+        {"id": "s2", "event": "egress_decision", "match": {"destination": "external", "policy": "deny", "rule": "ZB-AI-010"}, "observation": "The egress policy denies the external destination."},
+        {"id": "s3", "event": "timeline_record", "match": {"event_id": "preserved", "raw_secret": "absent", "review": "required"}, "observation": "The evidence is sufficient for response without creating a leak."}
+      ]
+    },
+    {
+      "id": "campaign-correlation",
+      "stage_id": "L09-apt-capstone",
+      "difficulty": 21,
+      "branch": "forensics",
+      "title": "AI-Orchestrated Campaign Correlation",
+      "objective": "Correlate multiple weak signals into a campaign without relying on a single prompt or a single model verdict.",
+      "clues": ["Use event IDs from completed scenarios.", "Sequence matters: goal, tool, identity, memory, volume.", "A campaign claim requires independent telemetry."],
+      "detection_rule_ids": ["ZB-AI-004", "ZB-AI-005", "ZB-AI-010"],
+      "required_controls": ["timeline", "containment", "identity-rotation", "recovery-verification"],
+      "steps": [
+        {"id": "s1", "event": "chain_correlate", "match": {"signals": "prompt-tool-identity", "correlation": "multi-source", "confidence": "high"}, "observation": "Several independent weak signals form a synthetic campaign pattern."},
+        {"id": "s2", "event": "approval_checkpoint", "match": {"checkpoint": "collection", "decision": "stop-and-review", "side_effect": "none"}, "observation": "The collection checkpoint stops autonomous escalation."},
+        {"id": "s3", "event": "containment_plan", "match": {"actions": "quarantine-rotate-preserve", "timeline": "complete", "approval": "human"}, "observation": "The campaign is contained as a plan with preserved evidence."}
+      ]
+    },
+    {
+      "id": "containment-recovery",
+      "stage_id": "L09-apt-capstone",
+      "difficulty": 22,
+      "branch": "recovery",
+      "title": "Containment, Identity Rotation, and Recovery",
+      "objective": "Produce a reversible, scoped response plan after a synthetic agent compromise.",
+      "clues": ["Containment comes before cleanup.", "Rotate only synthetic identities in scope.", "Recovery requires verification, not a green status message."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-004", "ZB-AI-008"],
+      "required_controls": ["timeline", "containment", "identity-rotation", "recovery-verification"],
+      "steps": [
+        {"id": "s1", "event": "recovery_verify", "match": {"checkpoint": "scope", "state": "frozen", "side_effect": "none"}, "observation": "The affected synthetic workflow is frozen before remediation."},
+        {"id": "s2", "event": "rotate_identity", "match": {"identity": "synthetic-agent", "tokens": "revoked", "approval": "human"}, "observation": "Synthetic credentials and agent sessions are rotated with approval."},
+        {"id": "s3", "event": "lessons_control", "match": {"control": "new-detection-and-test", "rollback": "available", "status": "verified"}, "observation": "Recovery is verified by a regression control and rollback path."}
+      ]
+    },
+    {
+      "id": "multimodal-ocr-injection",
+      "stage_id": "L02-prompt-injection",
+      "difficulty": 24,
+      "branch": "attack",
+      "title": "Multimodal OCR and Split-Payload Injection",
+      "objective": "Classify harmless synthetic image text that becomes instruction-like only after OCR and composition.",
+      "clues": ["The image is a local fixture, not a downloaded file.", "Compare pixels, OCR, and composed context as separate trust boundaries.", "Do not render or execute the payload."],
+      "detection_rule_ids": ["ZB-AI-001", "ZB-AI-006"],
+      "required_controls": ["trust-boundary", "output-validation", "approval"],
+      "steps": [
+        {"id": "s1", "event": "image_fixture", "match": {"source": "synthetic-image", "network": "disabled", "classification": "untrusted"}, "observation": "The image is handled as untrusted local content."},
+        {"id": "s2", "event": "ocr_composition", "match": {"parts": "split-across-image-and-caption", "instruction": "appears-after-compose", "execution": "disabled"}, "observation": "Composition can create instruction-like content absent from either fragment alone."},
+        {"id": "s3", "event": "multimodal_boundary", "match": {"control": "output-validation", "transaction": "approval-required", "decision": "quarantine"}, "observation": "The composed content is isolated before it can influence a transaction."}
+      ]
+    },
+    {
+      "id": "federated-retrieval-conflict",
+      "stage_id": "L03-rag",
+      "difficulty": 25,
+      "branch": "forensics",
+      "title": "Federated Retrieval Conflict and Source Precedence",
+      "objective": "Resolve conflicting synthetic documents from two retrieval stores without allowing relevance or freshness to erase provenance.",
+      "clues": ["The stores are synthetic replicas.", "Compare tenant, authority, freshness, and digest independently.", "Conflict is a quarantine signal, not a reason to pick the most convenient answer."],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "required_controls": ["tenant-filter", "provenance", "quarantine"],
+      "steps": [
+        {"id": "s1", "event": "federated_query", "match": {"stores": "two-synthetic", "scope": "authorized", "result": "conflict"}, "observation": "Two permitted stores return contradictory synthetic policy evidence."},
+        {"id": "s2", "event": "source_compare", "match": {"digest": "mismatch", "authority": "unresolved", "decision": "do-not-merge"}, "observation": "Digest and authority disagreement prevents silent document merging."},
+        {"id": "s3", "event": "retrieval_quarantine", "match": {"answer": "withheld", "provenance": "preserved", "alert": "ZB-AI-009"}, "observation": "The answer is withheld until an authoritative synthetic source is verified."}
+      ]
+    },
+    {
+      "id": "tool-output-injection",
+      "stage_id": "L04-agent-protocols",
+      "difficulty": 26,
+      "branch": "attack",
+      "title": "Tool Output Injection and Result Confusion",
+      "objective": "Stop untrusted tool output from becoming an agent instruction or an authorization decision.",
+      "clues": ["A successful tool call does not make its result trusted.", "Mark result content separately from tool identity.", "The wrapper must validate destination and arguments again."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-008"],
+      "required_controls": ["manifest-pinning", "tool-allowlist", "reapproval"],
+      "steps": [
+        {"id": "s1", "event": "tool_result", "match": {"tool": "search_documents", "result_trust": "untrusted", "instruction_like": "present"}, "observation": "A tool result contains instruction-like synthetic text."},
+        {"id": "s2", "event": "result_boundary", "match": {"role": "data-only", "privilege_change": "denied", "manifest": "unchanged"}, "observation": "The result remains data and cannot alter the agent role."},
+        {"id": "s3", "event": "wrapper_recheck", "match": {"destination": "policy-bound", "approval": "rechecked", "decision": "allow-data-only"}, "observation": "The wrapper rechecks the action boundary before returning a safe result."}
+      ]
+    },
+    {
+      "id": "feedback-summary-poisoning",
+      "stage_id": "L05-memory",
+      "difficulty": 27,
+      "branch": "attack",
+      "title": "Feedback and Summary Poisoning",
+      "objective": "Detect a low-trust feedback item that is promoted into a durable summary without source lineage.",
+      "clues": ["Feedback is not ground truth.", "Summaries must retain source IDs and trust labels.", "Promotion requires a reviewable policy decision."],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "required_controls": ["memory-provenance", "tenant-isolation", "rollback"],
+      "steps": [
+        {"id": "s1", "event": "feedback_ingest", "match": {"source": "synthetic-feedback", "trust": "low", "promotion": "blocked"}, "observation": "Low-trust feedback is quarantined before memory promotion."},
+        {"id": "s2", "event": "summary_lineage", "match": {"source_ids": "missing", "trust_label": "dropped", "alert": "ZB-AI-009"}, "observation": "A summary without lineage is detected as provenance loss."},
+        {"id": "s3", "event": "promotion_rollback", "match": {"action": "rollback-summary", "scope": "single-tenant", "review": "required"}, "observation": "The poisoned summary is rolled back without crossing tenant scope."}
+      ]
+    },
+    {
+      "id": "deepfake-identity-claim",
+      "stage_id": "L06-identity-control-plane",
+      "difficulty": 28,
+      "branch": "forensics",
+      "title": "Synthetic Voice or Video Identity Claim",
+      "objective": "Treat a convincing synthetic voice or video as an untrusted claim and require independent identity binding.",
+      "clues": ["Media authenticity is not authorization.", "Use a synthetic media marker only.", "Require an independent channel and case-bound approval."],
+      "detection_rule_ids": ["ZB-AI-004", "ZB-AI-008"],
+      "required_controls": ["audience-binding", "least-privilege", "approval-binding"],
+      "steps": [
+        {"id": "s1", "event": "media_claim", "match": {"source": "synthetic-media", "identity": "claimed-manager", "authorization": "unproven"}, "observation": "Synthetic media is recorded as a claim, not proof of identity."},
+        {"id": "s2", "event": "independent_verify", "match": {"channel": "case-bound-secondary", "claim": "unconfirmed", "privilege": "unchanged"}, "observation": "Independent verification fails to establish privileged authority."},
+        {"id": "s3", "event": "identity_decision", "match": {"approval": "case-bound", "role": "least-privilege", "decision": "hold"}, "observation": "The requested action remains on hold pending verified approval."}
+      ]
+    },
+    {
+      "id": "dependency-confusion",
+      "stage_id": "L07-supply-chain",
+      "difficulty": 29,
+      "branch": "attack",
+      "title": "Dependency Name Confusion and Provenance",
+      "objective": "Detect a synthetic package name collision and require digest and source verification before a build decision.",
+      "clues": ["Package names are not package identity.", "Do not install or download anything.", "Compare registry, publisher, digest, and allowlisted source."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-010"],
+      "required_controls": ["digest-pinning", "workspace-allowlist", "two-person-review"],
+      "steps": [
+        {"id": "s1", "event": "package_resolve", "match": {"name": "zodiac-risk-parser", "source": "synthetic-registry", "digest": "unapproved"}, "observation": "A package name resolves to an unapproved synthetic digest."},
+        {"id": "s2", "event": "publisher_compare", "match": {"publisher": "mismatch", "workspace": "allowlisted", "execution": "disabled"}, "observation": "Publisher mismatch is detected without executing package code."},
+        {"id": "s3", "event": "build_gate", "match": {"decision": "deny", "reviewers": "two", "control": "digest-pinning"}, "observation": "The build remains denied until independent provenance review."}
+      ]
+    },
+    {
+      "id": "model-abuse-budget",
+      "stage_id": "L08-detection-evasion",
+      "difficulty": 30,
+      "branch": "defense",
+      "title": "Model Abuse, Cost Spike, and Loop Budget",
+      "objective": "Detect a synthetic agent that expands requests and context consumption beyond its declared budget.",
+      "clues": ["Use counters and token estimates only.", "Compare per-user, per-agent, and per-workflow baselines.", "Rate limits alone do not replace a circuit breaker."],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-006", "ZB-AI-010"],
+      "required_controls": ["canonicalization", "behavioral-baseline", "circuit-breaker"],
+      "steps": [
+        {"id": "s1", "event": "budget_baseline", "match": {"agent": "synthetic-worker", "context": "declared", "requests": "baseline"}, "observation": "The normal synthetic workload budget is recorded."},
+        {"id": "s2", "event": "budget_expansion", "match": {"context": "above-budget", "requests": "fan-out", "external_call": "disabled"}, "observation": "An autonomous loop expands work without reaching an external system."},
+        {"id": "s3", "event": "abuse_circuit", "match": {"action": "stop-and-review", "telemetry": "preserved", "rule": "ZB-AI-010"}, "observation": "The circuit breaker stops consumption and preserves privacy-safe telemetry."}
+      ]
+    },
+    {
+      "id": "residual-risk-review",
+      "stage_id": "L09-apt-capstone",
+      "difficulty": 23,
+      "branch": "recovery",
+      "title": "Residual Risk and Transferable Attack Evaluation",
+      "objective": "Evaluate whether a defense learned on one scenario transfers to another scenario and document remaining risk.",
+      "clues": ["A passing single test does not prove generalization.", "Compare attack families across surfaces.", "Record what remains unknown."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-005", "ZB-AI-010"],
+      "required_controls": ["timeline", "containment", "identity-rotation", "recovery-verification"],
+      "steps": [
+        {"id": "s1", "event": "final_timeline", "match": {"events": "cross-stage", "sources": "independent", "gaps": "recorded"}, "observation": "The final timeline includes both attack and defense evidence."},
+        {"id": "s2", "event": "cross_source", "match": {"defense": "transferred", "new_surface": "tested", "result": "measured"}, "observation": "A control is tested on a different synthetic surface."},
+        {"id": "s3", "event": "residual_risk", "match": {"risk": "explicit", "owner": "assigned", "next_test": "scheduled", "recovery": "verified"}, "observation": "The capstone records residual risk instead of declaring perfect security."}
+      ]
+    }
+  ]
+}

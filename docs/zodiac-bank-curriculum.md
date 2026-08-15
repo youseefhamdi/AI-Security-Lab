@@ -62,6 +62,40 @@ python3 scripts/zodiac_bank_threats.py --format json --output logs/ai-apt-campai
 
 Use [`docs/ai-threat-research-2026.md`](ai-threat-research-2026.md) for the research synthesis, limitations, and source list. Reddit and X are recorded as community signals only; they never establish attribution or prevalence. The campaign focuses on agentic chaining, MCP tool drift, RAG/memory poisoning, identity abuse, post-compromise discovery, adaptive evasion, and defensive containment. Every event is synthetic and side-effect-free.
 
+## Hard scenario range
+
+The strict challenge surface is defined by `training-config/scenarios.json`. It contains 30 scenarios across the 10 stages, including:
+
+- web-based indirect injection and browser-origin confusion;
+- multimodal, split, hidden, and obfuscated prompt content;
+- vector tenant confusion, embedding inversion canaries, and federation conflict;
+- MCP tool poisoning, tool shadowing, rug pulls, and argument confusion;
+- persistent memory poisoning, feedback-summary poisoning, summary provenance, and tenant isolation;
+- non-human identity, OAuth scope mismatch, synthetic deepfake claims, token replay, and approval binding;
+- CI artifact paths, dependency confusion, model/dependency drift, and workflow metadata injection;
+- detector normalization gaps, unbounded fan-out, model-abuse budgets, egress policy, and privacy-safe canaries;
+- campaign correlation, containment/recovery, transfer evaluation, and residual risk.
+
+Every scenario has 2-3 ordered evidence steps. Wrong order, replay, unknown events, and incomplete evidence are rejected. Completing scenarios is not enough: stage synthesis must include the exact required scenario set, evidence tokens, detection-rule coverage, controls, timeline entries, and a security explanation. In strict mode, the legacy one-request routes never issue hard flags.
+
+List the current stage's scenarios after enrollment:
+
+```bash
+curl --fail 'http://127.0.0.1:5060/api/scenarios?learner_id=analyst-01' \
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+```
+
+Start and advance a scenario only with the private learner token:
+
+```bash
+curl --fail -X POST http://127.0.0.1:5060/api/scenarios/scope-integrity/start \
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \
+  -H 'Content-Type: application/json' \
+  -d '{"learner_id":"analyst-01"}'
+```
+
+The API deliberately does not expose hidden matchers. Learners must discover observations from local challenge surfaces, then submit the resulting event and bounded evidence in order. A completed scenario returns an opaque evidence token. Stage synthesis is the only strict-mode path that returns that stage's flag after all controls and reasoning requirements pass.
+
 ## API examples
 
 Start the core profile:
@@ -117,7 +151,7 @@ The CLI refuses non-local Training Gate URLs unless `ALLOW_REMOTE_ADMIN=1` is ex
 
 Changing `TRAINING_FLAG_SECRET` invalidates all generated flags. Use `reset-cohort` for a scoped reset; removing the `training_data` volume is the destructive all-cohort reset and deletes all learner progress and generated training artifacts.
 
-Each lesson has a distinct challenge surface under `http://127.0.0.1:5060`. The challenge service computes the same HMAC-backed flag as the Training Gate but returns it only after the lesson-specific discovery condition is met. Responses are synthetic training findings; they must not be cached or copied outside the lab. The service contains no real banking information.
+Each lesson has a hard scenario surface under `http://127.0.0.1:5060`. In strict mode, legacy one-request routes never issue hard flags. Learners must complete the stage's required multi-step scenarios, preserve ordered evidence tokens, cover detections and controls, and pass stage synthesis before submitting the returned HMAC-backed flag to the Training Gate. Scenario state is persistent and token-bound; responses are synthetic training findings and must not be cached or copied outside the lab.
 
 ## Hint progression
 
@@ -127,7 +161,7 @@ In strict mode, learner progress and flag submission also require the instructor
 - **Hint 2 — technique:** narrows the comparison or trust boundary to test.
 - **Hint 3 — confirmation:** describes the safe synthetic condition that should confirm the finding.
 
-Hints are released only after the stage is unlocked. The next difficulty is not released by reading a hint; it requires a valid hard-flag submission.
+Hints are released only after the stage is unlocked. The next difficulty is not released by reading a hint; it requires valid scenario evidence and an accepted stage synthesis before the hard flag can be submitted.
 
 ## Security boundary
 

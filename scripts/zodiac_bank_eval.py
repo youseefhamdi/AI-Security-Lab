@@ -17,6 +17,7 @@ from typing import Any, Callable
 from context_engineering import assemble_context, render_for_model
 from zodiac_graph import build_graph, neighborhood, validate_graph
 from zodiac_bank_threats import load as load_threat_document, validate as validate_threat_model
+from zodiac_scenario_engine import validate_scenarios
 
 ROOT = Path(__file__).resolve().parent.parent
 BANK_PATH = ROOT / "bank-data" / "zodiac-bank.json"
@@ -26,6 +27,7 @@ CURRICULUM_PATH = ROOT / "training-config" / "curriculum.json"
 COMPOSE_PATH = ROOT / "docker-compose.yml"
 THREAT_MODEL_PATH = ROOT / "training-config" / "threat-model.json"
 DETECTION_RULES_PATH = ROOT / "detection-config" / "zodiac-bank-rules.json"
+SCENARIO_PATH = ROOT / "training-config" / "scenarios.json"
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -104,6 +106,20 @@ def check_ai_threat_model() -> dict[str, Any]:
     return validate_threat_model(model, ruleset, curriculum)
 
 
+def check_hard_scenario_range() -> dict[str, Any]:
+    scenarios = load_threat_document(SCENARIO_PATH)
+    curriculum = load(CURRICULUM_PATH)
+    result = validate_scenarios(scenarios, curriculum)
+    challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "training-challenges" / "Dockerfile").read_text(encoding="utf-8")
+    assert "scenario_event" in challenge and "synthesize_stage" in challenge
+    assert "scenario_runs" in challenge and "BEGIN IMMEDIATE" in challenge
+    assert "validate_evidence" in challenge and "MAX_ACTIVE_SCENARIOS" in challenge
+    assert "X-Training-Learner-Token" in challenge
+    assert "zodiac_scenario_engine.py" in dockerfile
+    return result
+
+
 def check_runtime_security() -> dict[str, Any]:
     compose = COMPOSE_PATH.read_text(encoding="utf-8")
     graph_service = (ROOT / "graph-context" / "main.py").read_text(encoding="utf-8")
@@ -111,6 +127,8 @@ def check_runtime_security() -> dict[str, Any]:
     knowledge = (ROOT / "a2a-agents" / "knowledge" / "main.py").read_text(encoding="utf-8")
     assert "GRAPH_CONTEXT_SECURITY_MODE: ${GRAPH_CONTEXT_SECURITY_MODE:-strict}" in compose
     assert "GRAPH_CONTEXT_API_KEY" in compose
+    assert "TRAINING_ACCESS_DB: /var/lib/training/progress.sqlite3" in compose
+    assert "training-challenges/Dockerfile" in compose
     assert "X-Graph-Context-Key" in aurora and "X-Graph-Context-Key" in knowledge
     assert "hmac.compare_digest" in graph_service
     assert "Cache-Control" in graph_service
@@ -134,6 +152,7 @@ def main() -> int:
         ("context_contract", lambda: check_context(bank, workflows)),
         ("workflow_orchestrator_symmetry", lambda: check_workflows(bank, workflows)),
         ("ai_threat_model_and_detection", check_ai_threat_model),
+        ("hard_scenario_range", check_hard_scenario_range),
         ("runtime_security_wiring", check_runtime_security),
     ]
     results: list[dict[str, Any]] = []

@@ -33,6 +33,7 @@
 - [Zodiac Bank progression](#-zodiac-bank-progression)
 - [Graph and context engineering](#-graph-and-context-engineering)
 - [AI threat research and APT range](#-ai-threat-research-and-apt-range)
+- [Hard scenario range](#-hard-scenario-range)
 - [Automatic provider detection](#-automatic-provider-detection)
 - [Endpoints](#-endpoints)
 - [Stop, restart, and clean](#-stop-restart-and-clean)
@@ -708,7 +709,7 @@ curl --fail http://127.0.0.1:5050/api/flags/submit \\
   -d '{"learner_id":"analyst-01","stage_id":"L00-foundation","flag":"ZODIAC-BANK-..."}'
 ```
 
-Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. Invalid submissions are hashed for audit, limited to a bounded number of attempts, and do not reveal the expected flag. Discover each flag through the unique Challenge Surface at `http://127.0.0.1:5060`, then submit it to the gate. All targets, identities, accounts, and evidence are synthetic and must remain localhost-bound.
+Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. In strict mode, legacy challenge routes do not issue flags: complete the required multi-step scenarios at `http://127.0.0.1:5060`, synthesize the evidence, then submit the returned flag to the gate. Invalid submissions are hashed for audit, limited to a bounded number of attempts, and do not reveal the expected flag. All targets, identities, accounts, and evidence are synthetic and must remain localhost-bound.
 
 Training Gate endpoint: `http://127.0.0.1:5050`.
 
@@ -793,6 +794,52 @@ python3 scripts/zodiac_bank_threats.py --format json --output logs/ai-apt-campai
 
 The nine-phase campaign produces synthetic events, expected detection rules, training-stage mappings, and containment checkpoints. It never scans, exploits, executes commands, contacts models, or touches external systems. The research synthesis, citations, limitations, and refresh policy are in [`docs/ai-threat-research-2026.md`](docs/ai-threat-research-2026.md). Community Reddit/X material is marked as a lead only and is corroborated before it influences a control.
 
+## 🧩 Hard scenario range
+
+Strict mode now uses a real multi-step range instead of one-request flag discovery:
+
+- 30 scenarios across all 10 stages;
+- two or more required scenarios per stage, with four in the hardest detection-evasion stage;
+- ordered evidence events with replay and wrong-order rejection;
+- per-learner persistent state bound to the instructor-issued learner token;
+- stage synthesis requiring scenario evidence tokens, exact detection coverage, required controls, a timeline, and a security explanation;
+- no hard flag returned by legacy challenge routes in strict mode.
+
+The challenge service exposes only metadata and clues; it never exposes scenario matchers or flags:
+
+```bash
+export LEARNER_ID=analyst-01
+export LEARNER_TOKEN='<token returned by cohort-add>'
+
+curl --fail "http://127.0.0.1:5060/api/scenarios?learner_id=${LEARNER_ID}" \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+
+curl --fail -X POST http://127.0.0.1:5060/api/scenarios/direct-goal-hijack/start \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
+  -H 'Content-Type: application/json' \\
+  -d '{"learner_id":"analyst-01"}'
+```
+
+Each observation must be discovered from the authorized local surface and submitted in order:
+
+```bash
+curl --fail -X POST http://127.0.0.1:5060/api/scenarios/direct-goal-hijack/event \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
+  -H 'Content-Type: application/json' \\
+  -d '{"learner_id":"analyst-01","event":"<discovered-event>","evidence":{}}'
+```
+
+After every required scenario is complete, the learner submits a synthesis. The hard flag is issued only when all required evidence, detection rules, controls, concepts, and timeline entries validate:
+
+```bash
+curl --fail -X POST http://127.0.0.1:5060/api/stages/L02-prompt-injection/synthesize \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
+  -H 'Content-Type: application/json' \\
+  -d '{"learner_id":"analyst-01","scenario_ids":[],"evidence_tokens":[],"detection_rule_ids":[],"controls":[],"timeline":[],"summary":""}'
+```
+
+The example intentionally contains placeholders and is expected to be rejected until the learner has real local evidence. Scenario definitions are stored in `training-config/scenarios.json`; the service does not return their hidden matchers.
+
 ## 🧪 Run the training exercises
 
 All exercises are for authorized local use only. Runtime exercises are guarded by `RUNTIME=1`.
@@ -829,6 +876,9 @@ RUNTIME=1 ./exercises/evasion_practice.sh
 
 # Research-backed synthetic AI/APT campaign packet
 python3 scripts/zodiac_bank_threats.py --campaign ai-apt-campaign --format json --output logs/ai-apt-campaign.json
+
+# Validate the hard multi-step scenario range
+python3 scripts/zodiac_bank_eval.py
 ```
 
 The written exercises and attack notes are available in:
@@ -899,8 +949,9 @@ docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
 loop-config/           Synthetic workflow inputs for Loop Engineering
 mem0-config/           Optional Mem0 configuration
-training-config/       Zodiac Bank curriculum, gate, and threat-model configuration
+training-config/       Zodiac Bank curriculum, gate, threat model, and hard scenarios
 detection-config/       Synthetic Sigma-like AI/APT detection rules
+scripts/zodiac_scenario_engine.py  Shared scenario validation and evidence primitives
 models/                Local GGUF files; ignored by Git
 ```
 
@@ -1076,8 +1127,9 @@ This project is for **authorized local training only**. It intentionally contain
 - Unauthenticated protocol exercises
 - Prompt-injection and guardrail weaknesses
 - Memory and retrieval attack fixtures
+- Multi-step scenario state and evidence-token challenges
 
-Never expose the lab to the public internet, reuse its credentials, place real secrets in `sensitive-data/`, or commit model weights.
+Strict mode intentionally withholds stage flags from legacy one-request routes; use the hard scenario range and stage synthesis API. Never expose the service outside localhost, reuse its credentials, place real secrets in `sensitive-data/`, or commit model weights.
 
 <div align="center">
 

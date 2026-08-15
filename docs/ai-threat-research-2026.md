@@ -50,6 +50,18 @@ CISA and international partners published guidance for careful adoption of agent
 
 **Training response:** the Loop Engineering workflows retain bounded steps and retries, persistent checkpoints, typed workers, and approval requirements. `ZB-AI-010` stops loops that exceed their declared budget or proceed without required approval.
 
+### 6. What the first range was missing
+
+The second research pass added scenario coverage for the attack classes that are easiest to describe but hardest to evaluate correctly:
+
+- **Web-based indirect injection:** Unit 42 documented in-the-wild web content that targets AI review and decision pipelines, including hidden, obfuscated, and dynamically assembled instructions. The University of Washington reported same-origin and memory-poisoning risks in agentic browsers. Zodiac Bank models these as local fixtures and denied cross-origin actions.
+- **Multimodal and split payloads:** OWASP LLM01:2025 explicitly includes multimodal injection, payload splitting, multilingual and obfuscated inputs. The range records parser/model representation differences without executing a payload.
+- **Vector and embedding weaknesses:** OWASP LLM08:2025 covers cross-context leakage, permission errors, embedding inversion, poisoning, and federated knowledge conflict. The range adds tenant-confusion and inversion-canary scenarios.
+- **Excessive agency and argument injection:** OWASP LLM06:2025 and Trail of Bits show why approval prompts alone are not enough when tools have excessive permissions or arguments can change the meaning of a pre-approved command. The range tests typed arguments, separators, sandbox boundaries, and approval binding as metadata-only cases.
+- **Evaluation transfer:** NIST's 2026 CAISI analysis of more than 250,000 red-team attempts found attacks across tool-use, coding, and computer-use agents and emphasized that attack families can transfer between models and scenarios. The capstone now requires a held-out transfer review and explicit residual risk.
+
+These findings changed the lab from one endpoint per lesson into a multi-step evidence range. Learners must complete two or more scenarios per stage, submit ordered evidence tokens, cover the required detections and controls, and write a synthesis that includes the relevant security concepts.
+
 ## Threat-to-control matrix
 
 The canonical machine-readable source is:
@@ -145,3 +157,10 @@ Do not record raw credentials, real customer data, model-provider keys, or raw p
 - [NIST AI 600-1 Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
 - [Reddit r/netsec community signal](https://www.reddit.com/r/netsec/comments/1ldiilv/security_analysis_mcp_protocol_vulnerabilities_in/)
 - [X community signal](https://x.com/cybersec/article/2026335843628007453)
+- [NIST CAISI agent red-teaming competition analysis](https://www.nist.gov/blogs/caisi-research-blog/insights-ai-agent-security-large-scale-red-teaming-competition)
+- [Unit 42 web-based indirect prompt injection](https://unit42.paloaltonetworks.com/ai-agent-prompt-injection/)
+- [OWASP LLM01:2025 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
+- [OWASP LLM06:2025 Excessive Agency](https://genai.owasp.org/llmrisk/llm062025-excessive-agency/)
+- [OWASP LLM08:2025 Vector and Embedding Weaknesses](https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/)
+- [University of Washington agentic browser research](https://www.washington.edu/news/2026/06/30/some-agentic-ai-browsers-come-with-major-cybersecurity-risks-uw-study-finds/)
+- [Trail of Bits argument injection in AI agents](https://blog.trailofbits.com/2025/10/22/prompt-injection-to-rce-in-ai-agents/)

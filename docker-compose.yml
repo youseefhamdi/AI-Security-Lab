@@ -56,13 +56,19 @@ services:
     mem_limit: 128m
 
   training-challenges:
-    build: ./training-challenges
+    build:
+      context: .
+      dockerfile: training-challenges/Dockerfile
     container_name: zodiac-bank-challenges
     ports:
       - "127.0.0.1:5060:5060"
     environment:
       TRAINING_FLAG_SECRET: ${TRAINING_FLAG_SECRET:-zodiac-bank-change-this-training-secret}
       TRAINING_SECURITY_MODE: ${TRAINING_SECURITY_MODE:-strict}
+      TRAINING_ACCESS_DB: /var/lib/training/progress.sqlite3
+      TRAINING_CHALLENGE_STATE_DB: /var/lib/training/challenges.sqlite3
+    volumes:
+      - training_data:/var/lib/training
     mem_limit: 128m
 
   zodiac-context:

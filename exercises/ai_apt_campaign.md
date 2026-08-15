@@ -28,15 +28,22 @@ python3 scripts/zodiac_bank_threats.py \
 
 ## Replay the safe local evidence path
 
-With the core profile running and the learner enrolled, progress through the hard-gated stages. Use the challenge surface only with synthetic values:
+With the core profile running and the learner enrolled, list the current stage's scenarios:
 
-1. Complete L00-L03 and capture scope, model, prompt, and RAG provenance evidence.
-2. At L04, compare the synthetic tool route and the declared allowed tool list.
-3. At L05, test only canonical IDs such as `ZB-CUS-001` and `ZB-CUS-002`.
-4. At L06, record the denied or suspicious synthetic identity context.
-5. At L07, review the artifact path behavior without installing or executing anything.
-6. At L08, compare normal and encoded marker telemetry and record the detection gap.
-7. At L09, assemble the evidence timeline and submit it to the local capstone.
+```bash
+curl --fail 'http://127.0.0.1:5060/api/scenarios?learner_id=analyst-01' \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+```
+
+Start each required scenario, discover its observations from the local challenge surfaces, and submit each accepted event in order. The API intentionally rejects wrong order, replay, unknown events, incomplete evidence, and scenarios from future stages. Use synthetic values only:
+
+1. Complete the two required L00-L03 scenarios per stage and capture scope, model, prompt, web, vector, and provenance evidence.
+2. At L04, compare the synthetic tool route, complete tool-manifest drift checks, and review argument boundaries without execution.
+3. At L05, test only canonical IDs such as `ZB-CUS-001` and `ZB-CUS-002`, including persistence and rollback evidence.
+4. At L06, record identity, OAuth scope, nonce, and approval-binding evidence.
+5. At L07, review artifact, model-manifest, and workflow metadata behavior without installing or executing anything.
+6. At L08, compare normal and encoded marker telemetry, bounded fan-out, canary handling, and transfer results.
+7. At L09, correlate the required scenario tokens, submit exact detection and control coverage, and produce the incident timeline, containment, recovery, and residual-risk synthesis.
 
 The goal is to explain the chain and its controls, not to maximize access.
 

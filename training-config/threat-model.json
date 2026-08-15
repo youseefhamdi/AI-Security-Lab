@@ -103,6 +103,69 @@
       "confidence": "community-signal",
       "observations": ["discussion of protocol-level validation and command-injection concerns"],
       "caveat": "Social posts are treated as discovery signals only and are not used to assert prevalence or attribution."
+    },
+    {
+      "id": "nist-agent-redteam-2026",
+      "publisher": "NIST CAISI, Gray Swan, UK AISI, and frontier-model labs",
+      "title": "Insights into AI Agent Security from a Large-Scale Red-Teaming Competition",
+      "published": "2026-03-23",
+      "url": "https://www.nist.gov/blogs/caisi-research-blog/insights-ai-agent-security-large-scale-red-teaming-competition",
+      "confidence": "primary-research",
+      "observations": ["250,000-plus attack attempts", "tool-use, coding, and computer-use scenarios", "universal attack transfer", "security evaluation must continuously evolve"]
+    },
+    {
+      "id": "unit42-web-idpi-2026",
+      "publisher": "Palo Alto Networks Unit 42",
+      "title": "Fooling AI Agents: Web-Based Indirect Prompt Injection Observed in the Wild",
+      "published": "2026-03-03",
+      "url": "https://unit42.paloaltonetworks.com/ai-agent-prompt-injection/",
+      "confidence": "primary-research",
+      "observations": ["web content as prompt delivery", "hidden and obfuscated payloads", "decision manipulation", "sensitive information leakage", "cross-origin browser risk"]
+    },
+    {
+      "id": "owasp-llm01-2025",
+      "publisher": "OWASP GenAI Security Project",
+      "title": "LLM01:2025 Prompt Injection",
+      "published": "2025",
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "confidence": "primary-guidance",
+      "observations": ["direct and indirect injection", "multimodal injection", "payload splitting", "output validation", "least privilege and approval"]
+    },
+    {
+      "id": "owasp-llm06-2025",
+      "publisher": "OWASP GenAI Security Project",
+      "title": "LLM06:2025 Excessive Agency",
+      "published": "2025",
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "confidence": "primary-guidance",
+      "observations": ["excessive functionality", "excessive permissions", "excessive autonomy", "complete mediation", "human approval"]
+    },
+    {
+      "id": "owasp-llm08-2025",
+      "publisher": "OWASP GenAI Security Project",
+      "title": "LLM08:2025 Vector and Embedding Weaknesses",
+      "published": "2025",
+      "url": "https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/",
+      "confidence": "primary-guidance",
+      "observations": ["cross-context leaks", "embedding inversion", "data poisoning", "federation conflict", "permission-aware vector stores"]
+    },
+    {
+      "id": "uw-agentic-browsers-2026",
+      "publisher": "University of Washington",
+      "title": "Some agentic AI browsers come with major cybersecurity risks",
+      "published": "2026-06-30",
+      "url": "https://www.washington.edu/news/2026/06/30/some-agentic-ai-browsers-come-with-major-cybersecurity-risks-uw-study-finds/",
+      "confidence": "primary-research",
+      "observations": ["same-origin policy bypass conditions", "cross-site information flow", "memory poisoning", "least-permission browsers are safer"]
+    },
+    {
+      "id": "trailofbits-agent-argument-injection-2025",
+      "publisher": "Trail of Bits",
+      "title": "Prompt injection to RCE in AI agents",
+      "published": "2025-10-22",
+      "url": "https://blog.trailofbits.com/2025/10/22/prompt-injection-to-rce-in-ai-agents/",
+      "confidence": "security-research",
+      "observations": ["argument injection in pre-approved commands", "approval bypass patterns", "shell-disabled execution is not enough", "sandboxing and argument separation"]
     }
   ],
   "threats": [
@@ -215,6 +278,61 @@
       "controls": ["authentication", "request budgets", "abuse monitoring", "output filtering", "provider key isolation"],
       "detection_rule_ids": ["ZB-AI-003", "ZB-AI-010"],
       "mappings": {"mitre_atlas": ["model extraction", "AI service abuse"], "agentic_risk": ["resource exhaustion"]}
+    },
+    {
+      "id": "ZBT-11",
+      "name": "Web indirect injection and browser origin confusion",
+      "stage_id": "L02-prompt-injection",
+      "surfaces": ["web content", "embedded content", "browser agent context", "cross-origin actions"],
+      "research_refs": ["unit42-web-idpi-2026", "uw-agentic-browsers-2026", "owasp-llm01-2025"],
+      "safe_simulation": "Use a local synthetic page fixture with hidden content and model the cross-origin action as a denied event.",
+      "controls": ["origin isolation", "content provenance", "cross-domain action denial", "human approval"],
+      "detection_rule_ids": ["ZB-AI-001", "ZB-AI-006", "ZB-AI-008"],
+      "mappings": {"mitre_atlas": ["indirect prompt injection"], "agentic_risk": ["goal hijack", "insecure inter-agent communication"]}
+    },
+    {
+      "id": "ZBT-12",
+      "name": "Multimodal, payload-splitting, and obfuscated injection",
+      "stage_id": "L02-prompt-injection",
+      "surfaces": ["image metadata", "SVG/XML text", "Unicode", "split content"],
+      "research_refs": ["owasp-llm01-2025", "unit42-web-idpi-2026"],
+      "safe_simulation": "Represent hidden text and split harmless markers as metadata; never render or execute an unsafe payload.",
+      "controls": ["cross-modal extraction", "canonicalization", "detector ensembles", "output validation"],
+      "detection_rule_ids": ["ZB-AI-001", "ZB-AI-006"],
+      "mappings": {"mitre_atlas": ["multimodal prompt injection", "obfuscated prompt injection"], "agentic_risk": ["goal hijack"]}
+    },
+    {
+      "id": "ZBT-13",
+      "name": "Argument injection and unsafe agent execution design",
+      "stage_id": "L04-agent-protocols",
+      "surfaces": ["pre-approved commands", "tool arguments", "coding agents", "sandbox boundary"],
+      "research_refs": ["trailofbits-agent-argument-injection-2025", "owasp-llm06-2025"],
+      "safe_simulation": "Compare a typed argument object with a dangerous-looking argument-shaped string and stop before execution.",
+      "controls": ["typed arguments", "argument separators", "sandboxing", "no shell interpretation", "approval"],
+      "detection_rule_ids": ["ZB-AI-007", "ZB-AI-008", "ZB-AI-010"],
+      "mappings": {"mitre_attack": ["Command and Scripting Interpreter", "Exploitation for Client Execution"], "agentic_risk": ["tool misuse", "excessive agency"]}
+    },
+    {
+      "id": "ZBT-14",
+      "name": "Embedding inversion and federated knowledge conflict",
+      "stage_id": "L03-rag",
+      "surfaces": ["embedding metadata", "shared vector store", "federated collections", "source text canaries"],
+      "research_refs": ["owasp-llm08-2025", "nist-ai-600-1"],
+      "safe_simulation": "Use a synthetic canary and conflicting policy records to test permission-aware retrieval and provenance quarantine.",
+      "controls": ["permission-aware vectors", "source authentication", "classification filters", "immutable retrieval logs"],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "mappings": {"mitre_atlas": ["data poisoning", "embedding inversion"], "agentic_risk": ["sensitive data disclosure"]}
+    },
+    {
+      "id": "ZBT-15",
+      "name": "Transferable attack evaluation gap",
+      "stage_id": "L08-detection-evasion",
+      "surfaces": ["red-team corpus", "model variants", "tool-use scenarios", "evaluation metrics"],
+      "research_refs": ["nist-agent-redteam-2026", "owasp-llm01-2025"],
+      "safe_simulation": "Replay abstract harmless attack families across synthetic surfaces and measure transfer without sending model jailbreak payloads.",
+      "controls": ["adaptive evaluation sets", "scenario transfer testing", "held-out cases", "regression thresholds"],
+      "detection_rule_ids": ["ZB-AI-006", "ZB-AI-010"],
+      "mappings": {"mitre_atlas": ["adversarial evaluation"], "agentic_risk": ["monitoring failure", "goal hijack"]}
     }
   ],
   "campaigns": [
