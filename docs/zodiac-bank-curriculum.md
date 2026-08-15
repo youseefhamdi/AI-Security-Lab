@@ -25,12 +25,12 @@ The curriculum endpoint intentionally returns stage metadata and flag format, bu
 | L01 | Beginner | Endpoint and model reconnaissance | Aurora, Phoenix, Assistant |
 | L02 | Intermediate | Direct and indirect prompt injection | Aurora |
 | L03 | Intermediate | RAG provenance and poisoning | Aurora, Knowledge Agent, ChromaDB, LightRAG |
-| L04 | Advanced | A2A/MCP confused deputy | A2A Router, Knowledge Agent, MCP |
+| L04 | Advanced | A2A/MCP confused deputy, tool poisoning, rug pulls | A2A Router, Knowledge Agent, MCP |
 | L05 | Advanced | Memory poisoning and tenant isolation | Mem0, Aurora, MCP memory |
-| L06 | Expert | Identity and AI control plane | Kong, Aurora, A2A, Mem0 |
-| L07 | Expert | Model, dependency, and CI supply chain | Dependency Sweeper, Orchestrator, Filebeat |
-| L08 | Red Team | Evasion versus SIEM detection | Aurora, Elasticsearch, Kibana, Filebeat |
-| L09 | APT Simulation | Multi-stage campaign and containment | All local services |
+| L06 | Expert | Identity, post-compromise discovery, and AI control plane | Kong, Aurora, A2A, Mem0 |
+| L07 | Expert | Model, dependency, artifact, and agentic supply chain | Dependency Sweeper, Orchestrator, Filebeat |
+| L08 | Red Team | Adaptive evasion, volume anomalies, and SIEM detection | Aurora, Elasticsearch, Kibana, Filebeat |
+| L09 | APT Simulation | AI-orchestrated campaign, approvals, and containment | All local services |
 
 ## Unique challenge surfaces
 
@@ -50,6 +50,17 @@ The challenge surface is deliberately separate from the progression API. It is a
 | L09 | Submit evidence from every previous stage as the capstone chain. |
 
 The route is `http://127.0.0.1:5060`. The challenge service does not unlock stages; it only provides the synthetic discovery condition. The Training Gate remains the sole authority for progression.
+
+## Research-backed AI/APT range
+
+The dated threat model in `training-config/threat-model.json` maps current public reporting to synthetic stages, detection rules, and safe controls. The offline planner renders a nine-phase campaign packet without executing commands or contacting external systems:
+
+```bash
+python3 scripts/zodiac_bank_threats.py --validate-only
+python3 scripts/zodiac_bank_threats.py --format json --output logs/ai-apt-campaign.json
+```
+
+Use [`docs/ai-threat-research-2026.md`](ai-threat-research-2026.md) for the research synthesis, limitations, and source list. Reddit and X are recorded as community signals only; they never establish attribution or prevalence. The campaign focuses on agentic chaining, MCP tool drift, RAG/memory poisoning, identity abuse, post-compromise discovery, adaptive evasion, and defensive containment. Every event is synthetic and side-effect-free.
 
 ## API examples
 

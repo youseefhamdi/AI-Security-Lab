@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://github.com/youseefhamdi/AI-Security-Lab">
+<a href="https://github.com/youseefhamdi/Zodiac-AI-Security-Lab">
   <img src="docs/assets/ai-security-lab-banner.svg" alt="Animated Zodiac Bank AI Security Lab banner with a Spartan emblem" width="100%" />
 </a>
 
@@ -12,7 +12,7 @@
 [![Curriculum](https://img.shields.io/badge/Curriculum-10%20Hard--Gated%20Stages-F97316)](#-zodiac-bank-progression)
 [![Data](https://img.shields.io/badge/Data-Synthetic%20%26%20Local--Only-22C55E)](#-security-boundary)
 
-> **Zodiac Bank AI Security Lab** — an isolated synthetic banking environment for model fingerprinting, prompt injection, RAG attacks, agent protocol abuse, memory poisoning, supply-chain scenarios, and SIEM detection.
+> **Zodiac Bank AI Security Lab** — an isolated synthetic banking environment for model fingerprinting, prompt injection, RAG and memory poisoning, MCP/A2A abuse, AI-assisted APT simulation, agentic supply-chain risk, and SIEM detection.
 
 </div>
 
@@ -32,6 +32,7 @@
 - [Run the training exercises](#-run-the-training-exercises)
 - [Zodiac Bank progression](#-zodiac-bank-progression)
 - [Graph and context engineering](#-graph-and-context-engineering)
+- [AI threat research and APT range](#-ai-threat-research-and-apt-range)
 - [Automatic provider detection](#-automatic-provider-detection)
 - [Endpoints](#-endpoints)
 - [Stop, restart, and clean](#-stop-restart-and-clean)
@@ -105,7 +106,7 @@ Starts the progression and context-control plane plus three application containe
 - Zodiac Bank hard-flag Training Gate and unique Challenge Surface
 - Zodiac Bank Graph Context service with bounded graph traversal and context packets
 - Dependency-free local Markdown retrieval
-- Offline security evaluation before service startup
+- Offline security evaluation and research-backed AI/APT threat-model validation before service startup
 
 ### Lite profile
 
@@ -154,8 +155,8 @@ Bonsai defaults to a 2K context, one concurrent request, CPU mode, and a 5 GB co
 ### Linux
 
 ```bash
-git clone https://github.com/youseefhamdi/AI-Security-Lab.git
-cd AI-Security-Lab
+git clone https://github.com/youseefhamdi/Zodiac-AI-Security-Lab.git
+cd Zodiac-AI-Security-Lab
 
 docker --version
 docker compose version
@@ -221,8 +222,8 @@ The local Bonsai fallback does not require this setting.
 3. Clone the repository:
 
 ```bash
-git clone https://github.com/youseefhamdi/AI-Security-Lab.git
-cd AI-Security-Lab
+git clone https://github.com/youseefhamdi/Zodiac-AI-Security-Lab.git
+cd Zodiac-AI-Security-Lab
 ```
 
 4. Verify Docker:
@@ -241,8 +242,8 @@ Use either **PowerShell with Docker Desktop**, **Git Bash**, or **WSL2**.
 3. Clone the repository in Git Bash or WSL2:
 
 ```bash
-git clone https://github.com/youseefhamdi/AI-Security-Lab.git
-cd AI-Security-Lab
+git clone https://github.com/youseefhamdi/Zodiac-AI-Security-Lab.git
+cd Zodiac-AI-Security-Lab
 ```
 
 4. Verify Docker:
@@ -353,7 +354,7 @@ Verify the fallback file without downloading anything:
 From the repository root, configure strong local secrets first. Docker Compose reads `.env` automatically:
 
 ```bash
-cd /path/to/AI-Security-Lab  # replace with your clone path
+cd /path/to/Zodiac-AI-Security-Lab  # replace with your clone path
 chmod +x scripts/*.sh exercises/*.sh
 ```
 
@@ -764,6 +765,34 @@ RUNTIME=1 python3 scripts/zodiac_bank_workflows.py \\
 
 See [`docs/graph-context-engineering.md`](docs/graph-context-engineering.md) for the graph schema, bounded traversal, context contract, and advanced security exercises. `CONTEXT_ENGINEERING_MODE=legacy` is retained only for controlled prompt-injection comparisons.
 
+## 🛰️ AI threat research and APT range
+
+The lab now includes a dated, research-backed threat model rather than generic attack labels:
+
+- agentic attack-chain orchestration with bounded human checkpoints;
+- MCP tool poisoning, tool shadowing, schema drift, and rug-pull detection;
+- post-compromise account/worker discovery and identity abuse;
+- RAG, graph, and long-term memory poisoning with provenance controls;
+- AI-assisted high-volume collection and adaptive detector evasion;
+- model, dependency, artifact, and agentic supply-chain integrity;
+- synthetic identity automation and model/API abuse pressure.
+
+Machine-readable sources and mappings:
+
+```text
+training-config/threat-model.json
+detection-config/zodiac-bank-rules.json
+```
+
+Run the offline validator and campaign planner:
+
+```bash
+python3 scripts/zodiac_bank_threats.py --validate-only
+python3 scripts/zodiac_bank_threats.py --format json --output logs/ai-apt-campaign.json
+```
+
+The nine-phase campaign produces synthetic events, expected detection rules, training-stage mappings, and containment checkpoints. It never scans, exploits, executes commands, contacts models, or touches external systems. The research synthesis, citations, limitations, and refresh policy are in [`docs/ai-threat-research-2026.md`](docs/ai-threat-research-2026.md). Community Reddit/X material is marked as a lead only and is corroborated before it influences a control.
+
 ## 🧪 Run the training exercises
 
 All exercises are for authorized local use only. Runtime exercises are guarded by `RUNTIME=1`.
@@ -797,6 +826,9 @@ RUNTIME=1 python3 scripts/zodiac_bank_workflows.py \\
 
 # Noisy versus stealthy detection practice
 RUNTIME=1 ./exercises/evasion_practice.sh
+
+# Research-backed synthetic AI/APT campaign packet
+python3 scripts/zodiac_bank_threats.py --campaign ai-apt-campaign --format json --output logs/ai-apt-campaign.json
 ```
 
 The written exercises and attack notes are available in:
@@ -861,13 +893,14 @@ a2a-agents/            A2A Router and Knowledge Agent
 rag-docs/              Synthetic Zodiac Bank knowledge corpus
 sensitive-data/        Honeypot credentials and internal fixtures
 exercises/             Recon, attack, evasion, and fingerprint exercises
-scripts/               Startup, seeding, detection, evaluation, verification, and progression helpers
+scripts/               Startup, seeding, detection, evaluation, threat modeling, verification, and progression helpers
 graph-context/         Authenticated graph and context engineering service
 docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
 loop-config/           Synthetic workflow inputs for Loop Engineering
 mem0-config/           Optional Mem0 configuration
-training-config/       Zodiac Bank curriculum and gate configuration
+training-config/       Zodiac Bank curriculum, gate, and threat-model configuration
+detection-config/       Synthetic Sigma-like AI/APT detection rules
 models/                Local GGUF files; ignored by Git
 ```
 
@@ -1020,6 +1053,10 @@ The VPS is for building and static verification only:
 ## ⚠️ Mem0 and embedding caveat
 
 The official `mem0/mem0-api-server` image is optional and authenticated by default. Its stock REST image does not bundle every provider needed for a fully local Bonsai-plus-embeddings deployment. The core and lite modes do not start Mem0. Full mode requires a locally customized Mem0 image and a compatible embedding provider for LightRAG/Mem0.
+
+## 📡 Research and security references
+
+The research snapshot is recorded in [`docs/ai-threat-research-2026.md`](docs/ai-threat-research-2026.md), including dates and URLs for Anthropic, Google Threat Intelligence Group, CISA, OWASP, Invariant Labs, MITRE ATLAS/ATT&CK, NIST, and clearly labeled Reddit/X community signals. Re-run `python3 scripts/zodiac_bank_threats.py --validate-only` after refreshing the model. The lab does not claim that synthetic scenarios reproduce any named actor or vendor incident.
 
 ## 🔗 Authoritative upstreams
 

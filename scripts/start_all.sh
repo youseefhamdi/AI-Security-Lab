@@ -80,6 +80,8 @@ if [[ "$LAB_MODE" == "full" ]]; then
 fi
 
 docker compose -f "$COMPOSE_FILE" config >/dev/null
+log "Validating research-backed AI/APT threat model and detection rules"
+python3 ./scripts/zodiac_bank_threats.py --validate-only
 log "Running offline Zodiac Bank security evaluation"
 python3 ./scripts/zodiac_bank_eval.py
 

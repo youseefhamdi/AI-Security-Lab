@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "ruleset_id": "zodiac-bank-ai-detection-v1",
+  "classification": "synthetic-training-only",
+  "defaults": {
+    "scope": "localhost-only",
+    "retention_days": 7,
+    "side_effects": false,
+    "privacy": "record hashes, counters, and synthetic IDs; never raw secrets or customer content"
+  },
+  "rules": [
+    {
+      "id": "ZB-AI-001",
+      "title": "Instruction-like content crosses an AI trust boundary",
+      "severity": "high",
+      "log_sources": ["aurora", "zodiac-context", "a2a-knowledge"],
+      "when": ["retrieved.trust == retrieved-untrusted-data", "retrieved.instruction_like == true"],
+      "mitre_atlas": ["prompt injection"],
+      "response": ["quarantine the evidence", "preserve packet_id", "require human review"]
+    },
+    {
+      "id": "ZB-AI-002",
+      "title": "Tool or model manifest changed outside an approved update",
+      "severity": "high",
+      "log_sources": ["mcp-wrapper", "dependency-sweeper", "orchestrator"],
+      "when": ["manifest.digest != approved.digest", "approval.id is null"],
+      "mitre_attack": ["Supply Chain Compromise", "Poisoned Pipeline Execution"],
+      "response": ["deny capability refresh", "quarantine the manifest", "open a supply-chain case"]
+    },
+    {
+      "id": "ZB-AI-003",
+      "title": "Agent request volume or fan-out exceeds baseline",
+      "severity": "medium",
+      "log_sources": ["aurora", "assistant", "a2a-router", "training-challenges"],
+      "when": ["requests.per_minute > baseline * 3", "worker_fan_out > declared_limit"],
+      "mitre_attack": ["Exfiltration Over Web Service", "Account Discovery"],
+      "response": ["apply a circuit breaker", "retain aggregate counters", "request operator approval"]
+    },
+    {
+      "id": "ZB-AI-004",
+      "title": "Identity, role, or approval context is inconsistent",
+      "severity": "critical",
+      "log_sources": ["training-gate", "kong", "a2a-router", "zodiac-context"],
+      "when": ["claimed_identity != authenticated_identity", "role_change without approval", "proxy_identity_used == true"],
+      "mitre_attack": ["Valid Accounts", "Account Discovery", "Permission Groups Discovery"],
+      "response": ["deny the action", "rotate the synthetic session", "escalate to compliance"]
+    },
+    {
+      "id": "ZB-AI-005",
+      "title": "Memory or graph evidence crosses tenant or provenance scope",
+      "severity": "critical",
+      "log_sources": ["mem0", "chromadb", "lightrag", "zodiac-context"],
+      "when": ["requested_scope != record_scope", "provenance.synthetic != true", "allowed_entity_ids expanded"],
+      "mitre_atlas": ["data poisoning"],
+      "response": ["reject the record", "quarantine the source", "invalidate the context packet"]
+    },
+    {
+      "id": "ZB-AI-006",
+      "title": "Detector result changes after safe canonicalization",
+      "severity": "high",
+      "log_sources": ["filebeat", "elasticsearch", "training-challenges"],
+      "when": ["normalized_hash == baseline_hash", "decision.normal != decision.encoded"],
+      "mitre_attack": ["Obfuscated Files or Information", "Deobfuscate/Decode Files or Information"],
+      "response": ["canonicalize before matching", "record both representations as hashes", "open detection-gap task"]
+    },
+    {
+      "id": "ZB-AI-007",
+      "title": "MCP tool description or schema drift",
+      "severity": "high",
+      "log_sources": ["mcp-server", "mcp-wrapper", "a2a-router"],
+      "when": ["tool.description_hash changed", "tool.schema_hash changed", "server_version not pinned"],
+      "mitre_atlas": ["AI supply-chain compromise"],
+      "response": ["stop tool use", "compare signed metadata", "require explicit re-approval"]
+    },
+    {
+      "id": "ZB-AI-008",
+      "title": "Privileged worker route selected from untrusted input",
+      "severity": "critical",
+      "log_sources": ["orchestrator", "a2a-router", "training-challenges"],
+      "when": ["requested_worker not in policy route", "privileged_route && approval.id is null"],
+      "mitre_attack": ["Valid Accounts", "Account Manipulation"],
+      "response": ["deny delegation", "persist the attempted route", "notify the SIEM worker"]
+    },
+    {
+      "id": "ZB-AI-009",
+      "title": "Untrusted evidence attempts to issue control instructions",
+      "severity": "high",
+      "log_sources": ["zodiac-context", "a2a-knowledge", "mem0"],
+      "when": ["evidence_contains_instruction == true", "authority_section != context-policy"],
+      "mitre_atlas": ["prompt injection", "data poisoning"],
+      "response": ["render as quoted data", "exclude from action planning", "mark packet truncated or quarantined"]
+    },
+    {
+      "id": "ZB-AI-010",
+      "title": "Autonomous loop exceeds declared safety budget",
+      "severity": "critical",
+      "log_sources": ["orchestrator", "loop-engineering", "a2a-router"],
+      "when": ["steps > max_steps", "retries > max_retries", "approval_required && approval.id is null"],
+      "mitre_attack": ["Command and Scripting Interpreter", "Exfiltration Over Web Service"],
+      "response": ["stop the loop", "persist an immutable checkpoint", "require human containment approval"]
+    }
+  ]
+}

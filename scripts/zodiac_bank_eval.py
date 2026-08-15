@@ -16,6 +16,7 @@ from typing import Any, Callable
 
 from context_engineering import assemble_context, render_for_model
 from zodiac_graph import build_graph, neighborhood, validate_graph
+from zodiac_bank_threats import load as load_threat_document, validate as validate_threat_model
 
 ROOT = Path(__file__).resolve().parent.parent
 BANK_PATH = ROOT / "bank-data" / "zodiac-bank.json"
@@ -23,6 +24,8 @@ WORKFLOW_PATH = ROOT / "bank-data" / "workflows.json"
 ORCHESTRATOR_PATH = ROOT / "orchestrator-config" / "zodiac-bank.json"
 CURRICULUM_PATH = ROOT / "training-config" / "curriculum.json"
 COMPOSE_PATH = ROOT / "docker-compose.yml"
+THREAT_MODEL_PATH = ROOT / "training-config" / "threat-model.json"
+DETECTION_RULES_PATH = ROOT / "detection-config" / "zodiac-bank-rules.json"
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -94,6 +97,13 @@ def check_workflows(bank: dict[str, Any], workflows: dict[str, Any]) -> dict[str
     return {"workflows": len(workflows["workflows"]), "workers": len(workers), "approval_checked": True}
 
 
+def check_ai_threat_model() -> dict[str, Any]:
+    model = load_threat_document(THREAT_MODEL_PATH)
+    ruleset = load_threat_document(DETECTION_RULES_PATH)
+    curriculum = load(CURRICULUM_PATH)
+    return validate_threat_model(model, ruleset, curriculum)
+
+
 def check_runtime_security() -> dict[str, Any]:
     compose = COMPOSE_PATH.read_text(encoding="utf-8")
     graph_service = (ROOT / "graph-context" / "main.py").read_text(encoding="utf-8")
@@ -123,6 +133,7 @@ def main() -> int:
         ("canonical_graph", lambda: check_graph(bank, workflows)),
         ("context_contract", lambda: check_context(bank, workflows)),
         ("workflow_orchestrator_symmetry", lambda: check_workflows(bank, workflows)),
+        ("ai_threat_model_and_detection", check_ai_threat_model),
         ("runtime_security_wiring", check_runtime_security),
     ]
     results: list[dict[str, Any]] = []

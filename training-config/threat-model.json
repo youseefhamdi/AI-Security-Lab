@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "model_id": "zodiac-bank-ai-threat-model",
+  "generated_at": "2026-08-15",
+  "review_cycle_days": 30,
+  "scope": {
+    "classification": "synthetic-training-only",
+    "network": "localhost-only",
+    "real_targets": false,
+    "real_credentials": false,
+    "side_effects": false,
+    "purpose": "defensive detection, incident response, and secure agent design"
+  },
+  "research_basis": [
+    {
+      "id": "anthropic-ai-espionage-2025",
+      "publisher": "Anthropic",
+      "title": "Disrupting the first reported AI-orchestrated cyber espionage campaign",
+      "published": "2025-11-13",
+      "url": "https://www.anthropic.com/news/disrupting-AI-espionage",
+      "confidence": "primary-report",
+      "observations": ["agentic task chaining", "MCP/tool access", "credential harvesting", "post-compromise discovery", "80-90 percent automated activity claim"]
+    },
+    {
+      "id": "anthropic-ai-threat-map-2026",
+      "publisher": "Anthropic",
+      "title": "What we learned mapping a year's worth of AI-enabled cyber threats",
+      "published": "2026-06-03",
+      "url": "https://www.anthropic.com/news/AI-enabled-cyber-threats-mitre-attack",
+      "confidence": "primary-report",
+      "observations": ["AI use moving deeper into post-compromise activity", "account discovery and lateral movement signals", "agentic orchestration is underrepresented in ATT&CK"]
+    },
+    {
+      "id": "google-gtig-ai-threat-tracker-2025",
+      "publisher": "Google Threat Intelligence Group",
+      "title": "GTIG AI Threat Tracker: Advances in Threat Actor Usage of AI Tools",
+      "published": "2025-11-05",
+      "url": "https://cloud.google.com/blog/topics/threat-intelligence/threat-actor-usage-of-ai-tools",
+      "confidence": "primary-report",
+      "observations": ["just-in-time AI-generated behavior", "AI-assisted command generation", "social-engineering pretexts", "full-lifecycle augmentation", "token and secret theft"]
+    },
+    {
+      "id": "cisa-agentic-ai-2026",
+      "publisher": "CISA and international partners",
+      "title": "Guide to Secure Adoption of Agentic AI",
+      "published": "2026-05-01",
+      "url": "https://www.cisa.gov/news-events/news/cisa-us-and-international-partners-release-guide-secure-adoption-agentic-ai",
+      "confidence": "primary-guidance",
+      "observations": ["secure design and deployment of autonomous agents", "operator governance", "bounded permissions and monitoring"]
+    },
+    {
+      "id": "owasp-mcp-guide-2026",
+      "publisher": "OWASP GenAI Security Project",
+      "title": "A Practical Guide for Secure MCP Server Development",
+      "published": "2026-02-16",
+      "url": "https://genai.owasp.org/resource/a-practical-guide-for-secure-mcp-server-development/",
+      "confidence": "primary-guidance",
+      "observations": ["strong authentication and authorization", "strict validation", "session isolation", "hardened deployment"]
+    },
+    {
+      "id": "invariant-tool-poisoning-2025",
+      "publisher": "Invariant Labs",
+      "title": "MCP Security Notification: Tool Poisoning Attacks",
+      "published": "2025-04-01",
+      "url": "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks",
+      "confidence": "research-report",
+      "observations": ["hidden tool-description instructions", "tool shadowing", "post-integration rug pulls", "cross-server trust propagation"]
+    },
+    {
+      "id": "mitre-atlas-live",
+      "publisher": "MITRE",
+      "title": "Adversarial Threat Landscape for Artificial-Intelligence Systems",
+      "published": "living-resource",
+      "url": "https://atlas.mitre.org/",
+      "confidence": "living-framework",
+      "observations": ["AI-specific tactics and techniques", "adversarial ML threat vocabulary", "need for AI-specific detections alongside ATT&CK"]
+    },
+    {
+      "id": "nist-ai-600-1",
+      "publisher": "NIST",
+      "title": "Artificial Intelligence Risk Management Framework: Generative AI Profile",
+      "published": "2024-07-26",
+      "url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+      "confidence": "primary-guidance",
+      "observations": ["prompt injection", "data poisoning", "model and data supply-chain risk", "privacy and security monitoring"]
+    },
+    {
+      "id": "community-reddit-mcp-2025",
+      "publisher": "Reddit r/netsec community discussion",
+      "title": "Security analysis: MCP protocol vulnerabilities in AI toolchains",
+      "published": "2025-06-12",
+      "url": "https://www.reddit.com/r/netsec/comments/1ldiilv/security_analysis_mcp_protocol_vulnerabilities_in/",
+      "confidence": "community-signal",
+      "observations": ["practitioner concern about tool poisoning and hidden instructions"],
+      "caveat": "Community discussion is a lead, not evidence; controls are included only when corroborated by primary research or guidance."
+    },
+    {
+      "id": "community-x-ai-security-2026",
+      "publisher": "X security community discussion",
+      "title": "MCP Security Is a Protocol Problem, Not a Demo",
+      "published": "2026-02-24",
+      "url": "https://x.com/cybersec/article/2026335843628007453",
+      "confidence": "community-signal",
+      "observations": ["discussion of protocol-level validation and command-injection concerns"],
+      "caveat": "Social posts are treated as discovery signals only and are not used to assert prevalence or attribution."
+    }
+  ],
+  "threats": [
+    {
+      "id": "ZBT-01",
+      "name": "Direct and indirect prompt injection",
+      "stage_id": "L02-prompt-injection",
+      "surfaces": ["support prompts", "retrieved documents", "task metadata"],
+      "research_refs": ["anthropic-ai-espionage-2025", "google-gtig-ai-threat-tracker-2025", "nist-ai-600-1"],
+      "safe_simulation": "Inject harmless instruction-like text into a synthetic support request or document and observe authority-boundary handling.",
+      "controls": ["typed trust sections", "instruction-like content telemetry", "output validation", "human approval for side effects"],
+      "detection_rule_ids": ["ZB-AI-001", "ZB-AI-006"],
+      "mappings": {"mitre_atlas": ["prompt injection"], "agentic_risk": ["goal hijack", "context manipulation"]}
+    },
+    {
+      "id": "ZBT-02",
+      "name": "MCP tool poisoning, shadowing, and rug pull",
+      "stage_id": "L04-agent-protocols",
+      "surfaces": ["MCP tool descriptions", "tool schemas", "dynamic capability advertisements"],
+      "research_refs": ["invariant-tool-poisoning-2025", "owasp-mcp-guide-2026", "community-reddit-mcp-2025"],
+      "safe_simulation": "Compare a pinned benign tool manifest with a synthetic manifest containing hidden instructions or a changed schema; never read host files or call external tools.",
+      "controls": ["signed and pinned manifests", "description diffing", "server identity binding", "per-tool allowlists", "full argument review"],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007"],
+      "mappings": {"mitre_atlas": ["AI supply-chain compromise"], "agentic_risk": ["tool misuse", "agentic supply chain"]}
+    },
+    {
+      "id": "ZBT-03",
+      "name": "Agentic attack-chain orchestration",
+      "stage_id": "L09-apt-capstone",
+      "surfaces": ["loop state", "worker delegation", "agent plans", "tool-call sequences"],
+      "research_refs": ["anthropic-ai-espionage-2025", "anthropic-ai-threat-map-2026", "cisa-agentic-ai-2026"],
+      "safe_simulation": "Replay a bounded sequence of synthetic evidence events with four human approval checkpoints and no side effects.",
+      "controls": ["bounded steps and retries", "approval checkpoints", "typed worker identity", "immutable audit correlation", "kill switch"],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-010"],
+      "mappings": {"mitre_attack": ["Command and Scripting Interpreter", "Valid Accounts", "Account Discovery", "Exfiltration Over Web Service"], "agentic_risk": ["excessive agency", "goal hijack"]}
+    },
+    {
+      "id": "ZBT-04",
+      "name": "Post-compromise discovery and identity abuse",
+      "stage_id": "L06-identity-control-plane",
+      "surfaces": ["worker identity", "proxy headers", "account and role discovery", "approval routes"],
+      "research_refs": ["anthropic-ai-threat-map-2026", "cisa-agentic-ai-2026"],
+      "safe_simulation": "Use only canonical ZB identifiers and a synthetic spoofable header against the challenge surface, then verify a defensive alert.",
+      "controls": ["cryptographic worker identity", "server-side authorization", "audience-bound tokens", "role-change alerts", "least privilege"],
+      "detection_rule_ids": ["ZB-AI-004", "ZB-AI-008"],
+      "mappings": {"mitre_attack": ["Account Discovery", "Permission Groups Discovery", "Valid Accounts"], "agentic_risk": ["identity and privilege abuse"]}
+    },
+    {
+      "id": "ZBT-05",
+      "name": "RAG and long-term memory poisoning",
+      "stage_id": "L03-rag",
+      "surfaces": ["vector records", "graph attributes", "Mem0 memories", "summaries"],
+      "research_refs": ["nist-ai-600-1", "anthropic-ai-threat-map-2026", "owasp-mcp-guide-2026"],
+      "safe_simulation": "Insert a marked synthetic draft record, query it across an unauthorized scope, and verify provenance rejection without storing real data.",
+      "controls": ["source and tenant binding", "trust scoring", "write approval", "quarantine and rollback", "provenance-preserving retrieval"],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "mappings": {"mitre_atlas": ["data poisoning"], "agentic_risk": ["memory poisoning", "context manipulation"]}
+    },
+    {
+      "id": "ZBT-06",
+      "name": "AI-assisted high-volume collection and exfiltration",
+      "stage_id": "L08-detection-evasion",
+      "surfaces": ["query APIs", "document retrieval", "worker fan-out", "egress telemetry"],
+      "research_refs": ["anthropic-ai-espionage-2025", "anthropic-ai-threat-map-2026", "google-gtig-ai-threat-tracker-2025"],
+      "safe_simulation": "Generate counters and synthetic event metadata only; do not enumerate or export records.",
+      "controls": ["rate and volume baselines", "egress allowlists", "query-shape detection", "data minimization", "circuit breakers"],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-010"],
+      "mappings": {"mitre_attack": ["Data from Information Repositories", "Exfiltration Over Web Service"], "agentic_risk": ["excessive agency", "sensitive data disclosure"]}
+    },
+    {
+      "id": "ZBT-07",
+      "name": "Just-in-time generated behavior and adaptive evasion",
+      "stage_id": "L08-detection-evasion",
+      "surfaces": ["generated commands", "encoded inputs", "normalization gaps", "detector feedback"],
+      "research_refs": ["google-gtig-ai-threat-tracker-2025", "anthropic-ai-threat-map-2026"],
+      "safe_simulation": "Compare equivalent benign marker strings under URL encoding and whitespace variations; no executable command is generated or run.",
+      "controls": ["canonicalization before detection", "behavioral telemetry", "model-independent policy checks", "canary markers", "rate limits"],
+      "detection_rule_ids": ["ZB-AI-006", "ZB-AI-010"],
+      "mappings": {"mitre_attack": ["Obfuscated Files or Information", "Deobfuscate/Decode Files or Information"], "mitre_atlas": ["evasion"], "agentic_risk": ["evasion and monitoring failure"]}
+    },
+    {
+      "id": "ZBT-08",
+      "name": "Model, dependency, and artifact supply-chain compromise",
+      "stage_id": "L07-supply-chain",
+      "surfaces": ["model manifests", "dependency reports", "CI artifacts", "workflow definitions"],
+      "research_refs": ["owasp-mcp-guide-2026", "nist-ai-600-1", "invariant-tool-poisoning-2025"],
+      "safe_simulation": "Validate a synthetic manifest and artifact path against a pinned digest and an allowlisted workspace; never install or execute a package.",
+      "controls": ["digest pinning", "SBOM and provenance", "isolated builds", "two-person review", "artifact path validation"],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007"],
+      "mappings": {"mitre_attack": ["Supply Chain Compromise", "Poisoned Pipeline Execution"], "mitre_atlas": ["ML supply-chain compromise"], "agentic_risk": ["agentic supply chain"]}
+    },
+    {
+      "id": "ZBT-09",
+      "name": "Synthetic identity and social-engineering automation",
+      "stage_id": "L01-recon",
+      "surfaces": ["staff onboarding", "support requests", "identity claims", "remote-worker workflows"],
+      "research_refs": ["anthropic-ai-espionage-2025", "google-gtig-ai-threat-tracker-2025"],
+      "safe_simulation": "Review synthetic identity inconsistencies and escalation signals in a training case; do not contact or impersonate a real person.",
+      "controls": ["independent identity verification", "human review", "device and session binding", "role separation", "anomaly scoring"],
+      "detection_rule_ids": ["ZB-AI-004", "ZB-AI-008"],
+      "mappings": {"mitre_attack": ["Phishing for Information", "Valid Accounts"], "agentic_risk": ["identity and privilege abuse"]}
+    },
+    {
+      "id": "ZBT-10",
+      "name": "AI service abuse and model-extraction pressure",
+      "stage_id": "L01-recon",
+      "surfaces": ["model inventory", "chat endpoints", "batch requests", "provider APIs"],
+      "research_refs": ["nist-ai-600-1", "anthropic-ai-threat-map-2026", "google-gtig-ai-threat-tracker-2025"],
+      "safe_simulation": "Use bounded request counters and synthetic model metadata to exercise rate, provenance, and abuse detections.",
+      "controls": ["authentication", "request budgets", "abuse monitoring", "output filtering", "provider key isolation"],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-010"],
+      "mappings": {"mitre_atlas": ["model extraction", "AI service abuse"], "agentic_risk": ["resource exhaustion"]}
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "ai-apt-campaign",
+      "name": "Zodiac Bank synthetic AI-orchestrated espionage campaign",
+      "classification": "training-simulation",
+      "inspiration": ["anthropic-ai-espionage-2025", "anthropic-ai-threat-map-2026", "google-gtig-ai-threat-tracker-2025"],
+      "max_phases": 9,
+      "human_approval_checkpoints": ["scope", "identity", "collection", "containment"],
+      "side_effects": false,
+      "phases": [
+        {"phase": 1, "id": "scope-and-baseline", "threat_id": "ZBT-10", "event": "synthetic service inventory and baseline request counters", "expected_rule_ids": ["ZB-AI-003"], "safe": true},
+        {"phase": 2, "id": "goal-hijack", "threat_id": "ZBT-01", "event": "instruction-like content enters a support request or retrieved record", "expected_rule_ids": ["ZB-AI-001", "ZB-AI-006"], "safe": true},
+        {"phase": 3, "id": "tool-trust-drift", "threat_id": "ZBT-02", "event": "synthetic MCP description changes after its approved baseline", "expected_rule_ids": ["ZB-AI-002", "ZB-AI-007"], "safe": true},
+        {"phase": 4, "id": "post-compromise-discovery", "threat_id": "ZBT-04", "event": "bounded account, worker, and branch discovery against canonical IDs", "expected_rule_ids": ["ZB-AI-004"], "safe": true},
+        {"phase": 5, "id": "memory-and-graph-poisoning", "threat_id": "ZBT-05", "event": "marked synthetic draft evidence attempts to cross tenant or trust scope", "expected_rule_ids": ["ZB-AI-005", "ZB-AI-009"], "safe": true},
+        {"phase": 6, "id": "identity-escalation", "threat_id": "ZBT-04", "event": "synthetic worker identity and approval context disagree", "expected_rule_ids": ["ZB-AI-004", "ZB-AI-008"], "safe": true},
+        {"phase": 7, "id": "collection-pressure", "threat_id": "ZBT-06", "event": "bounded fan-out counters exceed the synthetic baseline", "expected_rule_ids": ["ZB-AI-003", "ZB-AI-010"], "safe": true},
+        {"phase": 8, "id": "adaptive-evasion", "threat_id": "ZBT-07", "event": "equivalent encoded and normalized markers produce different detector outcomes", "expected_rule_ids": ["ZB-AI-006", "ZB-AI-010"], "safe": true},
+        {"phase": 9, "id": "containment-and-recovery", "threat_id": "ZBT-08", "event": "pin manifests, quarantine synthetic evidence, rotate identity, and produce an incident timeline", "expected_rule_ids": ["ZB-AI-002", "ZB-AI-005", "ZB-AI-008"], "safe": true}
+      ]
+    }
+  ]
+}

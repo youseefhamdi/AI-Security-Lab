@@ -25,7 +25,11 @@
     "agent_protocols": ["a2a", "mcp"],
     "memory_engineering": {"backend": "mem0", "canonical_scope": "zodiac-bank"},
     "loop_engineering": {"persistent_state": true, "bounded_retries": true, "human_approval": true},
-    "evaluation": {"canonical_data_validation": true, "provenance_checks": true, "security_smoke_tests": true}
+    "evaluation": {"canonical_data_validation": true, "provenance_checks": true, "security_smoke_tests": true},
+    "threat_intelligence": {"model": "training-config/threat-model.json", "review_cycle_days": 30, "sources_recorded": true},
+    "agentic_detection": {"ruleset": "detection-config/zodiac-bank-rules.json", "bounded_campaign_planner": true, "side_effects": false},
+    "apt_simulation": {"campaign": "ai-apt-campaign", "phases": 9, "human_approval_checkpoints": ["scope", "identity", "collection", "containment"]},
+    "attack_flow": {"formats": ["synthetic-event", "mitre-attack", "mitre-atlas", "agentic-risk"], "immutable_evidence": true}
   },
   "stages": [
     {
@@ -70,7 +74,7 @@
       "prerequisites": ["L01-recon"],
       "target_services": ["training-challenges", "aurora"],
       "mission": "Demonstrate direct and indirect prompt-injection paths against a synthetic banking support assistant while preserving evidence and impact boundaries.",
-      "skills": ["instruction hierarchy", "indirect injection", "evidence capture"],
+      "skills": ["instruction hierarchy", "indirect injection", "evidence capture", "goal-hijack detection", "safe output validation"],
       "success_criteria": ["injection path reproduced", "impact classified", "third hard flag submitted"],
       "hints": [
         {"level": 1, "text": "Establish a normal support response before testing instruction priority."},
@@ -87,7 +91,7 @@
       "prerequisites": ["L02-prompt-injection"],
       "target_services": ["training-challenges", "aurora", "a2a-knowledge", "chromadb", "lightrag"],
       "mission": "Trace retrieval provenance, test poisoned synthetic policy content, and distinguish retrieval corruption from model hallucination.",
-      "skills": ["RAG provenance", "vector retrieval", "graph retrieval", "graph engineering", "context engineering", "corpus poisoning"],
+      "skills": ["RAG provenance", "vector retrieval", "graph retrieval", "graph engineering", "context engineering", "corpus poisoning", "memory and evidence quarantine"],
       "success_criteria": ["source identified", "retrieval path demonstrated", "fourth hard flag submitted"],
       "hints": [
         {"level": 1, "text": "Record which published source answers the baseline credit-policy question."},
@@ -104,7 +108,7 @@
       "prerequisites": ["L03-rag"],
       "target_services": ["training-challenges", "a2a-router", "a2a-knowledge", "mcp-server", "mcp-wrapper"],
       "mission": "Follow a synthetic support request across agent cards, delegation, and tool schemas; prove where identity and authorization boundaries fail.",
-      "skills": ["A2A discovery", "MCP schema analysis", "delegation abuse", "graph traversal", "context boundaries", "provenance"],
+      "skills": ["A2A discovery", "MCP schema analysis", "delegation abuse", "tool poisoning", "tool shadowing", "rug-pull detection", "graph traversal", "context boundaries", "provenance"],
       "success_criteria": ["delegation graph mapped", "tool boundary tested", "fifth hard flag submitted"],
       "hints": [
         {"level": 1, "text": "Map the router, delegated agent, and tool names before sending a test request."},
@@ -138,7 +142,7 @@
       "prerequisites": ["L05-memory"],
       "target_services": ["training-challenges", "kong", "aurora", "a2a-router", "mem0"],
       "mission": "Analyze synthetic gateway routes, worker identity, API-key boundaries, and confused-deputy chains around privileged banking AI actions.",
-      "skills": ["authorization", "API gateway analysis", "identity binding", "least privilege"],
+      "skills": ["authorization", "API gateway analysis", "identity binding", "post-compromise discovery", "role anomaly detection", "least privilege"],
       "success_criteria": ["privileged route identified", "identity boundary tested", "seventh hard flag submitted"],
       "hints": [
         {"level": 1, "text": "Inventory the gateway and approval routes without attempting a real privileged action."},
@@ -155,7 +159,7 @@
       "prerequisites": ["L06-identity-control-plane"],
       "target_services": ["training-challenges", "dependency-sweeper", "orchestrator", "filebeat"],
       "mission": "Trace synthetic dependency, model, artifact, and CI trust relationships; demonstrate how an untrusted update could reach an AI control plane.",
-      "skills": ["dependency provenance", "artifact integrity", "CI/CD poisoning", "review gates"],
+      "skills": ["dependency provenance", "artifact integrity", "model manifest pinning", "CI/CD poisoning", "agentic supply chain", "review gates"],
       "success_criteria": ["supply-chain path modeled", "approval boundary tested", "eighth hard flag submitted"],
       "hints": [
         {"level": 1, "text": "Trace the synthetic dependency report from source through artifact storage to the worker."},
@@ -172,7 +176,7 @@
       "prerequisites": ["L07-supply-chain"],
       "target_services": ["training-challenges", "aurora", "elasticsearch", "kibana", "filebeat"],
       "mission": "Compare noisy and stealthy synthetic attack paths, identify telemetry blind spots, and produce a detection improvement without disabling controls.",
-      "skills": ["telemetry analysis", "evasion tradeoffs", "SIEM detection", "canary design"],
+      "skills": ["telemetry analysis", "behavioral baselines", "adaptive evasion", "high-volume anomaly detection", "SIEM detection", "canary design"],
       "success_criteria": ["baseline established", "evasion delta measured", "ninth hard flag submitted"],
       "hints": [
         {"level": 1, "text": "Run the same benign search in normal mode first and record the telemetry result."},
@@ -189,7 +193,7 @@
       "prerequisites": ["L08-detection-evasion"],
       "target_services": ["training-challenges", "all-local-services"],
       "mission": "Chain reconnaissance, prompt injection, RAG poisoning, agent delegation, memory abuse, identity escalation, supply-chain access, and detection evasion into one synthetic campaign, then produce a complete incident timeline and containment plan.",
-      "skills": ["attack chaining", "campaign planning", "context integrity", "incident response", "containment", "hardening"],
+      "skills": ["attack chaining", "AI-assisted APT modeling", "agentic orchestration", "campaign planning", "context integrity", "incident response", "containment", "hardening"],
       "success_criteria": ["multi-stage chain reproduced", "evidence timeline complete", "containment plan reviewed", "final hard flag submitted"],
       "hints": [
         {"level": 1, "text": "Build a timeline from the evidence and flags already earned; do not start a new external action."},

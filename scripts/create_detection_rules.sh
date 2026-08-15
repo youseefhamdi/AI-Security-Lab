@@ -62,4 +62,18 @@ create_rule "E05-chunk-boundary-probing" "E05: Chunk Boundary Probing" 'message 
 create_rule "D02-sequential-api-path-requests" "D02: Sequential API-Path Requests" 'message : (api or v1 or mcp or a2a)' medium 45
 create_rule "D03-identity-probing" "D03: Identity Probing" 'message : (what and model)' low 30
 
+# Research-backed Zodiac Bank AI/APT detections. These are intentionally
+# conservative KQL projections of the local JSON ruleset; the JSON file is the
+# canonical source for classroom metadata and offline validation.
+create_rule "ZB-AI-001" "ZB-AI-001: AI Trust Boundary Injection" 'message : (instruction_like or prompt_injection or retrieved-untrusted-data)' high 70
+create_rule "ZB-AI-002" "ZB-AI-002: Unapproved AI Manifest Drift" 'message : (manifest or digest or artifact) and message : (changed or drift or unapproved)' high 70
+create_rule "ZB-AI-003" "ZB-AI-003: Agent Fan-Out Anomaly" 'message : (fan_out or requests_per_minute or circuit_breaker)' medium 50
+create_rule "ZB-AI-004" "ZB-AI-004: AI Identity Context Mismatch" 'message : (claimed_identity or proxy_identity or role_change)' critical 90
+create_rule "ZB-AI-005" "ZB-AI-005: Memory or Graph Scope Violation" 'message : (cross_scope or provenance or tenant_scope or quarantine)' critical 90
+create_rule "ZB-AI-006" "ZB-AI-006: Canonicalization Detection Gap" 'message : (normalized or encoded or detector_gap)' high 70
+create_rule "ZB-AI-007" "ZB-AI-007: MCP Tool Schema Drift" 'message : (tool_description_hash or schema_hash or rug_pull)' high 70
+create_rule "ZB-AI-008" "ZB-AI-008: Untrusted Privileged Delegation" 'message : (requested_worker or privileged_route or delegation)' critical 90
+create_rule "ZB-AI-009" "ZB-AI-009: Evidence Issuing Instructions" 'message : (evidence_contains_instruction or authority_section)' high 70
+create_rule "ZB-AI-010" "ZB-AI-010: Autonomous Loop Budget Violation" 'message : (max_steps or max_retries or approval_required)' critical 90
+
 log "Detection rule provisioning complete"
