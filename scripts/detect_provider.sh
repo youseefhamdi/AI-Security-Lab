@@ -6,6 +6,13 @@ provider_log() {
   printf '[provider] %s\n' "$*"
 }
 
+# Docker uses host.docker.internal; Podman commonly uses
+# host.containers.internal. Set INFERENCE_CONTAINER_HOST explicitly when the
+# host provider is running outside the containers.
+provider_container_host() {
+  printf '%s' "${INFERENCE_CONTAINER_HOST:-host.docker.internal}"
+}
+
 provider_model_from_json() {
   printf '%s' "$1" \
     | grep -oE '"(id|name|model)"[[:space:]]*:[[:space:]]*"[^"]+"' \
@@ -44,7 +51,7 @@ provider_probe_ollama() {
   [[ -n "$model" ]] || return 1
 
   export INFERENCE_PROVIDER="ollama"
-  export INFERENCE_BASE_URL="http://host.docker.internal:11434/v1"
+  export INFERENCE_BASE_URL="http://$(provider_container_host):11434/v1"
   export INFERENCE_LOCAL_BASE_URL="${local_base%/}/v1"
   export INFERENCE_MODEL="${INFERENCE_MODEL:-$model}"
   provider_log "Detected Ollama: model=${INFERENCE_MODEL}, endpoint=${local_base}"
@@ -79,14 +86,14 @@ if [[ "$requested_provider" == "auto" || "$requested_provider" == "ollama" ]]; t
 fi
 
 if [[ "$requested_provider" == "auto" || "$requested_provider" == "lmstudio" || "$requested_provider" == "lms" ]]; then
-  if provider_probe_openai "lmstudio" "http://127.0.0.1:1234/v1" "http://host.docker.internal:1234/v1"; then
+  if provider_probe_openai "lmstudio" "http://127.0.0.1:1234/v1" "http://$(provider_container_host):1234/v1"; then
     return 0 2>/dev/null || exit 0
   fi
   [[ "$requested_provider" == "lmstudio" || "$requested_provider" == "lms" ]] && provider_log "LM Studio was not reachable; continuing provider discovery"
 fi
 
 if [[ "$requested_provider" == "auto" || "$requested_provider" == "llamacpp" ]]; then
-  if provider_probe_openai "llamacpp" "http://127.0.0.1:11435/v1" "http://host.docker.internal:11435/v1"; then
+  if provider_probe_openai "llamacpp" "http://127.0.0.1:11435/v1" "http://$(provider_container_host):11435/v1"; then
     return 0 2>/dev/null || exit 0
   fi
 fi

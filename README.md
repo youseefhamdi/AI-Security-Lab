@@ -23,6 +23,7 @@
 - [Choose a runtime profile](#-choose-a-runtime-profile)
 - [Requirements](#-requirements)
 - [Install on any platform](#-install-on-any-platform)
+- [Podman setup](#-podman-setup)
 - [Prepare an inference provider](#-prepare-an-inference-provider)
 - [Start the lab](#-start-the-lab)
 - [Verify the lab](#-verify-the-lab)
@@ -151,6 +152,45 @@ If the scripts are not executable after transfer:
 chmod +x scripts/*.sh exercises/*.sh
 ```
 
+### Podman setup
+
+This lab also works with Podman when `docker` and `docker compose` are Docker-compatible wrappers. Confirm the versions:
+
+```bash
+docker --version
+docker compose version
+```
+
+If the output says `Emulate Docker CLI using podman`, that is acceptable. Continue using the repository's `docker compose` commands; do not mix separate `podman-compose` commands for the same project.
+
+From the cloned repository:
+
+```bash
+pwd
+find models -maxdepth 1 -type f -printf '%f\t%k KB\n'
+docker compose config >/tmp/zodiac-compose.yml
+```
+
+If the Bonsai filename is not `bonsai-27b.gguf`, create `.env` with the actual filename:
+
+```bash
+printf 'BONSAI_MODEL_FILE=your-actual-file.gguf\n' > .env
+```
+
+Check the model without downloading anything:
+
+```bash
+./scripts/pull_models.sh
+```
+
+For Ollama, LM Studio, or another provider running on the host, Podman normally exposes the host as `host.containers.internal`. Set this only when using an external provider:
+
+```bash
+export INFERENCE_CONTAINER_HOST=host.containers.internal
+```
+
+The local Bonsai fallback does not require this setting.
+
 ### macOS
 
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
@@ -255,6 +295,20 @@ Verify the fallback file without downloading anything:
 
 ## 🚀 Start the lab
 
+### Recommended first run
+
+From the repository root, run these commands in order:
+
+```bash
+cd /path/to/AI-Security-Lab  # replace with your clone path
+chmod +x scripts/*.sh exercises/*.sh
+docker compose config >/tmp/zodiac-compose.yml
+./scripts/pull_models.sh
+RUNTIME=1 LAB_MODE=core ./scripts/start_all.sh
+```
+
+The model check is local-only and never performs a model pull. The startup helper may download/build container images on the first run.
+
 ### 1. Start the smallest core
 
 Use the branded helper so the ZODIAC Spartan activation appears in the terminal:
@@ -270,6 +324,23 @@ The helper will:
 3. Select the first available model.
 4. Use the local Bonsai container only if no external provider is found.
 5. Start Aurora, Phoenix, and Assistant with the selected backend.
+
+Check the result:
+
+```bash
+docker compose ps
+curl --fail http://127.0.0.1:5000/health
+curl --fail http://127.0.0.1:5001/api/health
+curl --fail http://127.0.0.1:5002/health
+RUNTIME=1 ./scripts/test_inference.sh
+```
+
+If startup fails, inspect the relevant service:
+
+```bash
+docker compose logs --tail=100 bonsai
+docker compose logs --tail=100 aurora
+```
 
 ### 2. Start protocol services
 
@@ -554,7 +625,21 @@ Then select the provider explicitly with `INFERENCE_PROVIDER`.
 
 ### Containers cannot reach a host provider
 
-The Compose services use `host.docker.internal` for host-provider access. On Linux, the Compose file maps it to the Docker host using `host-gateway`. Confirm that the provider listens on an address reachable from Docker and that the host firewall allows local Docker traffic.
+Docker commonly uses `host.docker.internal`; Podman commonly uses `host.containers.internal`. For Podman with Ollama, LM Studio, or host llama.cpp, set:
+
+```bash
+export INFERENCE_CONTAINER_HOST=host.containers.internal
+RUNTIME=1 LAB_MODE=core ./scripts/start_all.sh
+```
+
+For Docker, omit the override. Confirm that the provider is reachable on the host first:
+
+```bash
+curl http://127.0.0.1:11434/api/tags
+curl http://127.0.0.1:1234/v1/models
+```
+
+The local Bonsai fallback uses the Compose service network and does not need a host-provider hostname. Confirm that the provider listens on an address reachable from the container runtime and that the host firewall allows local container traffic.
 
 ### Model name is wrong
 
