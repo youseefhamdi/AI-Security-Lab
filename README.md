@@ -313,7 +313,7 @@ Verify the fallback file without downloading anything:
 
 ### Recommended first run
 
-From the repository root, run these commands in order:
+From the repository root, run these commands in order. If `.env` contains `BONSAI_MODEL_DIR`, the local Bonsai model takes precedence over a running Ollama server:
 
 ```bash
 cd /path/to/AI-Security-Lab  # replace with your clone path
@@ -336,9 +336,9 @@ RUNTIME=1 ./scripts/start_all.sh
 The helper will:
 
 1. Display the ZODIAC startup banner.
-2. Detect Ollama, LM Studio, or an existing llama.cpp provider.
-3. Select the first available model.
-4. Use the local Bonsai container only if no external provider is found.
+2. Prefer a configured `BONSAI_MODEL_DIR` and use the local Bonsai GGUF.
+3. Otherwise detect Ollama, LM Studio, or an existing llama.cpp provider.
+4. Select the first available external model when no local Bonsai directory is configured.
 5. Start Aurora, Phoenix, and Assistant with the selected backend.
 
 Check the result:

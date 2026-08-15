@@ -131,6 +131,19 @@ if [[ "${RUNTIME:-0}" != "1" ]]; then
 fi
 
 requested_provider="${INFERENCE_PROVIDER:-auto}"
+provider_load_model_settings
+
+# An explicitly configured local model directory is an intentional provider
+# choice. Prefer it over auto-detected host services such as Ollama.
+if [[ "$requested_provider" == "auto" && -n "${BONSAI_MODEL_DIR:-}" ]]; then
+  if provider_find_bonsai_model; then
+    provider_log "Configured Bonsai model directory found; preferring local Bonsai over auto-detected providers"
+    provider_select_bonsai
+    return 0 2>/dev/null || exit 0
+  fi
+  provider_log "Configured Bonsai directory has no readable GGUF; continuing provider discovery"
+fi
+
 if [[ "$requested_provider" == "bonsai" ]]; then
   provider_select_bonsai
   return 0 2>/dev/null || exit 0
