@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent / "scripts"
 if SCRIPT_DIR.is_dir() and str(SCRIPT_DIR) not in sys.path:
@@ -82,7 +82,9 @@ if MAX_ACTIVE_SCENARIOS < 1 or MAX_ACTIVE_SCENARIOS > 8:
     raise RuntimeError("max_active_scenarios_per_learner must be between 1 and 8")
 SCENARIO_BY_ID = scenario_map(SCENARIOS)
 
-app = FastAPI(title="Zodiac Bank Hard Challenge Range", version="2.0")
+app = FastAPI(title="Zodiac Bank Hard Challenge Range", version="2.1")
+
+TRAINER_UI = Path(__file__).resolve().parent / "index.html"
 
 
 @app.middleware("http")
@@ -252,6 +254,77 @@ def solved(stage_id: str, explanation: str, *, synthesis: bool = False) -> dict[
     return result
 
 
+@app.get("/")
+def trainer_index() -> FileResponse:
+    if not TRAINER_UI.is_file():
+        raise HTTPException(status_code=404, detail="trainer UI not packaged")
+    return FileResponse(TRAINER_UI)
+
+
+@app.get("/api/range")
+def trainer_range(x_training_learner_token: str = Header(default=""), learner_id: str = "") -> dict[str, Any]:
+    """Read-only range map for the trainer UI; never returns step matchers or flags."""
+    learner_id = safe_learner(learner_id)
+    require_learner_access(learner_id, x_training_learner_token)
+    active = current_stage(learner_id)
+    return {
+        "learner_id": learner_id,
+        "current_stage_id": active,
+        "stages": [
+            {
+                "stage_id": stage_id,
+                "scenarios": [
+                    {
+                        "scenario_id": item["id"],
+                        "difficulty": item["difficulty"],
+                        "branch": item["branch"],
+                        "title": item["title"],
+                        "objective": item["objective"],
+                        "clues": item["clues"],
+                        "step_count": len(item["steps"]),
+                        "detection_rule_ids": item["detection_rule_ids"],
+                        "required_controls": item["required_controls"],
+                    }
+                    for item in SCENARIO_BY_ID.values()
+                    if item["stage_id"] == stage_id
+                ],
+            }
+            for stage_id in STAGES
+        ],
+    }
+
+
+@app.get("/api/scenarios/{scenario_id}/hint")
+def scenario_hint(scenario_id: str, learner_id: str = "", x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    """Return the next step's event name, observation, and required evidence keys.
+
+    Intentionally returns keys without their expected values so the learner must
+    still derive the evidence from the local training surface.
+    """
+    learner_id = safe_learner(learner_id)
+    require_learner_access(learner_id, x_training_learner_token)
+    scenario = SCENARIO_BY_ID.get(scenario_id)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail="unknown scenario")
+    require_current_stage(learner_id, scenario["stage_id"])
+    db = challenge_db()
+    try:
+        run = db.execute("SELECT * FROM scenario_runs WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id)).fetchone()
+        if run is None or run["status"] == "complete":
+            return {"scenario_id": scenario_id, "status": run["status"] if run else "not-started", "progress": f"{run['step_index'] if run else 0}/{len(scenario['steps'])}"}
+        step = step_for(scenario, int(run["step_index"]))
+        return {
+            "scenario_id": scenario_id,
+            "status": "active",
+            "progress": f"{int(run['step_index']) + 1}/{len(scenario['steps'])}",
+            "event": step.get("event"),
+            "observation": step.get("observation"),
+            "required_evidence_keys": sorted(step.get("match", {}).keys()),
+        }
+    finally:
+        db.close()
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {
@@ -327,6 +400,24 @@ def start_scenario(scenario_id: str, body: dict[str, Any], x_training_learner_to
         db.commit()
         run = db.execute("SELECT * FROM scenario_runs WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id)).fetchone()
         return {"learner_id": learner_id, "scenario": scenario_view(scenario, run), "message": "Scenario started; discover the next observation from the local training surface."}
+    finally:
+        db.close()
+
+
+@app.post("/api/scenarios/{scenario_id}/reset")
+def reset_scenario(scenario_id: str, body: dict[str, Any], x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = safe_learner(body.get("learner_id"))
+    require_learner_access(learner_id, x_training_learner_token)
+    scenario = SCENARIO_BY_ID.get(scenario_id)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail="unknown scenario")
+    require_current_stage(learner_id, scenario["stage_id"])
+    db = challenge_db()
+    try:
+        deleted = db.execute("DELETE FROM scenario_runs WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id)).rowcount
+        db.execute("DELETE FROM scenario_events WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id))
+        db.commit()
+        return {"reset": True, "scenario_id": scenario_id, "learner_id": learner_id, "rows_deleted": deleted, "message": "Scenario run reset; start again from the first evidence step."}
     finally:
         db.close()
 

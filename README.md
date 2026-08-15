@@ -805,7 +805,26 @@ Strict mode now uses a real multi-step range instead of one-request flag discove
 - stage synthesis requiring scenario evidence tokens, exact detection coverage, required controls, a timeline, and a security explanation;
 - no hard flag returned by legacy challenge routes in strict mode.
 
-The challenge service exposes only metadata and clues; it never exposes scenario matchers or flags:
+### Browser trainer UI
+
+The challenge service serves a browser-based trainer console at `http://127.0.0.1:5060` (no extra dependencies). The console provides:
+
+- a full 30-scenario range map across all 10 stages with per-stage status;
+- progressive objective clues, detection rules, and required controls per scenario;
+- start, next-step hint, bounded evidence form, and reset controls for the current stage;
+- stage synthesis with required evidence tokens, detection coverage, controls, timeline, and concept checks;
+- one-click hard-flag submission to the Training Gate to unlock the next stage;
+- gate progression status and mission summaries.
+
+The trainer UI reads the same learner token as the API and never reveals hidden matchers: hints expose only the current step's event name and evidence keys, never the expected values or future steps.
+
+Open the console with the learner's private token:
+
+```text
+http://127.0.0.1:5060
+```
+
+The API surface is also available directly. It exposes only metadata and clues; it never exposes scenario matchers or flags:
 
 ```bash
 export LEARNER_ID=analyst-01
@@ -900,7 +919,7 @@ docs/
 | Phoenix | `http://127.0.0.1:5001` |
 | Assistant | `http://127.0.0.1:5002` |
 | Zodiac Bank Training Gate | `http://127.0.0.1:5050` |
-| Zodiac Bank Challenge Surface | `http://127.0.0.1:5060` |
+| Zodiac Bank Challenge Surface | `http://127.0.0.1:5060` — trainer UI at `/`, scenario API under `/api/` |
 | Zodiac Bank Graph Context | `http://127.0.0.1:5070` — data routes require `X-Graph-Context-Key` in strict mode |
 
 ### Protocol services — `lite` / `full`
@@ -935,7 +954,7 @@ docs/
 ```text
 apps/                  Aurora, Phoenix, and Assistant
 training-gate/         Zodiac Bank hard-flag progression service
-training-challenges/   Unique per-stage flag-discovery surfaces
+training-challenges/   Hard-range API and browser trainer UI (30 scenarios)
 bank-data/             Canonical Zodiac Bank entities and branched workflows
 mcp-server/            Deliberately vulnerable MCP server
 mcp-wrapper/           HTTP wrapper for MCP tools

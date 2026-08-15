@@ -96,6 +96,10 @@ curl --fail -X POST http://127.0.0.1:5060/api/scenarios/scope-integrity/start \
 
 The API deliberately does not expose hidden matchers. Learners must discover observations from local challenge surfaces, then submit the resulting event and bounded evidence in order. A completed scenario returns an opaque evidence token. Stage synthesis is the only strict-mode path that returns that stage's flag after all controls and reasoning requirements pass.
 
+### Browser trainer console
+
+The challenge service also serves a trainer console at `http://127.0.0.1:5060`. It renders the full 30-scenario range map, per-stage status, progressive clues, next-step hints (event name and evidence keys only), a bounded evidence form, stage synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
+
 ## API examples
 
 Start the core profile:

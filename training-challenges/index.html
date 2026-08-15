@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Zodiac Bank · Trainer Range</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #111a33;
+    --panel-2: #16223f;
+    --line: #24355f;
+    --text: #dbe4f5;
+    --muted: #8fa3c8;
+    --accent: #67e8f9;
+    --gold: #fbbf24;
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  header .sub { color: var(--muted); font-size: 13px; letter-spacing: 3px; }
+  .badge {
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 3px 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+  }
+  .badge.ok { color: var(--ok); border-color: #1e4d3f; }
+  .badge.warn { color: var(--warn); border-color: #5b4a1e; }
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: end;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+  input, textarea, select, button {
+    font: inherit;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px 10px;
+  }
+  input:focus, textarea:focus, select:focus { outline: 1px solid var(--accent); }
+  input[type="password"] { font-family: var(--mono); }
+  button {
+    cursor: pointer;
+    border-color: #2f4a86;
+    color: #cfe7ff;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: #0e7490; border-color: #0e7490; color: #fff; }
+  button.danger { border-color: #7f1d1d; color: var(--bad); }
+  .wrap { display: grid; grid-template-columns: 340px 1fr; gap: 18px; padding: 18px 22px; align-items: start; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .panel h2 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .stage { margin-bottom: 14px; }
+  .stage-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+  }
+  .stage-head:hover { background: var(--panel-2); }
+  .stage-head .name { font-weight: 600; font-size: 14px; }
+  .stage-head .meta { color: var(--muted); font-size: 12px; }
+  .scenario-item {
+    padding: 6px 8px 6px 18px;
+    border-left: 2px solid var(--line);
+    margin-left: 8px;
+    cursor: pointer;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 13px;
+  }
+  .scenario-item:hover { background: var(--panel-2); }
+  .scenario-item.active { border-left-color: var(--accent); background: var(--panel-2); }
+  .scenario-item .diff { color: var(--gold); font-family: var(--mono); font-size: 12px; }
+  .scenario-item .state { margin-left: auto; font-size: 11px; letter-spacing: 1px; }
+  .state.not-started { color: var(--muted); }
+  .state.active { color: var(--warn); }
+  .state.complete { color: var(--ok); }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 1100px) { .detail-grid { grid-template-columns: 1fr; } }
+  .step-box { margin-top: 10px; padding: 12px; background: var(--panel-2); border-radius: 8px; }
+  .step-box .event { font-family: var(--mono); color: var(--accent); }
+  .step-box .obs { color: var(--text); margin-top: 6px; }
+  .keys { margin-top: 8px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+  textarea { width: 100%; min-height: 64px; resize: vertical; font-family: var(--mono); font-size: 13px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  .hint { font-size: 12px; color: var(--muted); }
+  .hint code { color: var(--accent); }
+  .ev-row { display: grid; grid-template-columns: 160px 1fr 40px; gap: 6px; margin-top: 6px; }
+  .ev-row input:first-child { font-family: var(--mono); }
+  .statusbar {
+    padding: 10px 22px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  #toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    max-width: 420px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    display: none;
+    font-size: 13px;
+    white-space: pre-wrap;
+    font-family: var(--mono);
+  }
+  #toast.error { border-color: var(--bad); color: var(--bad); }
+  #toast.ok { border-color: var(--ok); color: var(--ok); }
+  .token-line { font-family: var(--mono); font-size: 12px; word-break: break-all; color: var(--accent); }
+  .muted { color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+  .chip {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-family: var(--mono);
+    background: var(--panel-2);
+  }
+  .chip.checked { border-color: var(--ok); color: var(--ok); }
+  details { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+  details summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ZODIAC&nbsp;BANK</h1>
+  <span class="sub">TRAINER RANGE</span>
+  <span class="badge" id="mode-badge">LOADING…</span>
+  <span class="badge" id="scope-badge">SCOPE: LOCALHOST-ONLY</span>
+  <span class="badge warn">SYNTHETIC DATA — NO SIDE EFFECTS</span>
+</header>
+
+<section class="controls">
+  <div class="field">
+    <label for="learner-id">Learner ID</label>
+    <input id="learner-id" placeholder="analyst-01" autocomplete="off" spellcheck="false" />
+  </div>
+  <div class="field">
+    <label for="learner-token">Learner token (private)</label>
+    <input id="learner-token" type="password" placeholder="token from cohort-add" autocomplete="off" />
+  </div>
+  <div class="field">
+    <label for="gate-url">Training Gate URL</label>
+    <input id="gate-url" value="http://127.0.0.1:5050" autocomplete="off" spellcheck="false" />
+  </div>
+  <button id="load-btn" class="primary">Load range</button>
+</section>
+
+<div class="wrap">
+  <aside class="panel" id="range-panel">
+    <h2>Range map · 10 stages</h2>
+    <div id="range-list"><p class="muted">Enter a learner ID and token, then press <em>Load range</em>.</p></div>
+  </aside>
+
+  <main class="detail-grid">
+    <section class="panel" id="scenario-panel">
+      <h2>Scenario</h2>
+      <div id="scenario-detail"><p class="muted">Select a scenario in the range map. Only scenarios in the learner's current stage can be started and advanced.</p></div>
+    </section>
+
+    <section class="panel" id="synthesis-panel">
+      <h2>Stage synthesis &amp; flag</h2>
+      <div id="synthesis-detail"><p class="muted">Complete every required scenario in the current stage to unlock synthesis.</p></div>
+    </section>
+  </main>
+</div>
+
+<div class="statusbar">
+  <span id="status-mode">mode: —</span>
+  <span id="status-stage">current stage: —</span>
+  <span id="status-gate">gate: —</span>
+  <span id="status-range">range: —</span>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+const $ = (id) => document.getElementById(id);
+const state = {
+  learner: "",
+  token: "",
+  gateUrl: "http://127.0.0.1:5050",
+  range: null,
+  currentStageId: null,
+  scenarios: [],          // current stage scenario list from /api/scenarios
+  selected: null,
+  synthesis: null,        // requirement for current stage
+};
+
+function toast(message, kind) {
+  const box = $("toast");
+  box.textContent = message;
+  box.className = kind || "";
+  box.style.display = "block";
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { box.style.display = "none"; }, 6000);
+}
+
+async function api(path, options) {
+  const headers = Object.assign({ "X-Training-Learner-Token": state.token }, (options && options.headers) || {});
+  const response = await fetch(path, Object.assign({}, options, { headers }));
+  let body = null;
+  try { body = await response.json(); } catch (_) { /* non-JSON */ }
+  if (!response.ok) {
+    const detail = (body && (body.detail || body.message)) || response.statusText;
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+  }
+  return body;
+}
+
+async function gateApi(path, options) {
+  const headers = Object.assign({ "X-Training-Learner-Token": state.token }, (options && options.headers) || {});
+  const response = await fetch(state.gateUrl + path, Object.assign({}, options, { headers }));
+  let body = null;
+  try { body = await response.json(); } catch (_) { /* non-JSON */ }
+  if (!response.ok) {
+    const detail = (body && (body.detail || body.message)) || response.statusText;
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+  }
+  return body;
+}
+
+function saveSettings() {
+  try {
+    localStorage.setItem("zb-trainer", JSON.stringify({
+      learner: state.learner,
+      token: state.token,
+      gateUrl: state.gateUrl,
+    }));
+  } catch (_) { /* storage may be unavailable; settings still work in memory */ }
+}
+
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("zb-trainer") || "{}");
+    if (saved.learner) state.learner = saved.learner;
+    if (saved.token) state.token = saved.token;
+    if (saved.gateUrl) state.gateUrl = saved.gateUrl;
+  } catch (_) { /* ignore */ }
+}
+
+function esc(value) {
+  return String(value).replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[ch]));
+}
+
+async function loadAll() {
+  const learnerInput = $("learner-id").value.trim();
+  const tokenInput = $("learner-token").value.trim();
+  const gateInput = $("gate-url").value.trim();
+  if (!learnerInput || !tokenInput) {
+    toast("learner ID and token are required", "error");
+    return;
+  }
+  state.learner = learnerInput;
+  state.token = tokenInput;
+  state.gateUrl = gateInput || "http://127.0.0.1:5050";
+  saveSettings();
+  try {
+    const range = await api(`/api/range?learner_id=${encodeURIComponent(state.learner)}`);
+    state.range = range;
+    state.currentStageId = range.current_stage_id;
+    $("status-range").textContent = `range: ${range.stages.reduce((n, s) => n + s.scenarios.length, 0)} scenarios`;
+    renderRange();
+    await refreshStage();
+    $("status-mode").textContent = `mode: trainer · learner ${esc(state.learner)}`;
+  } catch (error) {
+    toast("load failed: " + error.message, "error");
+    return;
+  }
+  try {
+    const curriculum = await gateApi(`/api/curriculum?learner_id=${encodeURIComponent(state.learner)}`);
+    renderGateStatus(curriculum);
+    $("status-gate").textContent = "gate: connected";
+  } catch (error) {
+    $("status-gate").textContent = "gate: unreachable (" + error.message + ")";
+  }
+}
+
+function renderRange() {
+  const list = $("range-list");
+  if (!state.range) { list.innerHTML = '<p class="muted">No range loaded.</p>'; return; }
+  list.innerHTML = state.range.stages.map((stage) => {
+    const isCurrent = stage.stage_id === state.currentStageId;
+    const scenarios = stage.scenarios
+      .map((sc) => {
+        const run = findRun(sc.scenario_id);
+        const status = run ? run.status : "not-started";
+        const cls = state.selected && state.selected.scenario_id === sc.scenario_id ? "active" : "";
+        return `<div class="scenario-item ${cls}" data-scenario="${esc(sc.scenario_id)}">
+          <span class="diff">D${String(sc.difficulty).padStart(2, "0")}</span>
+          <span>${esc(sc.title)}</span>
+          <span class="state ${status}">${status}</span>
+        </div>`;
+      })
+      .join("");
+    return `<div class="stage">
+      <div class="stage-head">
+        <span class="name">${esc(stage.stage_id)}</span>
+        <span class="meta">${scenarios.length} scenarios${isCurrent ? " · current" : ""}</span>
+      </div>
+      ${scenarios}
+    </div>`;
+  }).join("");
+  list.querySelectorAll(".scenario-item").forEach((item) => {
+    item.addEventListener("click", () => selectScenario(item.dataset.scenario));
+  });
+}
+
+function findRun(scenarioId) {
+  if (!state.scenarios) return null;
+  return state.scenarios.find((s) => s.scenario_id === scenarioId) || null;
+}
+
+async function refreshStage() {
+  const data = await api(`/api/scenarios?learner_id=${encodeURIComponent(state.learner)}`);
+  if (data.status === "complete") {
+    state.currentStageId = null;
+    state.scenarios = [];
+    state.synthesis = null;
+    renderRange();
+    renderScenario();
+    renderSynthesis();
+    $("status-stage").textContent = "current stage: complete";
+    return;
+  }
+  state.currentStageId = data.stage_id;
+  state.scenarios = data.scenarios;
+  state.synthesis = data.required;
+  renderRange();
+  renderScenario();
+  renderSynthesis();
+  $("status-stage").textContent = `current stage: ${esc(data.stage_id)}`;
+}
+
+function renderScenario() {
+  const detail = $("scenario-detail");
+  if (!state.selected) { detail.innerHTML = '<p class="muted">Select a scenario in the range map.</p>'; return; }
+  const sc = state.selected;
+  const run = findRun(sc.scenario_id);
+  const status = run ? run.status : "not-started";
+  const progress = run ? run.progress : `0/${sc.step_count}`;
+  const clueList = (sc.clues || []).map((c) => `<li>${esc(c)}</li>`).join("");
+  detail.innerHTML = `
+    <div class="row">
+      <span class="badge">${esc(sc.scenario_id)}</span>
+      <span class="badge">D${sc.difficulty}</span>
+      <span class="badge">${esc(sc.branch)}</span>
+      <span class="badge ${status === "complete" ? "ok" : ""}">${status} · ${progress}</span>
+    </div>
+    <h3 style="margin:10px 0 4px">${esc(sc.title)}</h3>
+    <p class="muted" style="margin:0 0 10px">${esc(sc.objective)}</p>
+    <details>
+      <summary>Objective clues (progressive)</summary>
+      <ul>${clueList}</ul>
+    </details>
+    <details>
+      <summary>Required detection rules</summary>
+      <div class="grid">${sc.detection_rule_ids.map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
+    </details>
+    <details>
+      <summary>Required controls</summary>
+      <div class="grid">${sc.required_controls.map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
+    </details>
+    <div class="row">
+      <button id="start-btn" ${status === "active" || status === "complete" ? "disabled" : ""}>Start scenario</button>
+      <button id="hint-btn">Next-step hint</button>
+      <button id="reset-btn" class="danger" style="display:${status === "active" ? "" : "none"}">Reset run</button>
+    </div>
+    <div id="hint-box"></div>
+    <div id="event-box"></div>`;
+  $("start-btn").addEventListener("click", startScenario);
+  $("hint-btn").addEventListener("click", showHint);
+  const resetBtn = $("reset-btn");
+  if (resetBtn) resetBtn.addEventListener("click", resetRun);
+  if (status === "active") showHint();
+}
+
+function renderGateStatus(curriculum) {
+  const stages = curriculum.stages || [];
+  const byId = {};
+  if (state.range) state.range.stages.forEach((s) => { byId[s.stage_id] = s; });
+  const html = stages.map((stage) => {
+    const rangeStage = byId[stage.stage_id] || { scenarios: [] };
+    return `<div class="stage">
+      <div class="stage-head">
+        <span class="name">${esc(stage.stage_id)}</span>
+        <span class="meta">${esc(stage.status)}</span>
+      </div>
+      <div class="scenario-item"><span class="hint">attempts: ${stage.attempts} · hints: ${stage.hints_available}</span></div>
+      <div class="scenario-item"><span class="hint">${esc(stage.mission || "")}</span></div>
+    </div>`;
+  }).join("");
+  const panel = $("synthesis-panel");
+  const existing = panel.querySelector("#gate-curriculum");
+  if (existing) existing.remove();
+  const gateSection = document.createElement("div");
+  gateSection.innerHTML = `<details id="gate-curriculum"><summary>Gate progression (status &amp; missions)</summary>${html}</details>`;
+  panel.appendChild(gateSection);
+}
+
+async function selectScenario(scenarioId) {
+  const sc = state.range.stages
+    .flatMap((s) => s.scenarios)
+    .find((s) => s.scenario_id === scenarioId);
+  if (!sc) return;
+  const run = findRun(scenarioId);
+  if (run && run.stage_id !== state.currentStageId) {
+    toast("Only the current stage's scenarios can be opened.", "error");
+    return;
+  }
+  state.selected = Object.assign({}, sc, { clues: runClues(scenarioId) });
+  renderRange();
+  renderScenario();
+}
+
+function runClues(scenarioId) {
+  const sc = state.range.stages.flatMap((s) => s.scenarios).find((s) => s.scenario_id === scenarioId);
+  return sc ? sc.clues : [];
+}
+
+async function startScenario() {
+  try {
+    const result = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learner_id: state.learner }),
+    });
+    toast(result.message || "scenario started");
+    await refreshStage();
+  } catch (error) {
+    toast("start failed: " + error.message, "error");
+  }
+}
+
+async function showHint() {
+  const box = $("hint-box");
+  try {
+    const hint = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/hint?learner_id=${encodeURIComponent(state.learner)}`);
+    if (hint.status !== "active") {
+      box.innerHTML = `<div class="step-box"><span class="hint">Scenario is ${esc(hint.status)} (${esc(hint.progress)}).</span></div>`;
+      return;
+    }
+    box.innerHTML = `
+      <div class="step-box">
+        <div><span class="event">event: ${esc(hint.event)}</span></div>
+        <div class="obs">observation: ${esc(hint.observation)}</div>
+        <div class="keys">required evidence keys: ${hint.required_evidence_keys.map((k) => `<code>${esc(k)}</code>`).join(" ") || "none"}</div>
+      </div>
+      <div class="row"><button id="fill-btn">Build evidence form</button></div>`;
+    $("fill-btn").addEventListener("click", () => buildEvidenceForm(hint));
+  } catch (error) {
+    box.innerHTML = `<div class="step-box"><span class="hint">hint unavailable: ${esc(error.message)}</span></div>`;
+  }
+}
+
+function buildEvidenceForm(hint) {
+  const box = $("event-box");
+  const keys = (hint.required_evidence_keys || []).filter((k) => k !== "event");
+  const rows = keys.map((key) => `
+    <div class="ev-row">
+      <input value="${esc(key)}" readonly />
+      <input data-key="${esc(key)}" placeholder="value" autocomplete="off" spellcheck="false" />
+      <span class="hint">required</span>
+    </div>`).join("");
+  box.innerHTML = `
+    <div class="step-box">
+      <div class="row"><span class="event">${esc(hint.event)}</span></div>
+      ${rows || '<p class="muted">No evidence keys required for this step.</p>'}
+      <div class="row">
+        <button id="submit-event" class="primary">Submit evidence event</button>
+      </div>
+    </div>`;
+  $("submit-event").addEventListener("click", () => submitEvent(hint));
+}
+
+async function submitEvent(hint) {
+  const evidence = {};
+  document.querySelectorAll("#event-box [data-key]").forEach((input) => {
+    const value = input.value.trim();
+    if (value) evidence[input.dataset.key] = value;
+  });
+  try {
+    const result = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/event`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learner_id: state.learner, event: hint.event, evidence }),
+    });
+    toast(result.message || "event accepted");
+    $("event-box").innerHTML = "";
+    $("hint-box").innerHTML = "";
+    await refreshStage();
+    if (result.status === "complete") {
+      toast("Scenario complete — evidence token issued.", "ok");
+    } else {
+      showHint();
+    }
+  } catch (error) {
+    toast("event rejected: " + error.message, "error");
+  }
+}
+
+async function resetRun() {
+  try {
+    await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learner_id: state.learner }),
+    });
+    toast("run reset");
+    await refreshStage();
+  } catch (error) {
+    toast("reset failed: " + error.message, "error");
+  }
+}
+
+function renderSynthesis() {
+  const panel = $("synthesis-detail");
+  if (!state.synthesis) { panel.innerHTML = '<p class="muted">Stage synthesis unlocks after every required scenario is complete.</p>'; return; }
+  const req = state.synthesis;
+  const runs = state.scenarios || [];
+  const completeMap = {};
+  runs.forEach((r) => { if (r.status === "complete") completeMap[r.scenario_id] = true; });
+  const allComplete = req.scenario_ids.every((id) => completeMap[id]);
+  const missingTokens = req.scenario_ids.filter((id) => !completeMap[id]);
+  const scenarioChips = req.scenario_ids
+    .map((id) => `<span class="chip ${completeMap[id] ? "checked" : ""}">${esc(id)}${completeMap[id] ? " ✓" : ""}</span>`)
+    .join("");
+  const detectionChips = req.detection_rule_ids.map((id) => `<span class="chip">${esc(id)}</span>`).join("");
+  const controlChips = req.required_controls.map((id) => `<span class="chip">${esc(id)}</span>`).join("");
+  const concepts = (req.concepts || []).map((c) => `<span class="chip">${esc(c)}</span>`).join("");
+  panel.innerHTML = `
+    <div class="hint">Required scenarios (in order):</div>
+    <div class="grid" style="margin:8px 0">${scenarioChips}</div>
+    <div class="hint">Detection coverage:</div>
+    <div class="grid" style="margin:8px 0">${detectionChips}</div>
+    <div class="hint">Required controls:</div>
+    <div class="grid" style="margin:8px 0">${controlChips}</div>
+    <div class="hint">Concepts that must appear in the summary:</div>
+    <div class="grid" style="margin:8px 0">${concepts}</div>
+    <div class="row"><span class="badge ${allComplete ? "ok" : ""}">${allComplete ? "All scenarios complete — synthesis unlocked" : "Pending: " + missingTokens.join(", ")}</span></div>
+    ${allComplete ? `
+      <div class="field" style="margin-top:10px">
+        <label for="syn-summary">Incident summary (must contain all concepts above)</label>
+        <textarea id="syn-summary" placeholder="Describe the incident, evidence chain, and controls…"></textarea>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="syn-timeline">Timeline (one evidence event per line, at least ${req.scenario_ids.length} entries)</label>
+        <textarea id="syn-timeline" placeholder="T1 …\nT2 …"></textarea>
+      </div>
+      <div class="row">
+        <button id="syn-btn" class="primary">Run stage synthesis</button>
+      </div>
+      <div id="syn-result"></div>` : ""}`;
+  const btn = $("syn-btn");
+  if (btn) btn.addEventListener("click", runSynthesis);
+}
+
+async function runSynthesis() {
+  const req = state.synthesis;
+  const runs = state.scenarios || [];
+  const byId = {};
+  runs.forEach((r) => { byId[r.scenario_id] = r; });
+  const timeline = $("syn-timeline").value.split("\n").map((line) => line.trim()).filter(Boolean);
+  const summary = $("syn-summary").value.trim();
+  const body = {
+    learner_id: state.learner,
+    scenario_ids: req.scenario_ids,
+    evidence_tokens: req.scenario_ids.map((id) => byId[id].evidence_token || ""),
+    detection_rule_ids: req.detection_rule_ids,
+    controls: req.required_controls,
+    timeline,
+    summary,
+  };
+  try {
+    const result = await api(`/api/stages/${encodeURIComponent(state.currentStageId)}/synthesize`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const flag = result.hard_flag;
+    $("syn-result").innerHTML = `
+      <div class="step-box">
+        <div class="badge ok" style="margin-bottom:8px">Synthesis accepted</div>
+        <div class="hint">Stage hard flag (submit to the gate to unlock the next stage):</div>
+        <div class="token-line">${esc(flag)}</div>
+        <div class="row">
+          <button id="copy-flag">Copy</button>
+          <button id="submit-gate" class="primary">Submit to gate</button>
+        </div>
+      </div>`;
+    $("copy-flag").addEventListener("click", () => {
+      navigator.clipboard.writeText(flag).then(() => toast("flag copied", "ok"));
+    });
+    $("submit-gate").addEventListener("click", () => submitFlagToGate(flag));
+  } catch (error) {
+    $("syn-result").innerHTML = `<div class="step-box"><span class="badge">Synthesis rejected</span><div class="obs">${esc(error.message)}</div></div>`;
+  }
+}
+
+async function submitFlagToGate(flag) {
+  try {
+    const result = await gateApi("/api/flags/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learner_id: state.learner, stage_id: state.currentStageId, flag }),
+    });
+    toast(result.message || "flag accepted", "ok");
+    $("syn-result").innerHTML = `<div class="step-box"><div class="badge ok">Flag accepted — ${esc(result.next_stage_id || "curriculum complete")}</div></div>`;
+    await refreshStage();
+    await loadAll();
+  } catch (error) {
+    toast("gate rejected flag: " + error.message, "error");
+  }
+}
+
+$("load-btn").addEventListener("click", loadAll);
+loadSettings();
+$("learner-id").value = state.learner;
+$("learner-token").value = state.token;
+$("gate-url").value = state.gateUrl;
+
+fetch("/health")
+  .then((r) => r.json())
+  .then((health) => {
+    $("mode-badge").textContent = `MODE: ${health.mode || "unknown"}`;
+    $("status-mode").textContent = `mode: ${health.mode || "unknown"}`;
+  })
+  .catch(() => {
+    $("mode-badge").textContent = "MODE: OFFLINE";
+  });
+</script>
+</body>
+</html>
