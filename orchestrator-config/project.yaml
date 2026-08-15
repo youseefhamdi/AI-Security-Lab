@@ -1,0 +1,38 @@
+# Lab manifest for the Agent Orchestrator setup helper.
+# AO persists its active project registry in SQLite; this file documents the
+# intended project/worker configuration for the red-team exercises.
+version: 1
+project:
+  id: ai-redteam-lab
+  repository: ~/ai-redteam-lab
+  mode: local-git
+orchestrator:
+  name: NovaTech Lab Orchestrator
+  role: plans tasks, delegates work to workers, and aggregates results
+  trust_policy: intentionally-insecure-lab
+workers:
+  - id: aurora
+    name: Aurora
+    role: support
+    endpoint: http://127.0.0.1:5000
+    model: llama3.2:1b
+  - id: phoenix
+    name: Phoenix
+    role: code_review
+    endpoint: http://127.0.0.1:5001
+    model: bonsai-27b
+  - id: assistant
+    name: Assistant
+    role: general
+    endpoint: http://127.0.0.1:5002
+    model: llama3.2:1b
+watch:
+  repository: ~/ai-redteam-lab
+  include:
+    - apps/**
+    - a2a-agents/**
+    - mcp-wrapper/**
+    - exercises/**
+  exclude:
+    - models/*.gguf
+    - logs/**
