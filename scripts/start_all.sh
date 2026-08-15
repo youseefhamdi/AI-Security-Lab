@@ -5,6 +5,29 @@ COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
 LAB_MODE="${LAB_MODE:-core}"
 SEED_DATA="${SEED_DATA:-0}"
 
+print_brand() {
+  printf '\n'
+  cat <<'BANNER'
+  ╔══════════════════════════════════════════════════════════════╗
+  ║                     Z O D I A C                              ║
+  ║                 AI SECURITY LAB                               ║
+  ║                                                              ║
+  ║                         .-''''-.                             ║
+  ║                      .-'  _  _  '-.                          ║
+  ║                    .'   / \\/ \\   '.                        ║
+  ║                   /    |  /\\  |    \\                       ║
+  ║                  ;     | /==\\ |     ;                       ║
+  ║                  |     | \\__/ |     |                       ║
+  ║                  ;      \\____/      ;                       ║
+  ║                   \\       ||       /                        ║
+  ║                    '.     /||\\    .'                         ║
+  ║                      '-._||||_.-'                           ║
+  ║                         /||||\\                             ║
+  ║                  RECON · ATTACK · DETECT                     ║
+  ╚══════════════════════════════════════════════════════════════╝
+BANNER
+}
+
 log() {
   printf '[start-all] %s\n' "$*"
 }
@@ -13,6 +36,8 @@ fail() {
   printf '[start-all] ERROR: %s\n' "$*" >&2
   exit 1
 }
+
+print_brand
 
 if [[ "${RUNTIME:-0}" != "1" ]]; then
   log "Static/VPS mode: no Docker startup, model pull, seed, or network action will run"

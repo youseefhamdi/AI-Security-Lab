@@ -126,6 +126,8 @@ Bonsai is served once through llama.cpp's OpenAI-compatible API. All three appli
 
 ### Core mode
 
+The startup helper displays the ZODIAC Spartan terminal banner, and Compose uses the project name `zodiac-ai-security-lab`.
+
 ```bash
 docker compose up -d
 ```
