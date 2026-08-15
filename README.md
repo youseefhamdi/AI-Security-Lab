@@ -112,13 +112,46 @@ If the downloaded filename differs, set it in a local `.env` file:
 BONSAI_MODEL_FILE=your-actual-bonsai-file.gguf
 ```
 
-The project does **not** pull models. Verify the local file without downloading anything:
+The project does **not** pull models. Verify the local fallback file without downloading anything:
 
 ```bash
 ./scripts/pull_models.sh
 ```
 
-Bonsai is served once through llama.cpp's OpenAI-compatible API. All three applications and the A2A agents reuse that same backend.
+All three applications and the A2A agents reuse the selected provider through one OpenAI-compatible interface. Bonsai is started only when no external provider is detected or when `INFERENCE_PROVIDER=bonsai` is selected.
+
+## 🔎 Automatic provider detection
+
+`RUNTIME=1 ./scripts/start_all.sh` probes providers in this order:
+
+| Provider | Default local endpoint | Container endpoint passed to apps |
+| --- | --- | --- |
+| Ollama | `http://127.0.0.1:11434` | `http://host.docker.internal:11434/v1` |
+| LM Studio (LMS) | `http://127.0.0.1:1234/v1` | `http://host.docker.internal:1234/v1` |
+| llama.cpp / existing Bonsai | `http://127.0.0.1:11435/v1` | `http://host.docker.internal:11435/v1` |
+| Local Bonsai fallback | project `models/*.gguf` | `http://bonsai:8000/v1` |
+
+Override automatic selection when needed:
+
+```bash
+INFERENCE_PROVIDER=ollama INFERENCE_MODEL=llama3.2:1b RUNTIME=1 ./scripts/start_all.sh
+INFERENCE_PROVIDER=lmstudio INFERENCE_MODEL=your-model RUNTIME=1 ./scripts/start_all.sh
+INFERENCE_PROVIDER=bonsai RUNTIME=1 ./scripts/start_all.sh
+```
+
+You can also provide any OpenAI-compatible provider with:
+
+```bash
+INFERENCE_DISCOVERY_URL=http://127.0.0.1:8000/v1 \\
+INFERENCE_CONTAINER_URL=http://host.docker.internal:8000/v1 \\
+RUNTIME=1 ./scripts/start_all.sh
+```
+
+The inference smoke test uses the same provider detection logic:
+
+```bash
+RUNTIME=1 ./scripts/test_inference.sh
+```
 
 ## 🚀 Quick start
 

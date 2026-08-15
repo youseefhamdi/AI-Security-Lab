@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
 LAB_MODE="${LAB_MODE:-core}"
 SEED_DATA="${SEED_DATA:-0}"
@@ -40,7 +41,7 @@ fail() {
 print_brand
 
 if [[ "${RUNTIME:-0}" != "1" ]]; then
-  log "Static/VPS mode: no Docker startup, model pull, seed, or network action will run"
+  log "Static/VPS mode: no provider probing, Docker startup, model pull, seed, or network action will run"
   log "Local core mode: RUNTIME=1 ./scripts/start_all.sh"
   log "Local lite mode: RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh"
   log "Local full mode: RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh"
@@ -48,21 +49,48 @@ if [[ "${RUNTIME:-0}" != "1" ]]; then
 fi
 
 command -v docker >/dev/null 2>&1 || fail "RUNTIME=1 requires docker"
-./scripts/pull_models.sh
+command -v curl >/dev/null 2>&1 || fail "RUNTIME=1 requires curl"
+
+# Exports INFERENCE_PROVIDER, INFERENCE_BASE_URL, INFERENCE_LOCAL_BASE_URL,
+# and INFERENCE_MODEL for Compose and all application containers.
+# Supported providers: Ollama, LM Studio, llama.cpp, and local Bonsai fallback.
+source "${SCRIPT_DIR}/detect_provider.sh"
+log "Selected provider=${INFERENCE_PROVIDER}, model=${INFERENCE_MODEL}, endpoint=${INFERENCE_BASE_URL}"
+
+if [[ "$INFERENCE_PROVIDER" == "bonsai" ]]; then
+  "${SCRIPT_DIR}/pull_models.sh"
+else
+  log "Using the already-running ${INFERENCE_PROVIDER} provider; no local model container or pull is needed"
+fi
+
 docker compose -f "$COMPOSE_FILE" config >/dev/null
+
+core_services=(aurora phoenix assistant)
+if [[ "$INFERENCE_PROVIDER" == "bonsai" ]]; then
+  core_services=(bonsai "${core_services[@]}")
+fi
 
 case "$LAB_MODE" in
   core)
-    log "Starting minimal core: one Bonsai backend, three apps, and local document retrieval"
-    docker compose -f "$COMPOSE_FILE" up -d bonsai aurora phoenix assistant
+    log "Starting core services: ${core_services[*]}"
+    docker compose -f "$COMPOSE_FILE" up -d "${core_services[@]}"
     ;;
   lite)
-    log "Starting lite core plus optional A2A and MCP protocol services"
-    docker compose -f "$COMPOSE_FILE" --profile protocols up -d
+    log "Starting core plus A2A/MCP protocol services"
+    lite_services=("${core_services[@]}" a2a-knowledge a2a-router mcp-server mcp-wrapper)
+    docker compose -f "$COMPOSE_FILE" --profile protocols up -d "${lite_services[@]}"
     ;;
   full)
-    log "Starting full profile: lite core plus gateway, storage, memory, and SIEM"
-    docker compose -f "$COMPOSE_FILE" --profile protocols --profile full up -d
+    log "Starting full stack with the selected inference provider"
+    full_services=(
+      "${core_services[@]}"
+      a2a-knowledge a2a-router mcp-server mcp-wrapper
+      kong-database kong-migration kong
+      chromadb milvus redis lightrag mem0
+      a2a-agent mcp-memory mcp-filesystem mcp-fetch
+      elasticsearch kibana filebeat
+    )
+    docker compose -f "$COMPOSE_FILE" --profile protocols --profile full up -d "${full_services[@]}"
     if [[ "$SEED_DATA" == "1" ]]; then
       log "Seeding full-profile storage and memories"
       RUNTIME=1 python3 ./scripts/seed_storage.py

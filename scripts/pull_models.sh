@@ -5,6 +5,15 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 BONSAI_MODEL_FILE="${BONSAI_MODEL_FILE:-${PROJECT_ROOT}/models/bonsai-27b.gguf}"
 
+if [[ "${RUNTIME:-0}" == "1" && "${SKIP_PROVIDER_DETECT:-0}" != "1" ]]; then
+  # An external provider means no local GGUF is required for this run.
+  source "${SCRIPT_DIR}/detect_provider.sh"
+  if [[ "${INFERENCE_PROVIDER:-bonsai}" != "bonsai" ]]; then
+    printf '[model-check] External provider %s is active; skipping local GGUF check\n' "$INFERENCE_PROVIDER"
+    exit 0
+  fi
+fi
+
 log() {
   printf '[model-check] %s\n' "$*"
 }

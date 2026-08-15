@@ -2,8 +2,9 @@ version: '3.8'
 name: zodiac-ai-security-lab
 
 services:
-  # ============= CORE: SINGLE LOCAL INFERENCE BACKEND =============
-  # The core profile runs with Bonsai only. No Ollama container or model pull is used.
+  # ============= CORE: AUTO-SELECTED INFERENCE BACKEND =============
+  # Bonsai is the local fallback. start_all.sh can reuse Ollama, LM Studio,
+  # or an existing OpenAI-compatible llama.cpp provider instead.
   bonsai:
     image: ghcr.io/ggml-org/llama.cpp:server
     container_name: lab-bonsai
@@ -54,6 +55,8 @@ services:
     environment:
       MCP_UPSTREAM: http://mcp-server:3000
       MCP_WRAPPER_MODE: lab
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     mem_limit: 256m
     depends_on:
       - mcp-server
@@ -67,15 +70,15 @@ services:
     environment:
       AGENT_NAME: Knowledge Agent
       PUBLIC_URL: http://127.0.0.1:5011
-      OPENAI_BASE_URL: http://bonsai:8000/v1
-      MODEL_NAME: bonsai-27b
+      OPENAI_BASE_URL: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
+      MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
       RAG_DOCS_DIR: /app/rag-docs
       ENABLE_EXTERNAL_CONTEXT: ${ENABLE_EXTERNAL_CONTEXT:-0}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     mem_limit: 256m
-    depends_on:
-      - bonsai
 
   a2a-router:
     profiles: ["protocols", "full"]
@@ -87,11 +90,12 @@ services:
       AGENT_NAME: Support Router
       PUBLIC_URL: http://127.0.0.1:5010
       KNOWLEDGE_AGENT_URL: http://a2a-knowledge:5000
-      OPENAI_BASE_URL: http://bonsai:8000/v1
-      MODEL_NAME: bonsai-27b
+      OPENAI_BASE_URL: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
+      MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     mem_limit: 256m
     depends_on:
-      - bonsai
       - a2a-knowledge
 
   aurora:
@@ -100,16 +104,16 @@ services:
     ports:
       - "127.0.0.1:5000:5000"
     environment:
-      OPENAI_BASE_URL: http://bonsai:8000/v1
-      MODEL_NAME: bonsai-27b
+      OPENAI_BASE_URL: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
+      MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
       RAG_DOCS_DIR: /app/rag-docs
       ENABLE_EXTERNAL_CONTEXT: ${ENABLE_EXTERNAL_CONTEXT:-0}
       MEM0_API_KEY: ${MEM0_ADMIN_API_KEY:-mem0_lab_admin_key_change_me}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     mem_limit: 256m
-    depends_on:
-      - bonsai
 
   phoenix:
     build: ./apps/phoenix
@@ -117,11 +121,11 @@ services:
     ports:
       - "127.0.0.1:5001:5000"
     environment:
-      OPENAI_BASE_URL: http://bonsai:8000/v1
-      MODEL_NAME: bonsai-27b
+      OPENAI_BASE_URL: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
+      MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     mem_limit: 256m
-    depends_on:
-      - bonsai
 
   assistant:
     build: ./apps/assistant
@@ -129,11 +133,11 @@ services:
     ports:
       - "127.0.0.1:5002:5000"
     environment:
-      OPENAI_BASE_URL: http://bonsai:8000/v1
-      MODEL_NAME: bonsai-27b
+      OPENAI_BASE_URL: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
+      MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     mem_limit: 256m
-    depends_on:
-      - bonsai
 
   # ============= FULL PROFILE: GATEWAY =============
   kong-database:
@@ -222,8 +226,8 @@ services:
       - ./rag-docs:/app/rag-docs:ro
     environment:
       PORT: "9621"
-      LLM_MODEL: bonsai-27b
-      LLM_BINDING_HOST: http://bonsai:8000/v1
+      LLM_MODEL: ${INFERENCE_MODEL:-bonsai-27b}
+      LLM_BINDING_HOST: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
       LLM_BINDING: openai
       LLM_BINDING_API_KEY: local
       # Set these in .env for full-mode graph embeddings. Bonsai is text-only.
@@ -238,8 +242,6 @@ services:
       DOC_STATUS_STORAGE: file
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    depends_on:
-      - bonsai
 
   # The stock Mem0 API image is optional because its bundled server providers
   # do not include Ollama. Use a locally customized Mem0 image for full mode.
@@ -255,8 +257,6 @@ services:
     environment:
       ADMIN_API_KEY: ${MEM0_ADMIN_API_KEY:-mem0_lab_admin_key_change_me}
       JWT_SECRET: ${MEM0_JWT_SECRET:-mem0_lab_jwt_secret_change_me}
-    depends_on:
-      - bonsai
 
   # ============= OPTIONAL PROTOCOLS =============
   a2a-agent:
