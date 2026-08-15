@@ -205,9 +205,9 @@ services:
     build: ./a2a-agents/router
     container_name: lab-a2a-router
     ports:
-      - "127.0.0.1:4100:4000"
+      - "127.0.0.1:4100:5010"
     environment:
-      A2A_KNOWLEDGE_AGENT: http://a2a-knowledge:4000
+      A2A_KNOWLEDGE_AGENT: http://a2a-knowledge:5011
       A2A_SUPPORT_AGENT: http://a2a-agent:4000
       ORCHESTRATOR_CONFIG: /opt/orchestrator-config
     volumes:
@@ -220,7 +220,7 @@ services:
     build: ./a2a-agents/knowledge
     container_name: lab-a2a-knowledge
     ports:
-      - "127.0.0.1:4101:4000"
+      - "127.0.0.1:4101:5011"
     environment:
       CHROMA_HOST: chromadb
       CHROMA_PORT: 8000
