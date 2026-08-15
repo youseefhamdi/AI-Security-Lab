@@ -15,14 +15,15 @@ services:
     command: >
       -m /models/${BONSAI_MODEL_FILE:-bonsai-27b.gguf}
       --host 0.0.0.0 --port 8000
-      -c ${BONSAI_CONTEXT_SIZE:-4096}
+      -c ${BONSAI_CONTEXT_SIZE:-2048}
       --parallel ${BONSAI_PARALLEL:-1}
       --jinja
       -ngl ${BONSAI_GPU_LAYERS:-0}
+    mem_limit: ${BONSAI_MEMORY_LIMIT:-5G}
     deploy:
       resources:
         limits:
-          memory: ${BONSAI_MEMORY_LIMIT:-6G}
+          memory: ${BONSAI_MEMORY_LIMIT:-5G}
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8000/health || exit 1"]
       interval: 15s
@@ -30,6 +31,7 @@ services:
       retries: 20
 
   mcp-server:
+    profiles: ["protocols", "full"]
     build: ./mcp-server
     container_name: lab-mcp-server
     ports:
@@ -40,8 +42,10 @@ services:
     volumes:
       - ./sensitive-data:/opt/sensitive-data:ro
       - ./orchestrator-config:/opt/orchestrator-config:ro
+    mem_limit: 256m
 
   mcp-wrapper:
+    profiles: ["protocols", "full"]
     build: ./mcp-wrapper
     container_name: lab-mcp-wrapper
     ports:
@@ -49,10 +53,12 @@ services:
     environment:
       MCP_UPSTREAM: http://mcp-server:3000
       MCP_WRAPPER_MODE: lab
+    mem_limit: 256m
     depends_on:
       - mcp-server
 
   a2a-knowledge:
+    profiles: ["protocols", "full"]
     build: ./a2a-agents/knowledge
     container_name: lab-a2a-knowledge
     ports:
@@ -66,10 +72,12 @@ services:
       ENABLE_EXTERNAL_CONTEXT: ${ENABLE_EXTERNAL_CONTEXT:-0}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
+    mem_limit: 256m
     depends_on:
       - bonsai
 
   a2a-router:
+    profiles: ["protocols", "full"]
     build: ./a2a-agents/router
     container_name: lab-a2a-router
     ports:
@@ -80,6 +88,7 @@ services:
       KNOWLEDGE_AGENT_URL: http://a2a-knowledge:5000
       OPENAI_BASE_URL: http://bonsai:8000/v1
       MODEL_NAME: bonsai-27b
+    mem_limit: 256m
     depends_on:
       - bonsai
       - a2a-knowledge
@@ -97,6 +106,7 @@ services:
       MEM0_API_KEY: ${MEM0_ADMIN_API_KEY:-mem0_lab_admin_key_change_me}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
+    mem_limit: 256m
     depends_on:
       - bonsai
 
@@ -108,6 +118,7 @@ services:
     environment:
       OPENAI_BASE_URL: http://bonsai:8000/v1
       MODEL_NAME: bonsai-27b
+    mem_limit: 256m
     depends_on:
       - bonsai
 
@@ -119,6 +130,7 @@ services:
     environment:
       OPENAI_BASE_URL: http://bonsai:8000/v1
       MODEL_NAME: bonsai-27b
+    mem_limit: 256m
     depends_on:
       - bonsai
 
@@ -245,16 +257,16 @@ services:
     depends_on:
       - bonsai
 
-  # ============= FULL PROFILE: EXTRA PROTOCOLS =============
+  # ============= OPTIONAL PROTOCOLS =============
   a2a-agent:
-    profiles: ["full"]
+    profiles: ["protocols", "full"]
     build: ./a2a-agent
     container_name: lab-a2a-agent
     ports:
       - "127.0.0.1:4000:4000"
 
   mcp-memory:
-    profiles: ["full"]
+    profiles: ["protocols", "full"]
     image: mcp/memory:latest
     container_name: lab-mcp-memory
     command: ["npx", "-y", "@modelcontextprotocol/server-memory"]
@@ -262,7 +274,7 @@ services:
       - "127.0.0.1:3004:3000"
 
   mcp-filesystem:
-    profiles: ["full"]
+    profiles: ["protocols", "full"]
     image: mcp/filesystem:latest
     container_name: lab-mcp-filesystem
     command: ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/data"]
@@ -272,7 +284,7 @@ services:
       - ./sensitive-data:/data:ro
 
   mcp-fetch:
-    profiles: ["full"]
+    profiles: ["protocols", "full"]
     image: mcp/fetch:latest
     container_name: lab-mcp-fetch
     command: ["npx", "-y", "@modelcontextprotocol/server-fetch"]

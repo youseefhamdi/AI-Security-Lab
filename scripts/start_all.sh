@@ -2,7 +2,7 @@
 set -euo pipefail
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
-LAB_MODE="${LAB_MODE:-lite}"
+LAB_MODE="${LAB_MODE:-core}"
 SEED_DATA="${SEED_DATA:-0}"
 
 log() {
@@ -16,7 +16,8 @@ fail() {
 
 if [[ "${RUNTIME:-0}" != "1" ]]; then
   log "Static/VPS mode: no Docker startup, model pull, seed, or network action will run"
-  log "Local lite mode: RUNTIME=1 ./scripts/start_all.sh"
+  log "Local core mode: RUNTIME=1 ./scripts/start_all.sh"
+  log "Local lite mode: RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh"
   log "Local full mode: RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh"
   exit 0
 fi
@@ -26,14 +27,17 @@ command -v docker >/dev/null 2>&1 || fail "RUNTIME=1 requires docker"
 docker compose -f "$COMPOSE_FILE" config >/dev/null
 
 case "$LAB_MODE" in
+  core)
+    log "Starting minimal core: one Bonsai backend, three apps, and local document retrieval"
+    docker compose -f "$COMPOSE_FILE" up -d bonsai aurora phoenix assistant
+    ;;
   lite)
-    log "Starting lite core: one Bonsai backend, apps, A2A, MCP, and local document retrieval"
-    docker compose -f "$COMPOSE_FILE" up -d \
-      bonsai mcp-server mcp-wrapper a2a-knowledge a2a-router aurora phoenix assistant
+    log "Starting lite core plus optional A2A and MCP protocol services"
+    docker compose -f "$COMPOSE_FILE" --profile protocols up -d
     ;;
   full)
     log "Starting full profile: lite core plus gateway, storage, memory, and SIEM"
-    docker compose -f "$COMPOSE_FILE" --profile full up -d
+    docker compose -f "$COMPOSE_FILE" --profile protocols --profile full up -d
     if [[ "$SEED_DATA" == "1" ]]; then
       log "Seeding full-profile storage and memories"
       RUNTIME=1 python3 ./scripts/seed_storage.py
@@ -46,7 +50,7 @@ case "$LAB_MODE" in
     RUNTIME=1 ./scripts/create_detection_rules.sh
     ;;
   *)
-    fail "LAB_MODE must be lite or full"
+    fail "LAB_MODE must be core, lite, or full"
     ;;
 esac
 

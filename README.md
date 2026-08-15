@@ -41,16 +41,24 @@ Models are intentionally not pulled by this project. The core lab uses the alrea
 
 ## Resource profiles
 
-### Lite mode (recommended)
+### Core mode (default)
 
-The default runtime starts one Bonsai server, the three applications, A2A agents, MCP, and dependency-free local Markdown retrieval.
+The default runtime starts only one Bonsai server, Aurora, Phoenix, and Assistant. Retrieval is dependency-free local Markdown search.
+
+- 4 CPU cores; 6–8 cores recommended
+- 8 GB RAM minimum; 10–12 GB recommended
+- 15 GB free SSD minimum; 25 GB recommended
+- One approximately 4 GB `Bonsai 27B` GGUF file
+
+### Lite mode
+
+Lite mode adds the A2A Router, Knowledge Agent, MCP server, and MCP wrapper.
 
 - 4+ CPU cores; 8 cores recommended
 - 10 GB RAM minimum; 12–16 GB recommended
-- 25 GB free SSD minimum; 40 GB recommended
-- One approximately 4 GB `Bonsai 27B` GGUF file
+- 20 GB free SSD minimum; 30 GB recommended
 
-Bonsai is configured for a 4K context and one concurrent request by default. Increase `BONSAI_CONTEXT_SIZE` only when additional memory is available.
+Bonsai is configured for a 2K context and one concurrent request by default. Increase `BONSAI_CONTEXT_SIZE` only when additional memory is available.
 
 ### Full mode
 
@@ -73,21 +81,24 @@ The optional profile adds Kong, ChromaDB, Milvus, LightRAG, Mem0, MCP extras, El
 Transfer or rsync this repository and model assets to the local machine first. Then, from the project root:
 
 ```bash
-# Start the resource-efficient core.
+# Start the minimal core.
 docker compose up -d
 
 # Or use the guarded orchestrator.
 RUNTIME=1 ./scripts/start_all.sh
 
+# Add A2A/MCP protocol services.
+RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh
+
 # Full stack, only when the machine has sufficient resources.
 RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh
 ```
 
-No model-pull command is included in the Compose architecture. The core path does not start Ollama and does not pull any model; it mounts the local GGUF from `./models/` into llama.cpp. Verify the file with `./scripts/pull_models.sh` before starting.
+No model-pull command is included in the Compose architecture. The core path does not start Ollama, A2A, MCP, or any storage service and does not pull any model; it mounts the local GGUF from `./models/` into llama.cpp. Verify the file with `./scripts/pull_models.sh` before starting.
 
 ### Mem0 upstream caveat
 
-The official `mem0/mem0-api-server` image is the real Mem0 REST server and is authenticated by default. Its current bundled server providers do not include Ollama, even though the upstream Mem0 OSS SDK supports Ollama. `mem0-config/config.yaml` therefore records the SDK-compatible Ollama/Chroma configuration; using that configuration in the REST server requires a local image built from the upstream server with the Ollama provider dependencies enabled. Do not assume the environment variables alone enable Ollama in the stock image.
+The official `mem0/mem0-api-server` image is the real Mem0 REST server and is authenticated by default. Its current bundled server providers do not include Ollama, even though the upstream Mem0 OSS SDK supports Ollama. `mem0-config/config.yaml` therefore records the optional Bonsai/embedding configuration; using it in the REST server requires a locally customized image and an embedding provider. The core and lite modes do not start Mem0.
 
 ## Endpoints
 
