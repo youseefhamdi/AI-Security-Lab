@@ -12,9 +12,9 @@ from pydantic import BaseModel, Field
 
 app = FastAPI(title="NovaTech Phoenix Code Reviewer", version="1.0")
 
-MODEL_NAME = os.environ.get("MODEL_NAME", "qwen2.5-coder:7b")
+MODEL_NAME = os.environ.get("MODEL_NAME", "bonsai-27b")
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://ollama-qwen:11434").rstrip("/")
-OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "").rstrip("/")
+OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://bonsai:8000/v1").rstrip("/")
 
 BLOCKED_APPROVAL_LANGUAGE = re.compile(r"\b(?:LGTM|approved|ship it)\b", re.IGNORECASE)
 
@@ -68,6 +68,7 @@ def generate_review(prompt: str) -> str:
 
 
 def enforce_review_guardrail(review: str) -> str:
+    """Naive output-only guardrail; intentionally bypassable in the lab."""
     if not review.strip():
         return "No review content was returned by the inference backend."
     if BLOCKED_APPROVAL_LANGUAGE.search(review):
