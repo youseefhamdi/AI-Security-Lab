@@ -1,131 +1,266 @@
-# AI Red Team Lab
+<div align="center">
 
-A local, deliberately vulnerable lab for practicing OffSec AI-300 Module 2 reconnaissance, protocol discovery, RAG exposure, agent orchestration, and SIEM analysis.
+# 🛡️ AI SECURITY LAB
 
-## VPS-aware operating model
+### A local, deliberately vulnerable playground for AI red teaming
 
-This repository is **build-only on the VPS**:
+**Recon · Attack · Observe · Detect**
 
-- Do not run `docker compose up` or `docker run` on the VPS.
-- Do not pull models or install OS packages on the VPS.
-- Use static checks only: shell syntax, Python compilation, file existence, and Compose parsing.
-- Run the stack on the local machine after transferring the repository and pre-pulled model assets.
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose%20v2-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![Model](https://img.shields.io/badge/Model-PrismML%20Bonsai%2027B-7C3AED)](https://huggingface.co/prism-ml/bonsai-27b)
+[![Inference](https://img.shields.io/badge/Inference-llama.cpp-111827)](https://github.com/ggml-org/llama.cpp)
+[![Security Lab](https://img.shields.io/badge/Purpose-AI%20Security%20Training-EF4444)](#-security-boundary)
+[![Build Policy](https://img.shields.io/badge/VPS-Build--only-F59E0B)](#-vps-build-only-policy)
 
-Models are intentionally not pulled by this project. The core lab uses the already-downloaded PrismML Bonsai 27B GGUF, approximately 4 GB. Set `BONSAI_MODEL_FILE` if its filename differs from `models/bonsai-27b.gguf`. The Mem0 OSS API server is optional and keeps authentication enabled.
+</div>
 
-## Authoritative upstream projects
+<div align="center">
 
-| Component | Upstream repository |
-| --- | --- |
-| Agent Orchestrator | https://github.com/Untrivial-ai/agent-orchestrator |
-| Mem0 | https://github.com/mem0ai/mem0 |
-| Loop Engineering | https://github.com/cobusgreyling/loop-engineering |
-| Milvus | https://github.com/milvus-io/milvus |
-| LightRAG | https://github.com/HKUDS/LightRAG |
+> **An isolated AI security lab for practicing model fingerprinting, prompt injection, RAG attacks, agent protocol abuse, memory poisoning, supply-chain scenarios, and SIEM detection.**
 
-## Nine-layer architecture
+</div>
+
+---
+
+## ✨ What is this?
+
+**AI Red Team Lab** is a local-first training environment based on OffSec AI-300 Module 2 concepts. It combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, and detection tooling into one reproducible lab.
+
+The project is intentionally unsafe by design. It includes debug leaks, exposed tool schemas, synthetic credentials, prompt-injection weaknesses, unauthenticated protocol exercises, and honeypot data. Run it only on a machine you control and keep all services bound to localhost.
+
+## 🧭 Architecture at a glance
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│ 9. Kibana + Filebeat          SIEM UI and log shipping       │
-│ 8. Elasticsearch              SIEM storage                  │
-│ 7. Red-team fixtures          Honeypots and exercises        │
-│ 6. A2A orchestration          Router and knowledge agent     │
-│ 5. Applications                Aurora, Phoenix, Assistant    │
-│ 4. Protocol servers            MCP, MCP wrapper, A2A         │
-│ 3. Data services               Optional Chroma/Milvus/RAG    │
-│ 2. Inference                   One Bonsai llama.cpp server    │
-│ 1. API gateway                 Kong + PostgreSQL              │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                         AI SECURITY LAB                              │
+├──────────────────────────────────────────────────────────────────────┤
+│  CORE                                                               │
+│  Bonsai 27B / llama.cpp → Aurora · Phoenix · Assistant              │
+│  Local Markdown retrieval                                            │
+├──────────────────────────────────────────────────────────────────────┤
+│  PROTOCOLS                    DATA + MEMORY                          │
+│  A2A Router · Knowledge Agent  ChromaDB · Milvus · LightRAG · Mem0   │
+│  MCP Server · MCP Wrapper      Optional full-profile services        │
+├──────────────────────────────────────────────────────────────────────┤
+│  CONTROL + VISIBILITY                                               │
+│  Kong API Gateway · Elasticsearch · Kibana · Filebeat                │
+│  Agent Orchestrator · Loop Engineering · Understand-Anything        │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
-## Resource profiles
+## 🎯 Training coverage
 
-### Core mode (default)
+| Area | Lab components |
+| --- | --- |
+| Model reconnaissance | Identity, contradiction, cutoff, capability, context, arithmetic probes |
+| Prompt security | Aurora injection, system-prompt extraction, guardrail bypass |
+| RAG security | Document enumeration, chunk probing, similarity-threshold testing |
+| Agent protocols | A2A Agent Cards, trust mapping, MCP schema discovery and invocation |
+| Memory security | Mem0 poisoning, extraction, persistence, cross-user isolation |
+| Codebase intelligence | Understand-Anything graph manipulation and architecture leakage |
+| Detection engineering | Filebeat, Elasticsearch, Kibana, E01–E05 and D02–D03 rules |
+| Orchestration | Task injection, worker impersonation, loop and CI/CD poisoning |
 
-The default runtime starts only one Bonsai server, Aurora, Phoenix, and Assistant. Retrieval is dependency-free local Markdown search.
+## ⚡ Resource profiles
 
-- 4 CPU cores; 6–8 cores recommended
-- 8 GB RAM minimum; 10–12 GB recommended
-- 15 GB free SSD minimum; 25 GB recommended
-- One approximately 4 GB `Bonsai 27B` GGUF file
+### `core` — default and smallest footprint
 
-### Lite mode
+Starts only four containers:
 
-Lite mode adds the A2A Router, Knowledge Agent, MCP server, and MCP wrapper.
+- Bonsai llama.cpp
+- Aurora support chatbot
+- Phoenix code reviewer
+- Assistant OpenAI-compatible API
 
-- 4+ CPU cores; 8 cores recommended
-- 10 GB RAM minimum; 12–16 GB recommended
-- 20 GB free SSD minimum; 30 GB recommended
+Aurora uses dependency-free local Markdown retrieval, so the core does not require ChromaDB, Milvus, LightRAG, Mem0, A2A, MCP, Kong, or ELK.
 
-Bonsai is configured for a 2K context and one concurrent request by default. Increase `BONSAI_CONTEXT_SIZE` only when additional memory is available.
+| Resource | Minimum | Recommended |
+| --- | ---: | ---: |
+| CPU | 4 cores | 6–8 cores |
+| RAM | 8 GB | 10–12 GB |
+| SSD | 15 GB free | 25 GB free |
 
-### Full mode
+### `lite` — core + protocol exercises
 
-The optional profile adds Kong, ChromaDB, Milvus, LightRAG, Mem0, MCP extras, Elasticsearch, Kibana, and Filebeat.
+Adds the A2A Router, Knowledge Agent, MCP server, and MCP wrapper.
+
+| Resource | Minimum | Recommended |
+| --- | ---: | ---: |
+| CPU | 4 cores | 8 cores |
+| RAM | 10 GB | 12–16 GB |
+| SSD | 20 GB free | 30 GB free |
+
+### `full` — complete lab stack
+
+Adds Kong, ChromaDB, Milvus, LightRAG, Mem0, extra MCP servers, Elasticsearch, Kibana, and Filebeat.
 
 - 32 GB RAM minimum
 - 48 GB recommended
 - 100 GB disk minimum
 - 12+ CPU cores recommended
 
-### Software
+> **Bonsai serving defaults:** 2K context, one concurrent request, CPU mode, and a 5 GB container memory limit. Increase `BONSAI_CONTEXT_SIZE` only when the host has additional memory.
 
-- Docker Engine and Docker Compose v2
-- 64-bit Linux or Docker Desktop
-- Internet access for container images and application builds; no model download is performed
-- Pre-downloaded `Bonsai 27B` GGUF under `models/`
+## 🌳 Model setup — no model pulls
 
-## Quick start on the local machine
+The lab uses the already-downloaded **PrismML Bonsai 27B** GGUF, approximately 4 GB:
 
-Transfer or rsync this repository and model assets to the local machine first. Then, from the project root:
+```text
+models/bonsai-27b.gguf
+```
+
+If the downloaded filename differs, set it in a local `.env` file:
+
+```env
+BONSAI_MODEL_FILE=your-actual-bonsai-file.gguf
+```
+
+The project does **not** pull models. Verify the local file without downloading anything:
 
 ```bash
-# Start the minimal core.
+./scripts/pull_models.sh
+```
+
+Bonsai is served once through llama.cpp's OpenAI-compatible API. All three applications and the A2A agents reuse that same backend.
+
+## 🚀 Quick start
+
+> Run these commands on your local machine—not on the build-only VPS.
+
+### Core mode
+
+```bash
 docker compose up -d
+```
 
-# Or use the guarded orchestrator.
+Or use the guarded startup helper:
+
+```bash
 RUNTIME=1 ./scripts/start_all.sh
+```
 
-# Add A2A/MCP protocol services.
+### Lite protocol mode
+
+```bash
 RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh
+```
 
-# Full stack, only when the machine has sufficient resources.
+### Full mode
+
+Use this only on a sufficiently provisioned machine:
+
+```bash
 RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh
 ```
 
-No model-pull command is included in the Compose architecture. The core path does not start Ollama, A2A, MCP, or any storage service and does not pull any model; it mounts the local GGUF from `./models/` into llama.cpp. Verify the file with `./scripts/pull_models.sh` before starting.
+### Inference smoke test
 
-### Mem0 upstream caveat
+```bash
+RUNTIME=1 ./scripts/test_inference.sh
+```
 
-The official `mem0/mem0-api-server` image is the real Mem0 REST server and is authenticated by default. Its current bundled server providers do not include Ollama, even though the upstream Mem0 OSS SDK supports Ollama. `mem0-config/config.yaml` therefore records the optional Bonsai/embedding configuration; using it in the REST server requires a locally customized image and an embedding provider. The core and lite modes do not start Mem0.
+### Stop and clean local services
 
-## Endpoints
+```bash
+RUNTIME=1 ./scripts/stop_all.sh
+RUNTIME=1 CONFIRM_CLEAN=1 ./scripts/clean_all.sh
+```
 
-| Component | Local endpoint |
+## 🔌 Endpoints
+
+### Core services
+
+| Service | Endpoint |
 | --- | --- |
-| Kong proxy | http://127.0.0.1:8000 |
-| Kong Admin API | http://127.0.0.1:8001 |
-| Bonsai llama.cpp | http://127.0.0.1:11435 |
-| Milvus | http://127.0.0.1:19530 |
-| ChromaDB | http://127.0.0.1:8010 |
-| LightRAG | http://127.0.0.1:9621 |
-| Mem0 REST API | http://127.0.0.1:8888 |
-| Redis | http://127.0.0.1:6379 |
-| MCP server | http://127.0.0.1:3000 |
-| MCP wrapper | http://127.0.0.1:3001 |
-| MCP filesystem | http://127.0.0.1:3002 |
-| MCP fetch | http://127.0.0.1:3003 |
-| MCP memory | http://127.0.0.1:3004 |
-| A2A legacy agent | http://127.0.0.1:4000 |
-| A2A router | http://127.0.0.1:5010 |
-| A2A knowledge agent | http://127.0.0.1:5011 |
-| Aurora | http://127.0.0.1:5000 |
-| Phoenix | http://127.0.0.1:5001 |
-| Assistant | http://127.0.0.1:5002 |
-| Elasticsearch | http://127.0.0.1:9200 |
-| Kibana | http://127.0.0.1:5601 |
+| Bonsai llama.cpp | `http://127.0.0.1:11435` |
+| Aurora | `http://127.0.0.1:5000` |
+| Phoenix | `http://127.0.0.1:5001` |
+| Assistant | `http://127.0.0.1:5002` |
 
-## Security notes
+### Protocol services — `lite` / `full`
 
-This is an intentionally vulnerable, localhost-bound training environment. It contains deliberate schema exposure, debug leaks, honeypot data, and unsafe protocol behaviors for authorized lab practice only. Do not expose it to an untrusted network, reuse lab credentials, or commit real secrets/model weights.
+| Service | Endpoint |
+| --- | --- |
+| MCP server | `http://127.0.0.1:3000` |
+| MCP wrapper | `http://127.0.0.1:3001` |
+| A2A Knowledge Agent | `http://127.0.0.1:5011` |
+| A2A Router | `http://127.0.0.1:5010` |
+| Legacy A2A agent | `http://127.0.0.1:4000` |
+| MCP filesystem | `http://127.0.0.1:3002` |
+| MCP fetch | `http://127.0.0.1:3003` |
+| MCP memory | `http://127.0.0.1:3004` |
+
+### Full data, gateway, and SIEM services
+
+| Service | Endpoint |
+| --- | --- |
+| Kong proxy | `http://127.0.0.1:8000` |
+| Kong Admin API | `http://127.0.0.1:8001` |
+| ChromaDB | `http://127.0.0.1:8010` |
+| Mem0 REST API | `http://127.0.0.1:8888` |
+| Elasticsearch | `http://127.0.0.1:9200` |
+| Milvus | `http://127.0.0.1:19530` |
+| LightRAG | `http://127.0.0.1:9621` |
+| Redis | `http://127.0.0.1:6379` |
+| Kibana | `http://127.0.0.1:5601` |
+
+## 🧱 Project map
+
+```text
+apps/                  Aurora, Phoenix, and Assistant
+mcp-server/            Deliberately vulnerable MCP server
+mcp-wrapper/           HTTP wrapper for MCP tools
+a2a-agents/            A2A Router and Knowledge Agent
+rag-docs/              Synthetic NovaTech knowledge corpus
+sensitive-data/        Honeypot credentials and internal fixtures
+exercises/             Recon, attack, evasion, and fingerprint exercises
+scripts/               Startup, seeding, detection, and verification helpers
+docs/                  Security notes and attack-surface guides
+orchestrator-config/   Agent Orchestrator project manifest
+mem0-config/           Optional Mem0 configuration
+models/                Local GGUF files; ignored by Git
+```
+
+## 🔐 VPS build-only policy
+
+The VPS is for building and static verification only:
+
+- Do **not** run `docker compose up` or `docker run`.
+- Do **not** pull models.
+- Do **not** install OS packages.
+- Do **not** contact runtime services.
+- Use `bash -n`, `py_compile`, file checks, and `docker compose config` only.
+- Transfer the repository and model file to the local machine before execution.
+
+## ⚠️ Mem0 and embedding caveat
+
+The official `mem0/mem0-api-server` image is optional and authenticated by default. Its stock REST image does not bundle every provider needed for a fully local Bonsai-plus-embeddings deployment. The core and lite modes do not start Mem0. Full mode requires a locally customized Mem0 image and a compatible embedding provider for LightRAG/Mem0.
+
+## 🔗 Authoritative upstreams
+
+- [Agent Orchestrator](https://github.com/Untrivial-ai/agent-orchestrator)
+- [Mem0](https://github.com/mem0ai/mem0)
+- [Loop Engineering](https://github.com/cobusgreyling/loop-engineering)
+- [Milvus](https://github.com/milvus-io/milvus)
+- [LightRAG](https://github.com/HKUDS/LightRAG)
+- [llama.cpp](https://github.com/ggml-org/llama.cpp)
+
+## 🛡️ Security boundary
+
+This project is for **authorized local training only**. It intentionally contains:
+
+- Vulnerable debug and metadata endpoints
+- Synthetic credentials and honeypot secrets
+- Unauthenticated protocol exercises
+- Prompt-injection and guardrail weaknesses
+- Memory and retrieval attack fixtures
+
+Never expose the lab to the public internet, reuse its credentials, place real secrets in `sensitive-data/`, or commit model weights.
+
+<div align="center">
+
+### Built for controlled AI security research
+
+`Recon → Exploit → Detect → Harden`
+
+</div>
