@@ -169,6 +169,17 @@
     background: var(--panel-2);
   }
   .chip.checked { border-color: var(--ok); color: var(--ok); }
+  .candidate-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .candidate-chip {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: var(--mono);
+    background: var(--panel-2);
+    cursor: pointer;
+  }
+  .candidate-chip.selected { border-color: var(--ok); color: var(--ok); background: #0c2a22; }
   details { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
   details summary { cursor: pointer; color: var(--accent); font-size: 13px; }
 </style>
@@ -512,12 +523,26 @@ async function showHint() {
 function buildEvidenceForm(hint) {
   const box = $("event-box");
   const keys = (hint.required_evidence_keys || []).filter((k) => k !== "event");
-  const rows = keys.map((key) => `
-    <div class="ev-row">
-      <input value="${esc(key)}" readonly />
-      <input data-key="${esc(key)}" placeholder="value" autocomplete="off" spellcheck="false" />
-      <span class="hint">required</span>
-    </div>`).join("");
+  const rows = keys.map((key) => {
+    const info = (hint.candidates || {})[key] || { candidates: [] };
+    if (key === "proof") {
+      const proof = info.correct || "";
+      return `
+        <div class="ev-row">
+          <input value="${esc(key)}" readonly />
+          <input id="proof-value" value="${esc(proof)}" readonly />
+          <span class="hint">chained from previous step</span>
+        </div>`;
+    }
+    const chips = info.candidates.map((candidate) =>
+      `<button type="button" class="candidate-chip" data-key="${esc(key)}" data-value="${esc(candidate)}">${esc(candidate)}</button>`
+    ).join("");
+    return `
+      <div class="ev-row" style="grid-template-columns:160px 1fr">
+        <input value="${esc(key)}" readonly />
+        <div class="candidate-row" data-key="${esc(key)}">${chips}<span class="hint" style="margin-left:6px">select one</span></div>
+      </div>`;
+  }).join("");
   box.innerHTML = `
     <div class="step-box">
       <div class="row"><span class="event">${esc(hint.event)}</span></div>
@@ -526,15 +551,23 @@ function buildEvidenceForm(hint) {
         <button id="submit-event" class="primary">Submit evidence event</button>
       </div>
     </div>`;
+  box.querySelectorAll(".candidate-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const key = chip.dataset.key;
+      box.querySelectorAll(`.candidate-chip[data-key="${CSS.escape(key)}"]`).forEach((c) => c.classList.remove("selected"));
+      chip.classList.add("selected");
+    });
+  });
   $("submit-event").addEventListener("click", () => submitEvent(hint));
 }
 
 async function submitEvent(hint) {
   const evidence = {};
-  document.querySelectorAll("#event-box [data-key]").forEach((input) => {
-    const value = input.value.trim();
-    if (value) evidence[input.dataset.key] = value;
+  document.querySelectorAll("#event-box .candidate-chip.selected").forEach((chip) => {
+    evidence[chip.dataset.key] = chip.dataset.value;
   });
+  const proof = $("proof-value");
+  if (proof && proof.value) evidence.proof = proof.value;
   try {
     const result = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/event`, {
       method: "POST",

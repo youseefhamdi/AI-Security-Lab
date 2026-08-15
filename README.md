@@ -798,8 +798,11 @@ The nine-phase campaign produces synthetic events, expected detection rules, tra
 
 Strict mode now uses a real multi-step range instead of one-request flag discovery:
 
-- 30 scenarios across all 10 stages;
-- two or more required scenarios per stage, with four in the hardest detection-evasion stage;
+- **45 scenarios** across all 10 stages (up to 8 in the supply-chain stage);
+- **per-run evidence**: every run derives its expected values server-side from the flag secret, learner, scenario, step, and a fresh nonce — the repository contains **no literal answers**, and each learner/run sees different values;
+- **candidate pools**: each step exposes the correct value among distractors from a bounded vocabulary; static values from another run are rejected;
+- **chained proofs**: every step after the first requires the chained token issued by the previous accepted step, so skipping or replaying is impossible;
+- **attempt caps**: 20 failed evidence attempts per step force a reset to a fresh run;
 - ordered evidence events with replay and wrong-order rejection;
 - per-learner persistent state bound to the instructor-issued learner token;
 - stage synthesis requiring scenario evidence tokens, exact detection coverage, required controls, a timeline, and a security explanation;
@@ -809,14 +812,14 @@ Strict mode now uses a real multi-step range instead of one-request flag discove
 
 The challenge service serves a browser-based trainer console at `http://127.0.0.1:5060` (no extra dependencies). The console provides:
 
-- a full 30-scenario range map across all 10 stages with per-stage status;
+- a full 45-scenario range map across all 10 stages with per-stage status;
 - progressive objective clues, detection rules, and required controls per scenario;
-- start, next-step hint, bounded evidence form, and reset controls for the current stage;
+- start, next-step hint, candidate-chip evidence picker, and reset controls for the current stage;
 - stage synthesis with required evidence tokens, detection coverage, controls, timeline, and concept checks;
 - one-click hard-flag submission to the Training Gate to unlock the next stage;
 - gate progression status and mission summaries.
 
-The trainer UI reads the same learner token as the API and never reveals hidden matchers: hints expose only the current step's event name and evidence keys, never the expected values or future steps.
+The trainer UI reads the same learner token as the API. Hints expose only the current step's event name, the evidence keys, and a candidate pool containing the correct value among distractors; future steps and other learners' runs are never exposed.
 
 Open the console with the learner's private token:
 
@@ -857,7 +860,7 @@ curl --fail -X POST http://127.0.0.1:5060/api/stages/L02-prompt-injection/synthe
   -d '{"learner_id":"analyst-01","scenario_ids":[],"evidence_tokens":[],"detection_rule_ids":[],"controls":[],"timeline":[],"summary":""}'
 ```
 
-The example intentionally contains placeholders and is expected to be rejected until the learner has real local evidence. Scenario definitions are stored in `training-config/scenarios.json`; the service does not return their hidden matchers.
+The example intentionally contains placeholders and is expected to be rejected until the learner has real local evidence. Scenario definitions are stored in `training-config/scenarios.json` as **evidence value types only**; the service derives the per-run expected values from the flag secret and a fresh run nonce, so reading the repository never reveals an answer.
 
 ## 🧪 Run the training exercises
 
@@ -968,7 +971,7 @@ docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
 loop-config/           Synthetic workflow inputs for Loop Engineering
 mem0-config/           Optional Mem0 configuration
-training-config/       Zodiac Bank curriculum, gate, threat model, and hard scenarios
+training-config/       Zodiac Bank curriculum, gate, threat model, and 45 hard scenarios (evidence types only)
 detection-config/       Synthetic Sigma-like AI/APT detection rules
 scripts/zodiac_scenario_engine.py  Shared scenario validation and evidence primitives
 models/                Local GGUF files; ignored by Git

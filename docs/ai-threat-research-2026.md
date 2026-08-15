@@ -62,6 +62,24 @@ The second research pass added scenario coverage for the attack classes that are
 
 These findings changed the lab from one endpoint per lesson into a multi-step evidence range. Learners must complete two or more scenarios per stage, submit ordered evidence tokens, cover the required detections and controls, and write a synthesis that includes the relevant security concepts.
 
+### 7. Third research pass: agentic supply chain, device-code phishing, and anti-copy difficulty
+
+The third pass targeted the attack classes that are currently most active and the design flaw that made early scenarios trivially copyable:
+
+- **Slopsquatting and AI model confusion:** CSA and Checkmarx research documented AI assistants hallucinating plausible package names that attackers register, and lookalike model cards impersonating approved models on registries. The range adds `slopsquatting`, `model-confusion`, `model-card-tamper`, and `dataset-poisoning` scenarios.
+- **Device-code phishing:** Microsoft and Push Security reported a 37x surge in OAuth device-code phishing pages in 2026, with kits that abuse a legitimate flow to bind a victim session to an attacker device. The range adds `device-code-phishing`, `refresh-token-theft`, and `token-in-logs` scenarios.
+- **Agent pivots as lateral movement:** OWASP's Agentic Top 10 for 2026 and independent research describe agents bridging isolated systems through delegated authority. The range adds an `agent-pivot` scenario and detection coverage.
+- **Operationalized indirect injection:** CSA reported indirect prompt injection moving from proof-of-concept to live exploitation. The range adds an `indirect-injection-in-wild` feed scenario.
+- **Anti-copy mechanics:** early scenario packs shipped literal expected values, so solving was equivalent to reading the repository. The range now derives every expected value per-run from the flag secret and a fresh nonce, exposes candidate pools with distractors, chains step tokens between steps, and caps failed attempts. No literal answer exists in the repository, and a solution from one run cannot be replayed in another.
+
+## Difficulty mechanics
+
+- **Per-run evidence values** — HMAC-derived from the flag secret, learner, scenario, step, key, and run nonce.
+- **Candidate pools** — the correct value is always present among distractors from a bounded vocabulary.
+- **Chained proofs** — every step after the first requires the token issued by the previous accepted step.
+- **Attempt caps** — 20 failed evidence submissions per step; exhaustion resets the run with a fresh nonce.
+- **No literal answers** — `scenarios.json` stores evidence value types only; a static value from the repository is rejected.
+
 ## Threat-to-control matrix
 
 The canonical machine-readable source is:
@@ -164,3 +182,10 @@ Do not record raw credentials, real customer data, model-provider keys, or raw p
 - [OWASP LLM08:2025 Vector and Embedding Weaknesses](https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/)
 - [University of Washington agentic browser research](https://www.washington.edu/news/2026/06/30/some-agentic-ai-browsers-come-with-major-cybersecurity-risks-uw-study-finds/)
 - [Trail of Bits argument injection in AI agents](https://blog.trailofbits.com/2025/10/22/prompt-injection-to-rce-in-ai-agents/)
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+- [CSA slopsquatting research note](https://labs.cloudsecurityalliance.org/research/csa-research-note-slopsquatting-ai-supply-chain-20260419-csa/)
+- [Checkmarx AI model confusion on Hugging Face](https://checkmarx.com/zero-post/hugs-from-strangers-ai-model-confusion-supply-chain-attack/)
+- [Microsoft AI-enabled device code phishing campaign](https://www.microsoft.com/en-us/security/blog/2026/04/06/ai-enabled-device-code-phishing-campaign-april-2026/)
+- [Push Security device code phishing surge](https://pushsecurity.com/blog/device-code-phishing)
+- [CSA indirect prompt injection goes operational](https://labs.cloudsecurityalliance.org/research/csa-research-note-indirect-prompt-injection-in-the-wild-2026/)
+- [AI agents as attack pivots: lateral movement](https://christian-schneider.net/blog/ai-agent-lateral-movement-attack-pivots/)

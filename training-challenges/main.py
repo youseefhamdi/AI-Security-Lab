@@ -14,6 +14,7 @@ import hmac
 import json
 import os
 import re
+import secrets
 import sqlite3
 import sys
 from datetime import datetime, timezone
@@ -28,12 +29,17 @@ if SCRIPT_DIR.is_dir() and str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from zodiac_scenario_engine import (  # noqa: E402
+    MAX_ATTEMPTS_PER_STEP,
+    PROOF_KEY,
+    candidates_for_step,
     contains_concepts,
     event_matches,
     evidence_token,
+    expected_for_step,
     requirement_for,
     scenario_map,
     step_for,
+    step_token,
     validate_scenarios,
 )
 
@@ -205,6 +211,8 @@ def challenge_db() -> sqlite3.Connection:
             evidence_json TEXT NOT NULL DEFAULT '[]',
             status TEXT NOT NULL DEFAULT 'active',
             completion_token TEXT,
+            nonce TEXT NOT NULL DEFAULT '',
+            attempts INTEGER NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             PRIMARY KEY(learner_id, scenario_id)
@@ -220,6 +228,12 @@ def challenge_db() -> sqlite3.Connection:
         );
         """
     )
+    # Migrate older runs to the v2 per-run nonce and attempts counter.
+    columns = {row[1] for row in db.execute("PRAGMA table_info(scenario_runs)").fetchall()}
+    if "nonce" not in columns:
+        db.execute("ALTER TABLE scenario_runs ADD COLUMN nonce TEXT NOT NULL DEFAULT ''")
+    if "attempts" not in columns:
+        db.execute("ALTER TABLE scenario_runs ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0")
     db.commit()
     return db
 
@@ -238,6 +252,8 @@ def scenario_view(scenario: dict[str, Any], run: sqlite3.Row | None = None) -> d
         "required_controls": scenario["required_controls"],
         "status": run["status"] if run else "not-started",
         "progress": f"{run['step_index']}/{len(scenario['steps'])}" if run else f"0/{len(scenario['steps'])}",
+        "attempts": int(run["attempts"]) if run else 0,
+        "max_attempts": MAX_ATTEMPTS_PER_STEP,
     }
 
 
@@ -312,14 +328,19 @@ def scenario_hint(scenario_id: str, learner_id: str = "", x_training_learner_tok
         run = db.execute("SELECT * FROM scenario_runs WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id)).fetchone()
         if run is None or run["status"] == "complete":
             return {"scenario_id": scenario_id, "status": run["status"] if run else "not-started", "progress": f"{run['step_index'] if run else 0}/{len(scenario['steps'])}"}
-        step = step_for(scenario, int(run["step_index"]))
+        step_index = int(run["step_index"])
+        step = step_for(scenario, step_index)
+        nonce = str(run["nonce"])
+        candidates = candidates_for_step(FLAG_SECRET, learner_id, scenario_id, step, nonce, step_index)
         return {
             "scenario_id": scenario_id,
             "status": "active",
-            "progress": f"{int(run['step_index']) + 1}/{len(scenario['steps'])}",
+            "progress": f"{step_index + 1}/{len(scenario['steps'])}",
             "event": step.get("event"),
             "observation": step.get("observation"),
-            "required_evidence_keys": sorted(step.get("match", {}).keys()),
+            "required_evidence_keys": sorted(step.get("evidence", {}).keys()),
+            "candidates": candidates,
+            "chain_required": PROOF_KEY in step.get("evidence", {}),
         }
     finally:
         db.close()
@@ -393,13 +414,21 @@ def start_scenario(scenario_id: str, body: dict[str, Any], x_training_learner_to
         if existing is None and active_runs >= MAX_ACTIVE_SCENARIOS:
             raise HTTPException(status_code=409, detail="maximum active scenarios reached; complete or reset an active scenario")
         now = utc_now()
+        nonce = secrets.token_hex(16)
         db.execute(
-            "INSERT OR IGNORE INTO scenario_runs(learner_id, scenario_id, stage_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
-            (learner_id, scenario_id, scenario["stage_id"], now, now),
+            "INSERT OR IGNORE INTO scenario_runs(learner_id, scenario_id, stage_id, nonce, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (learner_id, scenario_id, scenario["stage_id"], nonce, now, now),
         )
         db.commit()
         run = db.execute("SELECT * FROM scenario_runs WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id)).fetchone()
-        return {"learner_id": learner_id, "scenario": scenario_view(scenario, run), "message": "Scenario started; discover the next observation from the local training surface."}
+        if str(run["nonce"]) == "":
+            db.execute(
+                "UPDATE scenario_runs SET nonce=?, updated_at=? WHERE learner_id=? AND scenario_id=?",
+                (nonce, now, learner_id, scenario_id),
+            )
+            db.commit()
+        run = db.execute("SELECT * FROM scenario_runs WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id)).fetchone()
+        return {"learner_id": learner_id, "scenario": scenario_view(scenario, run), "message": "Scenario started; a per-run evidence set was issued for this learner."}
     finally:
         db.close()
 
@@ -417,7 +446,7 @@ def reset_scenario(scenario_id: str, body: dict[str, Any], x_training_learner_to
         deleted = db.execute("DELETE FROM scenario_runs WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id)).rowcount
         db.execute("DELETE FROM scenario_events WHERE learner_id=? AND scenario_id=?", (learner_id, scenario_id))
         db.commit()
-        return {"reset": True, "scenario_id": scenario_id, "learner_id": learner_id, "rows_deleted": deleted, "message": "Scenario run reset; start again from the first evidence step."}
+        return {"reset": True, "scenario_id": scenario_id, "learner_id": learner_id, "rows_deleted": deleted, "message": "Scenario run reset; start again for a fresh per-run evidence set."}
     finally:
         db.close()
 
@@ -443,22 +472,33 @@ def scenario_event(scenario_id: str, body: dict[str, Any], x_training_learner_to
             raise HTTPException(status_code=409, detail="start the scenario first")
         if run["status"] == "complete":
             raise HTTPException(status_code=409, detail="scenario already complete")
-        step = step_for(scenario, int(run["step_index"]))
-        if not event_matches(step, event, evidence):
-            db.rollback()
-            raise HTTPException(status_code=409, detail="event rejected: wrong order or insufficient bounded evidence")
+        step_index = int(run["step_index"])
+        step = step_for(scenario, step_index)
+        attempts = int(run["attempts"])
+        if attempts >= MAX_ATTEMPTS_PER_STEP:
+            raise HTTPException(status_code=429, detail="attempt limit reached; reset the scenario to start a new run")
+        nonce = str(run["nonce"])
+        expected = expected_for_step(FLAG_SECRET, learner_id, scenario_id, step, nonce, step_index)
+        if not event_matches(step, event, evidence, expected):
+            db.execute(
+                "UPDATE scenario_runs SET attempts=?, updated_at=? WHERE learner_id=? AND scenario_id=?",
+                (attempts + 1, utc_now(), learner_id, scenario_id),
+            )
+            db.commit()
+            raise HTTPException(status_code=409, detail="event rejected: evidence does not match the current run")
         evidence_list = json.loads(run["evidence_json"])
         evidence_list.append({"event": event, "evidence": evidence})
-        next_index = int(run["step_index"]) + 1
+        next_index = step_index + 1
         complete = next_index == len(scenario["steps"])
         token = evidence_token(FLAG_SECRET, learner_id, scenario_id, evidence_list) if complete else None
+        chain_token = step_token(FLAG_SECRET, learner_id, scenario_id, nonce, step_index) if not complete else None
         now = utc_now()
         db.execute(
             "INSERT INTO scenario_events(learner_id, scenario_id, step_index, event, evidence_digest, recorded_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (learner_id, scenario_id, int(run["step_index"]), event, hashlib.sha256(json.dumps(evidence, sort_keys=True).encode()).hexdigest(), now),
+            (learner_id, scenario_id, step_index, event, hashlib.sha256(json.dumps(evidence, sort_keys=True).encode()).hexdigest(), now),
         )
         db.execute(
-            "UPDATE scenario_runs SET step_index=?, evidence_json=?, status=?, completion_token=?, updated_at=? WHERE learner_id=? AND scenario_id=?",
+            "UPDATE scenario_runs SET step_index=?, evidence_json=?, status=?, completion_token=?, attempts=0, updated_at=? WHERE learner_id=? AND scenario_id=?",
             (next_index, json.dumps(evidence_list, sort_keys=True), "complete" if complete else "active", token, now, learner_id, scenario_id),
         )
         db.commit()
@@ -466,7 +506,7 @@ def scenario_event(scenario_id: str, body: dict[str, Any], x_training_learner_to
         if complete:
             result.update({"status": "complete", "evidence_token": token, "message": "Scenario evidence complete; use the token in stage synthesis."})
         else:
-            result.update({"status": "active", "message": "Observation accepted; continue from the local evidence surface."})
+            result.update({"status": "active", "step_token": chain_token, "message": "Observation accepted; chain this step token into the next evidence step."})
         return result
     finally:
         db.close()

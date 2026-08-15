@@ -113,14 +113,18 @@ def check_hard_scenario_range() -> dict[str, Any]:
     challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
     dockerfile = (ROOT / "training-challenges" / "Dockerfile").read_text(encoding="utf-8")
     trainer_ui = (ROOT / "training-challenges" / "index.html").read_text(encoding="utf-8")
+    scenario_pack = SCENARIO_PATH.read_text(encoding="utf-8")
     assert "scenario_event" in challenge and "synthesize_stage" in challenge
     assert "scenario_runs" in challenge and "BEGIN IMMEDIATE" in challenge
     assert "validate_evidence" in challenge and "MAX_ACTIVE_SCENARIOS" in challenge
+    assert "expected_for_step" in challenge and "candidates_for_step" in challenge and "secrets.token_hex" in challenge
     assert "trainer_range" in challenge and "scenario_hint" in challenge and "reset_scenario" in challenge
     assert "trainer_index" in challenge and "index.html" in challenge
     assert "X-Training-Learner-Token" in challenge
     assert "zodiac_scenario_engine.py" in dockerfile and "index.html" in dockerfile
-    assert "synthesize" in trainer_ui and "api/range" in trainer_ui and "evidence_token" in trainer_ui
+    assert "synthesize" in trainer_ui and "api/range" in trainer_ui and "evidence_token" in trainer_ui and "candidate-chip" in trainer_ui
+    assert '"evidence"' in scenario_pack and '"match"' not in scenario_pack
+    assert '"proof"' in scenario_pack
     return result
 
 

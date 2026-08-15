@@ -64,19 +64,29 @@ Use [`docs/ai-threat-research-2026.md`](ai-threat-research-2026.md) for the rese
 
 ## Hard scenario range
 
-The strict challenge surface is defined by `training-config/scenarios.json`. It contains 30 scenarios across the 10 stages, including:
+The strict challenge surface is defined by `training-config/scenarios.json`. It contains **45 scenarios** across the 10 stages, including:
 
-- web-based indirect injection and browser-origin confusion;
+- web-based indirect injection, operationalized indirect-injection feeds, and browser-origin confusion;
 - multimodal, split, hidden, and obfuscated prompt content;
-- vector tenant confusion, embedding inversion canaries, and federation conflict;
-- MCP tool poisoning, tool shadowing, rug pulls, and argument confusion;
+- vector tenant confusion, embedding inversion canaries, federation conflict, and context-window exfiltration;
+- MCP tool poisoning, tool shadowing, rug pulls, argument confusion, and agent-pivot lateral movement;
 - persistent memory poisoning, feedback-summary poisoning, summary provenance, and tenant isolation;
-- non-human identity, OAuth scope mismatch, synthetic deepfake claims, token replay, and approval binding;
-- CI artifact paths, dependency confusion, model/dependency drift, and workflow metadata injection;
-- detector normalization gaps, unbounded fan-out, model-abuse budgets, egress policy, and privacy-safe canaries;
-- campaign correlation, containment/recovery, transfer evaluation, and residual risk.
+- non-human identity, OAuth scope mismatch, device-code phishing, token-in-logs, refresh-token theft, synthetic deepfake claims, and approval binding;
+- CI artifact paths, dependency confusion, slopsquatting, model confusion, model-card tampering, dataset poisoning, model/dependency drift, and workflow metadata injection;
+- detector normalization gaps, LLM-assisted evasion, low-and-slow beaconing, unbounded fan-out, model-abuse budgets, egress policy, and privacy-safe canaries;
+- campaign correlation, containment/recovery, transfer evaluation, residual risk, and detection-debt lessons learned.
 
-Every scenario has 2-3 ordered evidence steps. Wrong order, replay, unknown events, and incomplete evidence are rejected. Completing scenarios is not enough: stage synthesis must include the exact required scenario set, evidence tokens, detection-rule coverage, controls, timeline entries, and a security explanation. In strict mode, the legacy one-request routes never issue hard flags.
+### Evidence is per-run and never shipped in the repository
+
+Every scenario step declares **evidence value types** (for example `http-method`, `scope-route`, `entity-id`, `decision`) instead of literal answers. When a learner starts a scenario, the service:
+
+1. issues a fresh per-run nonce;
+2. derives each step's expected values with an HMAC over the flag secret, learner ID, scenario ID, step, key, and nonce;
+3. exposes the correct value among distractors from a bounded vocabulary in the step hint;
+4. issues a chained step token after each accepted step, which the next step requires as `proof`;
+5. counts failed attempts (20 per step) and forces a reset to a fresh run when exhausted.
+
+Reading `training-config/scenarios.json` or another learner's solution therefore never yields a usable answer: values differ per learner, per run, and per step, and later steps cannot be reached without the chained token from the previous step. Wrong order, replay, unknown events, and incomplete evidence are rejected. Completing scenarios is not enough: stage synthesis must include the exact required scenario set, evidence tokens, detection-rule coverage, controls, timeline entries, and a security explanation. In strict mode, the legacy one-request routes never issue hard flags.
 
 List the current stage's scenarios after enrollment:
 
@@ -94,11 +104,11 @@ curl --fail -X POST http://127.0.0.1:5060/api/scenarios/scope-integrity/start \
   -d '{"learner_id":"analyst-01"}'
 ```
 
-The API deliberately does not expose hidden matchers. Learners must discover observations from local challenge surfaces, then submit the resulting event and bounded evidence in order. A completed scenario returns an opaque evidence token. Stage synthesis is the only strict-mode path that returns that stage's flag after all controls and reasoning requirements pass.
+The API deliberately does not expose step matchers or future steps. The step hint returns the current event name, the required evidence keys, and a candidate pool containing the correct per-run value among distractors. A completed scenario returns an opaque evidence token. Stage synthesis is the only strict-mode path that returns that stage's flag after all controls and reasoning requirements pass.
 
 ### Browser trainer console
 
-The challenge service also serves a trainer console at `http://127.0.0.1:5060`. It renders the full 30-scenario range map, per-stage status, progressive clues, next-step hints (event name and evidence keys only), a bounded evidence form, stage synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
+The challenge service also serves a trainer console at `http://127.0.0.1:5060`. It renders the full 45-scenario range map, per-stage status, progressive clues, next-step hints with candidate-chip evidence picking, chained-proof handling, stage synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
 
 ## API examples
 

@@ -1,4 +1,12 @@
-"""Dependency-free scenario primitives shared by the challenge service and evaluator."""
+"""Dependency-free scenario primitives shared by the challenge service and evaluator.
+
+Schema v2: steps declare *evidence value types* (e.g. ``http-method``) instead of
+literal expected values. The service derives the per-run expected values with an
+HMAC bound to the flag secret, learner ID, scenario ID, step ID, and the run
+nonce. The repository therefore never contains a literal answer, and every
+learner/run sees a different value set. Steps after the first additionally
+require a chained ``proof`` value produced by the previous accepted step.
+"""
 
 from __future__ import annotations
 
@@ -8,14 +16,46 @@ import json
 import re
 from typing import Any
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 SAFE_EVENT_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]{2,63}$")
+MAX_ATTEMPTS_PER_STEP = 20
+PROOF_KEY = "proof"
+
+# Bounded value vocabularies. The engine selects a per-run value from one of
+# these lists using the HMAC digest; the observation text guides the learner.
+VOCABULARY: dict[str, list[str]] = {
+    "http-method": ["GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"],
+    "scope-route": ["/public/scope", "/api/models", "/api/support/chat", "/api/rag/query", "/api/agent/dispatch", "/api/memory/search"],
+    "admin-route": ["/api/admin/approval", "/api/admin/cohorts", "/api/admin/cohorts/report", "/api/admin/cohorts/reset"],
+    "ci-route": ["/api/ci/artifacts", "/api/logs/search", "/api/campaign/execute", "/api/scenarios", "/api/stages"],
+    "header-name": ["X-Zodiac-Bank-Training-Flag", "X-Zodiac-Bank-Scope", "X-Zodiac-Bank-Provider", "X-Graph-Context-Key", "X-Training-Learner-Token", "X-Forwarded-User"],
+    "entity-id": ["ZB-CUS-001", "ZB-CUS-002", "ZB-CUS-004", "ZB-CASE-002", "ZB-CASE-006", "ZB-EMP-001"],
+    "case-id": ["ZB-CASE-002", "ZB-CASE-003", "ZB-CASE-006", "ZB-CASE-009"],
+    "worker-id": ["risk-engine", "support-router", "fraud-analyst", "approval-worker", "credit-officer"],
+    "trust-class": ["synthetic-training-only", "retrieved-untrusted-data", "evidence-not-authority", "unverified", "quarantined", "denied"],
+    "loopback-addr": ["127.0.0.1", "127.0.0.2", "127.0.0.3", "localhost"],
+    "mode": ["normal", "stealth", "verbose", "bounded", "diagnostic"],
+    "boolean": ["true", "false"],
+    "result": ["permitted", "denied", "suspicious", "blocked", "deferred", "withheld"],
+    "decision": ["deny-and-quarantine", "stop-and-reapprove", "deny-and-alert", "hold", "allow-data-only", "stop-and-review"],
+    "control": ["approval-required", "output-validation", "tenant-filter", "provenance", "rollback", "manifest-pinning", "audience-binding", "least-privilege", "canonicalization", "circuit-breaker"],
+    "detection-rule": ["ZB-AI-001", "ZB-AI-002", "ZB-AI-003", "ZB-AI-004", "ZB-AI-005", "ZB-AI-006", "ZB-AI-007", "ZB-AI-008", "ZB-AI-009", "ZB-AI-010"],
+    "tool-name": ["add_numbers", "send_notification", "search_documents", "read_file", "execute_sql", "list_directory"],
+    "package-name": ["zodiac-risk-parser", "fastparserx", "dataframe-utils", "auth-helper", "zodiac-notify"],
+    "publisher": ["synthetic-registry", "synthetic-mirror", "untrusted-mirror", "approved-registry"],
+    "digest-state": ["pinned", "changed", "mismatch", "approved", "unapproved"],
+    "occlusion": ["visible", "hidden", "parsed-only", "split", "obfuscated"],
+    "side-effect": ["none", "denied", "disabled", "blocked"],
+    "marker": ["baseline", "anomaly", "canary", "benign", "declared", "over-limit"],
+    "chained-proof": ["chained-proof"],
+}
+
 
 
 def validate_scenarios(document: dict[str, Any], curriculum: dict[str, Any]) -> dict[str, Any]:
     errors: list[str] = []
     if document.get("schema_version") != SCHEMA_VERSION:
-        errors.append("unsupported scenario schema")
+        errors.append(f"unsupported scenario schema: expected v{SCHEMA_VERSION}")
     if document.get("scope", {}).get("classification") != "synthetic-training-only":
         errors.append("scenario pack must be synthetic-training-only")
     if document.get("scope", {}).get("side_effects") is not False:
@@ -39,14 +79,23 @@ def validate_scenarios(document: dict[str, Any], curriculum: dict[str, Any]) -> 
         if len(steps) < 2 or len(steps) > 8:
             errors.append(f"scenario {scenario_id} must contain 2-8 bounded steps")
         step_ids: set[str] = set()
-        for step in steps:
+        for index, step in enumerate(steps):
             step_id = str(step.get("id", ""))
             event = str(step.get("event", ""))
             if not step_id or step_id in step_ids or not SAFE_EVENT_PATTERN.fullmatch(event):
                 errors.append(f"scenario {scenario_id} has invalid step/event")
             step_ids.add(step_id)
-            if not isinstance(step.get("match"), dict) or not step["match"]:
-                errors.append(f"scenario {scenario_id} step {step_id} lacks bounded evidence matcher")
+            evidence = step.get("evidence")
+            if not isinstance(evidence, dict) or not evidence:
+                errors.append(f"scenario {scenario_id} step {step_id} lacks evidence type mapping")
+            else:
+                for key, value_type in evidence.items():
+                    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", str(key)):
+                        errors.append(f"scenario {scenario_id} step {step_id} has an invalid evidence key")
+                    if value_type not in VOCABULARY:
+                        errors.append(f"scenario {scenario_id} step {step_id} uses unknown evidence type {value_type!r}")
+                if index > 0 and PROOF_KEY not in evidence:
+                    errors.append(f"scenario {scenario_id} step {step_id} must chain the previous step via '{PROOF_KEY}'")
             if not step.get("observation"):
                 errors.append(f"scenario {scenario_id} step {step_id} lacks an observation")
         if len(step_ids) != len(steps):
@@ -93,10 +142,84 @@ def step_for(scenario: dict[str, Any], index: int) -> dict[str, Any]:
     return steps[index]
 
 
-def event_matches(step: dict[str, Any], event: str, evidence: dict[str, Any]) -> bool:
+def _digest(secret: bytes, *parts: str) -> bytes:
+    return hmac.new(secret, ":".join(parts).encode("utf-8"), hashlib.sha256).digest()
+
+
+def _pick(vocabulary: list[str], digest: bytes) -> str:
+    index = int.from_bytes(digest[:4], "big") % len(vocabulary)
+    return vocabulary[index]
+
+
+def expected_for_step(
+    secret: bytes,
+    learner_id: str,
+    scenario_id: str,
+    step: dict[str, Any],
+    nonce: str,
+    step_index: int,
+) -> dict[str, Any]:
+    """Derive the per-run expected evidence values for a step.
+
+    Step 2+ additionally expects ``proof``: the chained token issued when the
+    previous step was accepted. The token is recomputed from the same HMAC so
+    it cannot be forged without the secret.
+    """
+    expected: dict[str, Any] = {}
+    step_id = str(step.get("id", ""))
+    for key, value_type in step.get("evidence", {}).items():
+        if key == PROOF_KEY:
+            continue
+        vocabulary = VOCABULARY[value_type]
+        expected[key] = _pick(vocabulary, _digest(secret, learner_id, scenario_id, step_id, nonce, key))
+    if PROOF_KEY in step.get("evidence", {}):
+        expected[PROOF_KEY] = step_token(secret, learner_id, scenario_id, nonce, step_index - 1)
+    return expected
+
+
+def step_token(secret: bytes, learner_id: str, scenario_id: str, nonce: str, step_index: int) -> str:
+    digest = _digest(secret, learner_id, scenario_id, nonce, "step-token", str(step_index))
+    return f"ZB-STEP-{digest[:20].hex().upper()}"
+
+
+def candidates_for_step(
+    secret: bytes,
+    learner_id: str,
+    scenario_id: str,
+    step: dict[str, Any],
+    nonce: str,
+    step_index: int,
+) -> dict[str, dict[str, Any]]:
+    """Candidate pools per evidence key: the correct value plus distractors.
+
+    The correct value is always included; distractors are drawn deterministically
+    from the same vocabulary so the pool is stable within a run.
+    """
+    expected = expected_for_step(secret, learner_id, scenario_id, step, nonce, step_index)
+    candidates: dict[str, dict[str, Any]] = {}
+    step_id = str(step.get("id", ""))
+    for key, value_type in step.get("evidence", {}).items():
+        if key == PROOF_KEY:
+            continue
+        vocabulary = VOCABULARY[value_type]
+        correct = expected[key]
+        pool = [correct]
+        offset = int.from_bytes(_digest(secret, learner_id, scenario_id, step_id, nonce, key, "distract"), "big")
+        for i in range(1, len(vocabulary)):
+            candidate = vocabulary[(offset + i) % len(vocabulary)]
+            if candidate not in pool:
+                pool.append(candidate)
+            if len(pool) >= min(5, len(vocabulary)):
+                break
+        candidates[key] = {"correct": correct, "candidates": pool}
+    if PROOF_KEY in step.get("evidence", {}):
+        candidates[PROOF_KEY] = {"correct": expected[PROOF_KEY], "candidates": [expected[PROOF_KEY]]}
+    return candidates
+
+
+def event_matches(step: dict[str, Any], event: str, evidence: dict[str, Any], expected: dict[str, Any]) -> bool:
     if event != step.get("event"):
         return False
-    expected = step.get("match", {})
     return set(evidence) == set(expected) and all(evidence.get(key) == value for key, value in expected.items())
 
 
