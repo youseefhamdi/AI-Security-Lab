@@ -3,7 +3,7 @@ set -euo pipefail
 
 PROJECT_PATH="${AO_PROJECT_PATH:-${HOME}/ai-redteam-lab}"
 PROJECT_ID="${AO_PROJECT_ID:-ai-redteam-lab}"
-INSTALL_DOCS_URL="${AO_INSTALL_DOCS_URL:-https://aoagents.dev/docs/installation/}"
+INSTALL_DOCS_URL="${AO_INSTALL_DOCS_URL:-https://github.com/Untrivial-ai/agent-orchestrator}"
 
 log() {
   printf '[ao-setup] %s\n' "$*"

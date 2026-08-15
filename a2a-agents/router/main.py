@@ -19,8 +19,8 @@ app = FastAPI(title="NovaTech Support Router", version="1.0")
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://ollama-llama:11434").rstrip("/")
 MODEL_NAME = os.environ.get("MODEL_NAME", "llama3.2:1b")
-KNOWLEDGE_AGENT = os.environ.get("A2A_KNOWLEDGE_AGENT", "http://127.0.0.1:5011").rstrip("/")
-PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:4100")
+KNOWLEDGE_AGENT = os.environ.get("KNOWLEDGE_AGENT_URL", os.environ.get("A2A_KNOWLEDGE_AGENT", "http://127.0.0.1:5000")).rstrip("/")
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:5010")
 
 AGENT_CARD = AgentCard(
     name="NovaTech Support Router",
@@ -161,4 +161,4 @@ async def health() -> dict[str, Any]:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "5010")))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))

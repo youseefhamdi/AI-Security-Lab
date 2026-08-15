@@ -11,7 +11,17 @@ This repository is **build-only on the VPS**:
 - Use static checks only: shell syntax, Python compilation, file existence, and Compose parsing.
 - Run the stack on the local machine after transferring the repository and pre-pulled model assets.
 
-Models are intentionally not pulled by this project. Provide the existing local Ollama model volume and/or `models/bonsai-27b.gguf` separately.
+Models are intentionally not pulled by this project. Provide the existing local Ollama model volume and/or `models/bonsai-27b.gguf` separately. The Mem0 OSS API server keeps authentication enabled and uses the lab-only `MEM0_ADMIN_API_KEY` fallback unless you provide a stronger local secret.
+
+## Authoritative upstream projects
+
+| Component | Upstream repository |
+| --- | --- |
+| Agent Orchestrator | https://github.com/Untrivial-ai/agent-orchestrator |
+| Mem0 | https://github.com/mem0ai/mem0 |
+| Loop Engineering | https://github.com/cobusgreyling/loop-engineering |
+| Milvus | https://github.com/milvus-io/milvus |
+| LightRAG | https://github.com/HKUDS/LightRAG |
 
 ## Nine-layer architecture
 
@@ -48,6 +58,10 @@ docker compose up -d
 
 No model-pull command is included in the Compose architecture. Use the model already installed on the local device.
 
+### Mem0 upstream caveat
+
+The official `mem0/mem0-api-server` image is the real Mem0 REST server and is authenticated by default. Its current bundled server providers do not include Ollama, even though the upstream Mem0 OSS SDK supports Ollama. `mem0-config/config.yaml` therefore records the SDK-compatible Ollama/Chroma configuration; using that configuration in the REST server requires a local image built from the upstream server with the Ollama provider dependencies enabled. Do not assume the environment variables alone enable Ollama in the stock image.
+
 ## Endpoints
 
 | Component | Local endpoint |
@@ -56,13 +70,19 @@ No model-pull command is included in the Compose architecture. Use the model alr
 | Kong Admin API | http://127.0.0.1:8001 |
 | Ollama | http://127.0.0.1:11434 |
 | Bonsai llama.cpp | http://127.0.0.1:11435 |
+| Milvus | http://127.0.0.1:19530 |
 | ChromaDB | http://127.0.0.1:8010 |
+| LightRAG | http://127.0.0.1:9621 |
+| Mem0 REST API | http://127.0.0.1:8888 |
 | Redis | http://127.0.0.1:6379 |
 | MCP server | http://127.0.0.1:3000 |
 | MCP wrapper | http://127.0.0.1:3001 |
-| A2A agent | http://127.0.0.1:4000 |
-| A2A router | http://127.0.0.1:4100 |
-| A2A knowledge agent | http://127.0.0.1:4101 |
+| MCP filesystem | http://127.0.0.1:3002 |
+| MCP fetch | http://127.0.0.1:3003 |
+| MCP memory | http://127.0.0.1:3004 |
+| A2A legacy agent | http://127.0.0.1:4000 |
+| A2A router | http://127.0.0.1:5010 |
+| A2A knowledge agent | http://127.0.0.1:5011 |
 | Aurora | http://127.0.0.1:5000 |
 | Phoenix | http://127.0.0.1:5001 |
 | Assistant | http://127.0.0.1:5002 |

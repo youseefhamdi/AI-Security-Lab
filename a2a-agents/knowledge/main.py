@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI(title="NovaTech Knowledge Agent", version="1.0")
 LIGHTRAG_URL = os.environ.get("LIGHTRAG_URL", "http://lightrag:9621").rstrip("/")
-PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:4101")
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:5011")
 
 AGENT_CARD = AgentCard(
     name="NovaTech Knowledge Agent",
@@ -97,4 +97,4 @@ async def health() -> dict[str, Any]:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "5011")))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))

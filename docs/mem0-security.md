@@ -1,5 +1,9 @@
 # Mem0 Security Attack Surfaces
 
+Authoritative upstream: https://github.com/mem0ai/mem0
+
+The real self-hosted Mem0 REST server uses authenticated `/memories` and `/search` endpoints without a `/v1/` prefix. Programmatic clients use `X-API-Key`; the lab exercises must use synthetic data and remain localhost-bound.
+
 This document defines authorized lab exercises for testing memory isolation and trust boundaries. The lab data and attack payloads are synthetic.
 
 ## Memory injection via untrusted input
@@ -20,9 +24,9 @@ A prompt can instruct an agent to reveal all stored memories, identifiers, hidde
 
 ## Session hijacking via memory manipulation
 
-If `session_id` is accepted from an untrusted client or can be guessed, an attacker may append to or retrieve another session's memories. Session identifiers must not be the sole authorization boundary.
+If `run_id` is accepted from an untrusted client or can be guessed, an attacker may append to or retrieve another run's memories. Run identifiers must not be the sole authorization boundary.
 
-**Test:** inject under one session and query under a second session while keeping the same user, then repeat with a different user. The second user must receive no data from the first.
+**Test:** inject under one `run_id` and query under a second `run_id` while keeping the same user, then repeat with a different user. The second user must receive no data from the first.
 
 **Controls:** bind session records to an authenticated principal, use high-entropy server-issued identifiers, verify ownership on every read/write/delete, and expire session-scoped memory.
 
@@ -39,7 +43,7 @@ Incorrect filters, shared namespaces, broad agent privileges, or vector-search-o
 The lab distinguishes:
 
 - `user_id`: durable user facts and preferences.
-- `session_id`: short-lived conversation state.
+- `run_id`: short-lived conversation state for one execution/session.
 - `agent_id`: facts owned or observed by a particular agent.
 
 Every retrieval should state which levels are allowed. A request for session context must not implicitly return all user or agent memory.

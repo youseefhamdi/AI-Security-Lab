@@ -3,6 +3,7 @@ set -euo pipefail
 
 CHROMA_API_URL="${CHROMA_API_URL:-http://127.0.0.1:8010/api/v1}"
 CHROMA_COLLECTION_ID="${CHROMA_COLLECTION_ID:-}"
+# Official project: https://github.com/milvus-io/milvus
 MILVUS_URL="${MILVUS_URL:-http://127.0.0.1:19530}"
 MILVUS_COLLECTION="${MILVUS_COLLECTION:-novatech_vectors}"
 LIGHTRAG_URL="${LIGHTRAG_URL:-http://127.0.0.1:9621}"

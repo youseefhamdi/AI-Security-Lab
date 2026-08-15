@@ -1,5 +1,9 @@
 # Loop Engineering Patterns
 
+Authoritative upstream: https://github.com/cobusgreyling/loop-engineering
+
+The upstream project provides the unified CLI front door, including `npx @cobusgreyling/loop init`, `doctor`, `audit`, and `cost`. This lab documents the patterns and keeps runtime automation disabled on the VPS.
+
 Loop Engineering runs recurring agent workflows with bounded inputs, explicit state, and review checkpoints. The following patterns are intentionally documented with their failure modes for the lab.
 
 ## Daily Triage loop

@@ -33,6 +33,7 @@ INDEX_TIMEOUT = int(os.environ.get("LIGHTRAG_INDEX_TIMEOUT", "300"))
 CHROMA_API = os.environ.get("CHROMA_API_URL", "http://localhost:8010/api/v1").rstrip("/")
 MILVUS_URI = os.environ.get("MILVUS_URI", "http://localhost:19530")
 LIGHTRAG_URL = os.environ.get("LIGHTRAG_URL", "http://localhost:9621").rstrip("/")
+# Official project: https://github.com/HKUDS/LightRAG
 EMBEDDING_MODEL = os.environ.get(
     "EMBEDDING_MODEL", "sentence-transformers/all-mpnet-base-v2"
 )
@@ -156,10 +157,20 @@ def seed_milvus(records: list[dict[str, Any]], embeddings: list[list[float]]) ->
     log(f"Connecting to Milvus at {MILVUS_URI}")
     client = MilvusClient(uri=MILVUS_URI)
     if not client.has_collection(collection_name=MILVUS_COLLECTION):
+        from pymilvus import DataType
+
+        schema = client.create_schema(auto_id=False, enable_dynamic_field=False)
+        schema.add_field(field_name="id", datatype=DataType.VARCHAR, is_primary=True, max_length=256)
+        schema.add_field(field_name="vector", datatype=DataType.FLOAT_VECTOR, dim=VECTOR_DIMENSION)
+        schema.add_field(field_name="text", datatype=DataType.VARCHAR, max_length=65535)
+        schema.add_field(field_name="source", datatype=DataType.VARCHAR, max_length=512)
+        schema.add_field(field_name="chunk_id", datatype=DataType.VARCHAR, max_length=64)
+        index_params = client.prepare_index_params()
+        index_params.add_index(field_name="vector", index_type="AUTOINDEX", metric_type="COSINE")
         client.create_collection(
             collection_name=MILVUS_COLLECTION,
-            dimension=VECTOR_DIMENSION,
-            metric_type="COSINE",
+            schema=schema,
+            index_params=index_params,
             consistency_level="Strong",
         )
         log(f"Created Milvus collection '{MILVUS_COLLECTION}' ({VECTOR_DIMENSION} dims)")
@@ -194,7 +205,7 @@ def wait_for_lightrag_index(session: requests.Session, document_id: str | None) 
             fail(f"LightRAG indexing status failed: {exc}")
 
         status = str(body.get("status", body.get("state", ""))).lower()
-        if status in {"complete", "completed", "done", "indexed", "success", "ready"}:
+        if status in {"complete", "completed", "done", "indexed", "processed", "success", "ready"}:
             log("LightRAG knowledge-graph indexing completed")
             return
         if status in {"failed", "error"}:

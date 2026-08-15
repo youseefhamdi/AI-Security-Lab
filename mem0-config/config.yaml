@@ -1,5 +1,6 @@
-# Mem0 configuration for the AI Red Team Lab.
-# The model and embedding model must already be available locally.
+# Mem0 OSS configuration used by local integration helpers.
+# Upstream: https://github.com/mem0ai/mem0
+# The API server itself is authenticated; see ADMIN_API_KEY/JWT_SECRET in Compose.
 
 llm:
   provider: ollama
@@ -14,29 +15,27 @@ embedder:
     model: nomic-embed-text
     ollama_base_url: http://ollama-llama:11434
 
-# Simple local mode for exercises. Mem0-compatible deployments may map this
-# to their file-backed history/vector implementation.
-storage:
-  mode: file
-  path: /data/mem0
+# The OSS SDK uses vector_store rather than a generic storage.mode key.
+# ChromaDB keeps this lab self-contained; the history path is file-backed.
+vector_store:
+  provider: chroma
+  config:
+    collection_name: novatech_memories
+    host: chromadb
+    port: 8000
 
-# Production alternative; inactive while storage.mode is file.
-production_storage:
-  mode: postgres
-  host: postgres
-  port: 5432
-  database: mem0
-  user: mem0
-  password_env: MEM0_POSTGRES_PASSWORD
+history_db_path: /data/mem0/history.db
 
 memory_levels:
   user_id:
     description: Long-lived preferences and facts scoped to one user.
-  session_id:
-    description: Short-lived state scoped to one conversation session.
+  run_id:
+    description: Short-lived conversation state for one execution/session.
   agent_id:
     description: Agent-owned facts and observations scoped to one agent.
 
 api:
-  base_url: http://127.0.0.1:8081
+  base_url: http://127.0.0.1:8888
   memory_endpoint: /memories
+  search_endpoint: /search
+  auth_header: X-API-Key

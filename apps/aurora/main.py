@@ -21,7 +21,8 @@ app = FastAPI(title="NovaTech Aurora Support Chatbot", version="2.0")
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://ollama-llama:11434").rstrip("/")
 MODEL_NAME = os.environ.get("MODEL_NAME", "llama3.2:1b")
 LIGHTRAG_URL = os.environ.get("LIGHTRAG_URL", "http://lightrag:9621").rstrip("/")
-MEM0_URL = os.environ.get("MEM0_URL", "http://mem0:8081").rstrip("/")
+MEM0_URL = os.environ.get("MEM0_URL", "http://mem0:8000").rstrip("/")
+MEM0_API_KEY = os.environ.get("MEM0_API_KEY", "")
 REQUEST_TIMEOUT = float(os.environ.get("AURORA_TIMEOUT", "120"))
 
 SYSTEM_PROMPT = """You are Aurora, NovaTech's customer support assistant.
@@ -69,9 +70,10 @@ def query_lightrag(query: str) -> dict[str, Any] | None:
 
 def query_mem0(query: str, user_id: str, session_id: str) -> list[dict[str, Any]]:
     try:
-        response = requests.get(
-            f"{MEM0_URL}/memories",
-            params={"user_id": user_id, "session_id": session_id, "query": query},
+        response = requests.post(
+            f"{MEM0_URL}/search",
+            json={"query": query, "user_id": user_id, "run_id": session_id},
+            headers={"X-API-Key": MEM0_API_KEY} if MEM0_API_KEY else None,
             timeout=REQUEST_TIMEOUT,
         )
         response.raise_for_status()

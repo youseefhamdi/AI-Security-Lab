@@ -176,13 +176,13 @@ ensure_route "assistant" "assistant-route" "/assistant"
 ensure_service "mcp" "http://mcp-wrapper:3000"
 ensure_route "mcp" "mcp-route" "/mcp"
 
-ensure_service "a2a" "http://a2a-router:5010"
+ensure_service "a2a" "http://a2a-router:5000"
 ensure_route "a2a" "a2a-route" "/a2a"
 
 ensure_service "lightrag" "http://lightrag:9621"
 ensure_route "lightrag" "lightrag-route" "/lightrag"
 
-ensure_service "mem0" "http://mem0:8081"
+ensure_service "mem0" "http://mem0:8000"
 ensure_route "mem0" "mem0-route" "/mem0"
 
 ensure_assistant_rate_limit

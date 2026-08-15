@@ -2,6 +2,7 @@
 # AO persists its active project registry in SQLite; this file documents the
 # intended project/worker configuration for the red-team exercises.
 version: 1
+upstream: https://github.com/Untrivial-ai/agent-orchestrator
 project:
   id: ai-redteam-lab
   repository: ~/ai-redteam-lab
