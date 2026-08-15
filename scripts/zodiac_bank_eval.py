@@ -99,6 +99,31 @@ def check_workflows(bank: dict[str, Any], workflows: dict[str, Any]) -> dict[str
     return {"workflows": len(workflows["workflows"]), "workers": len(workers), "approval_checked": True}
 
 
+def check_flag_pipeline() -> dict[str, Any]:
+    """The challenge service issues flags and the gate validates them.
+
+    Both must derive the flag from the same HMAC construction over the same
+    stage ID and the same TRAINING_FLAG_SECRET, otherwise a synthesis flag can
+    never unlock the next stage. This checks the two implementations are
+    byte-identical and that Compose wires them to the same secret.
+    """
+    import re as _re
+
+    gate_src = (ROOT / "training-gate" / "main.py").read_text(encoding="utf-8")
+    challenge_src = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
+
+    def flag_body(source: str) -> str:
+        match = _re.search(r"def flag_for\(stage_id: str\) -> str:\n(.*?)\n\ndef ", source, _re.S)
+        assert match, "flag_for implementation not found"
+        return "\n".join(line.rstrip() for line in match.group(1).splitlines() if line.strip())
+
+    assert flag_body(gate_src) == flag_body(challenge_src), "gate and challenge flag formulas differ"
+    compose = COMPOSE_PATH.read_text(encoding="utf-8")
+    assert compose.count("TRAINING_FLAG_SECRET: ${TRAINING_FLAG_SECRET:-") >= 2, "flag secret not wired to both services"
+    assert "ZODIAC-BANK-" in gate_src and "ZODIAC-BANK-" in challenge_src
+    return {"flag_formula_identical": True, "services_wired_to_same_secret": True}
+
+
 def check_ai_threat_model() -> dict[str, Any]:
     model = load_threat_document(THREAT_MODEL_PATH)
     ruleset = load_threat_document(DETECTION_RULES_PATH)
@@ -156,6 +181,7 @@ def main() -> int:
     workflows = load(WORKFLOW_PATH)
     checks: list[tuple[str, Callable[[], dict[str, Any]]]] = [
         ("curriculum_progression", lambda: check_curriculum()),
+        ("flag_pipeline_consistency", check_flag_pipeline),
         ("canonical_graph", lambda: check_graph(bank, workflows)),
         ("context_contract", lambda: check_context(bank, workflows)),
         ("workflow_orchestrator_symmetry", lambda: check_workflows(bank, workflows)),
