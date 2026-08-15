@@ -11,7 +11,7 @@ services:
     ports:
       - "127.0.0.1:11435:8000"
     volumes:
-      - ./models:/models:ro
+      - ${BONSAI_MODEL_DIR:-./models}:/models:ro
     environment:
       BONSAI_MODEL_FILE: ${BONSAI_MODEL_FILE:-bonsai-27b.gguf}
     command: >

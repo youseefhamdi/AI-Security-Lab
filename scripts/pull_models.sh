@@ -3,16 +3,18 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-BONSAI_MODEL_FILE="${BONSAI_MODEL_FILE:-${PROJECT_ROOT}/models/bonsai-27b.gguf}"
-
-if [[ "${RUNTIME:-0}" == "1" && "${SKIP_PROVIDER_DETECT:-0}" != "1" ]]; then
-  # An external provider means no local GGUF is required for this run.
+if [[ "${SKIP_PROVIDER_DETECT:-0}" != "1" ]]; then
+  # This is local-only when RUNTIME is unset; an external provider means no
+  # local GGUF is required for that run.
   source "${SCRIPT_DIR}/detect_provider.sh"
   if [[ "${INFERENCE_PROVIDER:-bonsai}" != "bonsai" ]]; then
     printf '[model-check] External provider %s is active; skipping local GGUF check\n' "$INFERENCE_PROVIDER"
     exit 0
   fi
 fi
+
+BONSAI_MODEL_DIR="${BONSAI_MODEL_DIR:-${PROJECT_ROOT}/models}"
+BONSAI_MODEL_FILE="${BONSAI_MODEL_FILE:-bonsai-27b.gguf}"
 
 log() {
   printf '[model-check] %s\n' "$*"
@@ -23,17 +25,21 @@ fail() {
   exit 1
 }
 
-if [[ ! -s "$BONSAI_MODEL_FILE" ]]; then
-  shopt -s nullglob
-  candidates=("${PROJECT_ROOT}/models/"*.gguf)
-  shopt -u nullglob
-  if [[ ${#candidates[@]} -eq 1 ]]; then
-    BONSAI_MODEL_FILE="${candidates[0]}"
-    log "Using the only local GGUF: ${BONSAI_MODEL_FILE}"
+if [[ "$BONSAI_MODEL_FILE" = /* ]]; then
+  model_path="$BONSAI_MODEL_FILE"
+else
+  model_path="${BONSAI_MODEL_DIR%/}/${BONSAI_MODEL_FILE}"
+fi
+
+if [[ ! -s "$model_path" ]]; then
+  candidate="$(find "${BONSAI_MODEL_DIR%/}" -type f -iname '*.gguf' -print -quit 2>/dev/null || true)"
+  if [[ -n "$candidate" ]]; then
+    model_path="$candidate"
+    log "Discovered GGUF under ${BONSAI_MODEL_DIR}: ${model_path}"
   else
-    fail "Missing Bonsai GGUF. Set BONSAI_MODEL_FILE or place exactly one .gguf under ${PROJECT_ROOT}/models"
+    fail "Missing Bonsai GGUF. Set BONSAI_MODEL_DIR and/or BONSAI_MODEL_FILE, or place a .gguf under ${PROJECT_ROOT}/models"
   fi
 fi
 
-log "Bonsai model exists: ${BONSAI_MODEL_FILE}"
+log "Bonsai model exists: ${model_path}"
 log "No model pull is performed. The lab uses the pre-downloaded PrismML Bonsai file."

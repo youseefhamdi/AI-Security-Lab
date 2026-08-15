@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+
 # Source this file from a runtime script. It exports the provider settings that
 # Compose passes into the applications. It never downloads models.
 
@@ -11,6 +15,59 @@ provider_log() {
 # host provider is running outside the containers.
 provider_container_host() {
   printf '%s' "${INFERENCE_CONTAINER_HOST:-host.docker.internal}"
+}
+
+provider_load_model_settings() {
+  local env_file="${PROJECT_ROOT}/.env"
+  local value
+
+  [[ -f "$env_file" ]] || return 0
+
+  if [[ -z "${BONSAI_MODEL_DIR:-}" ]]; then
+    value="$(sed -nE 's/^[[:space:]]*BONSAI_MODEL_DIR=[[:space:]]*([^#]+).*$/\1/p' "$env_file" | tail -n 1)"
+    value="${value%$'\r'}"
+    [[ -n "$value" ]] && export BONSAI_MODEL_DIR="$value"
+  fi
+
+  if [[ -z "${BONSAI_MODEL_FILE:-}" ]]; then
+    value="$(sed -nE 's/^[[:space:]]*BONSAI_MODEL_FILE=[[:space:]]*([^#]+).*$/\1/p' "$env_file" | tail -n 1)"
+    value="${value%$'\r'}"
+    [[ -n "$value" ]] && export BONSAI_MODEL_FILE="$value"
+  fi
+}
+
+provider_find_bonsai_model() {
+  provider_load_model_settings
+
+  local model_dir="${BONSAI_MODEL_DIR:-${PROJECT_ROOT}/models}"
+  local requested="${BONSAI_MODEL_FILE:-bonsai-27b.gguf}"
+  local candidate relative
+  model_dir="${model_dir%/}"
+
+  if [[ "$requested" = /* && -s "$requested" ]]; then
+    export BONSAI_MODEL_DIR="$(dirname -- "$requested")"
+    export BONSAI_MODEL_FILE="$(basename -- "$requested")"
+    return 0
+  fi
+
+  if [[ "$requested" != /* && -s "${model_dir}/${requested}" ]]; then
+    export BONSAI_MODEL_DIR="$model_dir"
+    export BONSAI_MODEL_FILE="$requested"
+    return 0
+  fi
+
+  candidate="$(find "$model_dir" -type f -iname '*.gguf' -print -quit 2>/dev/null || true)"
+  if [[ -n "$candidate" ]]; then
+    relative="${candidate#"${model_dir}/"}"
+    export BONSAI_MODEL_DIR="$model_dir"
+    export BONSAI_MODEL_FILE="$relative"
+    provider_log "Discovered Bonsai GGUF: ${candidate}"
+    return 0
+  fi
+
+  export BONSAI_MODEL_DIR="$model_dir"
+  export BONSAI_MODEL_FILE="$requested"
+  return 1
 }
 
 provider_model_from_json() {
@@ -59,11 +116,12 @@ provider_probe_ollama() {
 }
 
 provider_select_bonsai() {
+  provider_find_bonsai_model || true
   export INFERENCE_PROVIDER="bonsai"
   export INFERENCE_BASE_URL="http://bonsai:8000/v1"
   export INFERENCE_LOCAL_BASE_URL="http://127.0.0.1:11435/v1"
   export INFERENCE_MODEL="${INFERENCE_MODEL:-bonsai-27b}"
-  provider_log "Using local Bonsai fallback: model=${INFERENCE_MODEL}"
+  provider_log "Using local Bonsai fallback: model=${INFERENCE_MODEL}, file=${BONSAI_MODEL_DIR}/${BONSAI_MODEL_FILE}"
 }
 
 # Static/VPS mode must not probe localhost or make network requests.
