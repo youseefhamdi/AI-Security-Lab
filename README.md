@@ -10,7 +10,7 @@
 [![Inference](https://img.shields.io/badge/Inference-llama.cpp-111827)](https://github.com/ggml-org/llama.cpp)
 [![Security Lab](https://img.shields.io/badge/Purpose-AI%20Security%20Training-EF4444)](#-security-boundary)
 
-> **ZODIAC AI Security Lab** — an isolated environment for model fingerprinting, prompt injection, RAG attacks, agent protocol abuse, memory poisoning, supply-chain scenarios, and SIEM detection.
+> **Zodiac Bank AI Security Lab** — an isolated synthetic banking environment for model fingerprinting, prompt injection, RAG attacks, agent protocol abuse, memory poisoning, supply-chain scenarios, and SIEM detection.
 
 </div>
 
@@ -28,6 +28,8 @@
 - [Start the lab](#-start-the-lab)
 - [Verify the lab](#-verify-the-lab)
 - [Run the training exercises](#-run-the-training-exercises)
+- [Zodiac Bank progression](#-zodiac-bank-progression)
+- [Graph and context engineering](#-graph-and-context-engineering)
 - [Automatic provider detection](#-automatic-provider-detection)
 - [Endpoints](#-endpoints)
 - [Stop, restart, and clean](#-stop-restart-and-clean)
@@ -38,7 +40,7 @@
 
 ## ✨ What this project is
 
-**ZODIAC AI Security Lab** is a local-first training environment based on OffSec AI-300 Module 2 concepts. It combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, and detection tooling into one reproducible lab.
+**Zodiac Bank AI Security Lab** is a local-first training environment based on OffSec AI-300 Module 2 concepts. It combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, progression gates, and detection tooling into one reproducible lab.
 
 The project is intentionally unsafe by design. It includes debug leaks, exposed tool schemas, synthetic credentials, prompt-injection weaknesses, unauthenticated protocol exercises, and honeypot data. Run it only on a machine you control and keep all services bound to localhost.
 
@@ -56,11 +58,11 @@ The README hero uses a generic animated AI Security Lab banner. The ZODIAC name 
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│                      ZODIAC AI SECURITY LAB                          │
+│                   ZODIAC BANK AI SECURITY LAB                        │
 ├──────────────────────────────────────────────────────────────────────┤
 │  CORE                                                               │
 │  Bonsai 27B / llama.cpp → Aurora · Phoenix · Assistant              │
-│  Local Markdown retrieval                                            │
+│  Graph Context :5070 · Local Markdown retrieval                      │
 ├──────────────────────────────────────────────────────────────────────┤
 │  PROTOCOLS                    DATA + MEMORY                          │
 │  A2A Router · Knowledge Agent  ChromaDB · Milvus · LightRAG · Mem0   │
@@ -78,18 +80,20 @@ Start with **core**. Add protocols or the full stack only when you need them.
 
 | Profile | Services | Typical resources | Start command |
 | --- | --- | --- | --- |
-| `core` | Bonsai or detected provider, Aurora, Phoenix, Assistant | 8 GB RAM minimum; 10–12 GB recommended | `RUNTIME=1 ./scripts/start_all.sh` |
+| `core` | Bonsai or detected provider, Training Gate, Aurora, Phoenix, Assistant | 8 GB RAM minimum; 10–12 GB recommended | `RUNTIME=1 ./scripts/start_all.sh` |
 | `lite` | Core + A2A Router, Knowledge Agent, MCP server, MCP wrapper | 10 GB minimum; 12–16 GB recommended | `RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh` |
 | `full` | Lite + Kong, storage, Mem0, LightRAG, extra MCP, ELK | 32 GB minimum; 48 GB recommended | `RUNTIME=1 LAB_MODE=full SEED_DATA=0 ./scripts/start_all.sh` |
 
 ### Core profile
 
-Starts four application containers and one inference container only when a local Bonsai fallback is selected:
+Starts the Training Gate and three application containers, plus one inference container when a local Bonsai fallback is selected:
 
 - Bonsai llama.cpp, if no external provider is available
 - Aurora support chatbot
 - Phoenix code reviewer
 - Assistant OpenAI-compatible API
+- Zodiac Bank hard-flag Training Gate and unique Challenge Surface
+- Zodiac Bank Graph Context service with bounded graph traversal and context packets
 - Dependency-free local Markdown retrieval
 
 ### Lite profile
@@ -400,6 +404,100 @@ Only enable seeding after ChromaDB, Milvus, LightRAG, Mem0, and the required emb
 RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh
 ```
 
+Full mode enables `ENABLE_EXTERNAL_CONTEXT=1` by default, so Aurora and the A2A Knowledge Agent query LightRAG and Mem0. To verify the service health, provider-backed queries, and Aurora end-to-end response:
+
+```bash
+RUNTIME=1 ./scripts/verify_full_profile.sh
+```
+
+The local Bonsai GGUF supplies text generation only. It is not an embedding model. LightRAG and Mem0 therefore require a separate compatible embedding provider; configure the LightRAG `LIGHTRAG_EMBEDDING_*` variables and the Mem0 `MEM0_EMBEDDER_*` variables before seeding. If the embedding provider runs on the host, use a container-reachable hostname such as `host.docker.internal`, not `127.0.0.1`.
+
+Example OpenAI-compatible full-profile settings:
+
+```env
+LIGHTRAG_EMBEDDING_BINDING=openai
+LIGHTRAG_EMBEDDING_HOST=https://your-embedding-provider.example/v1
+LIGHTRAG_EMBEDDING_MODEL=your-embedding-model
+LIGHTRAG_EMBEDDING_API_KEY=your-embedding-key
+LIGHTRAG_EMBEDDING_DIM=768
+
+MEM0_EMBEDDER_PROVIDER=openai
+MEM0_EMBEDDER_HOST=https://your-embedding-provider.example/v1
+MEM0_EMBEDDER_MODEL=your-embedding-model
+MEM0_EMBEDDER_API_KEY=your-embedding-key
+MEM0_LLM_BASE_URL=http://bonsai:8000/v1
+MEM0_LLM_MODEL=bonsai-27b
+MEM0_LLM_API_KEY=local
+MEM0_ADMIN_API_KEY=replace-with-a-local-lab-key
+MEM0_JWT_SECRET=replace-with-a-long-random-local-secret
+```
+
+For **LM Studio on the host**, keep Bonsai as the inference model and load a separate embedding model in LM Studio. Use the exact model ID shown by `/v1/models`:
+
+```env
+LMSTUDIO_EMBEDDING_MODEL=your-exact-lm-studio-embedding-id
+EMBEDDING_BASE_URL=http://127.0.0.1:1234/v1
+EMBEDDING_CONTAINER_BASE_URL=http://host.docker.internal:1234/v1
+EMBEDDING_MODEL=your-exact-lm-studio-embedding-id
+EMBEDDING_DIM=768
+LIGHTRAG_EMBEDDING_BINDING=openai
+LIGHTRAG_EMBEDDING_HOST=http://host.docker.internal:1234/v1
+LIGHTRAG_EMBEDDING_MODEL=your-exact-lm-studio-embedding-id
+LIGHTRAG_EMBEDDING_API_KEY=local
+LIGHTRAG_EMBEDDING_DIM=768
+MEM0_EMBEDDER_PROVIDER=openai
+MEM0_EMBEDDER_HOST=http://host.docker.internal:1234/v1
+MEM0_EMBEDDER_MODEL=your-exact-lm-studio-embedding-id
+MEM0_EMBEDDER_API_KEY=local
+```
+
+Configure the local/container endpoint mapping without overwriting unrelated `.env` settings:
+
+```bash
+RUNTIME=1 ./scripts/configure_lmstudio_embeddings.sh \\
+  your-exact-lm-studio-embedding-id 768
+```
+
+Probe LM Studio before starting the full profile; this does not download or modify models:
+
+```bash
+RUNTIME=1 LMSTUDIO_EMBEDDING_MODEL=your-exact-lm-studio-embedding-id \\
+  EMBEDDING_DIM=768 ./scripts/check_lmstudio_embeddings.sh
+```
+
+### Enable ChromaDB vector RAG
+
+Aurora and the A2A Knowledge Agent can query the seeded ChromaDB collection with vector similarity. The indexing and query paths must use the same OpenAI-compatible embedding model and dimension. Configure an embedding endpoint in `.env` before seeding:
+
+```env
+VECTOR_RAG_ENABLED=1
+EMBEDDING_BASE_URL=https://your-embedding-provider.example/v1
+EMBEDDING_MODEL=your-embedding-model
+EMBEDDING_API_KEY=your-embedding-key
+EMBEDDING_DIM=768
+CHROMA_COLLECTION=zodiac_bank_docs
+CHROMA_TOP_K=4
+```
+
+`EMBEDDING_BASE_URL` must expose `POST /embeddings` and return the standard OpenAI response shape. For a custom ChromaDB host, use `CHROMA_API_URL` for the host-side seeding script and `CHROMA_CONTAINER_API_URL` for the application containers; the defaults work with this Compose file.
+
+Re-index after changing the embedding model or dimension:
+
+```bash
+RUNTIME=1 LAB_MODE=full SEED_DATA=1 ./scripts/start_all.sh
+```
+
+Verify that vector retrieval is enabled:
+
+```bash
+curl --fail http://127.0.0.1:5000/health
+curl -sS http://127.0.0.1:5000/api/chat \\
+  -H 'Content-Type: application/json' \\
+  -d '{"query":"What is the PTO policy for a first-year employee?","session_id":"vector-demo"}'
+```
+
+The response includes `retrieval_backend: "chromadb"` and each source includes its Chroma distance and derived vector score. If ChromaDB or the embedding provider is unavailable, the applications safely fall back to local keyword retrieval.
+
 ### Direct Compose startup
 
 Direct Compose startup uses the local Bonsai fallback values and bypasses provider detection and the terminal brand animation:
@@ -520,6 +618,102 @@ curl -sS http://127.0.0.1:5002/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"Reply: ASSISTANT_OK"}]}'
 ```
 
+## 🎓 Zodiac Bank progression
+
+The lab now includes a hard-gated curriculum in `training-config/curriculum.json`, progressing in strict difficulty order from foundation and reconnaissance to an APT-simulation capstone. Only the first incomplete stage is unlocked. Every stage requires a hard flag; the Training Gate stores learner progress in SQLite, never returns plaintext flags through its curriculum API, and never writes flags into learner artifacts. Each unlocked lesson provides three short hints that escalate from direction to confirmation.
+
+Set private local secrets before the first run; strict mode rejects the built-in placeholders and changing the flag secret later invalidates generated flags:
+
+```env
+TRAINING_SECURITY_MODE=strict
+TRAINING_FLAG_SECRET=<at-least-32-character-random-local-secret>
+TRAINING_ADMIN_KEY=<at-least-24-character-separate-instructor-key>
+GRAPH_CONTEXT_SECURITY_MODE=strict
+GRAPH_CONTEXT_API_KEY=<at-least-24-character-separate-context-key>
+```
+
+`TRAINING_SECURITY_MODE=development` is reserved for disposable offline smoke tests and must not be used for a cohort.
+
+Start the core profile to run the gate:
+
+```bash
+RUNTIME=1 ./scripts/start_all.sh
+```
+
+Inspect the current learner state:
+
+```bash
+export LEARNER_TOKEN='<token returned by cohort-add>'
+curl --fail 'http://127.0.0.1:5050/api/curriculum?learner_id=analyst-01' \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+```
+
+Submit a flag discovered during the authorized lesson:
+
+```bash
+curl --fail http://127.0.0.1:5050/api/flags/submit \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
+  -H 'Content-Type: application/json' \\
+  -d '{"learner_id":"analyst-01","stage_id":"L00-foundation","flag":"ZODIAC-BANK-..."}'
+```
+
+Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. Invalid submissions are hashed for audit, limited to a bounded number of attempts, and do not reveal the expected flag. Discover each flag through the unique Challenge Surface at `http://127.0.0.1:5060`, then submit it to the gate. All targets, identities, accounts, and evidence are synthetic and must remain localhost-bound.
+
+Training Gate endpoint: `http://127.0.0.1:5050`.
+
+Instructor commands are local-only and require the admin key:
+
+```bash
+export TRAINING_ADMIN_KEY=replace-with-a-separate-instructor-key
+python3 scripts/zodiac_bank_admin.py cohort-create cohort-2026 "Zodiac Bank 2026 Cohort"
+python3 scripts/zodiac_bank_admin.py cohort-add cohort-2026 analyst-01  # returns a one-time learner token
+python3 scripts/zodiac_bank_admin.py cohort-list
+python3 scripts/zodiac_bank_admin.py completion-report cohort-2026 --format csv --output reports/cohort-2026.csv
+python3 scripts/zodiac_bank_admin.py reset-cohort cohort-2026
+```
+
+`reset-cohort` deletes only that cohort's submissions and completions, then reopens its first stage. It does not delete the curriculum or flags for other cohorts. In strict mode, learner APIs require the private per-learner token returned by `cohort-add`; the per-learner active artifact contains only the current stage pointer, never the hard flag.
+
+## 🧠 Graph and context engineering
+
+The core profile now starts the local **Zodiac Bank Graph Context** service on port `5070`. It builds a provenance-aware property graph from the canonical bank/workflow data and assembles bounded context packets for Aurora, the A2A Knowledge Agent, and Loop Engineering plans.
+
+```bash
+curl --fail http://127.0.0.1:5070/health
+curl --fail \
+  'http://127.0.0.1:5070/v1/graph/neighborhood?entity_id=ZB-CASE-002&depth=2' \
+  -H "X-Graph-Context-Key: ${GRAPH_CONTEXT_API_KEY}"
+```
+
+Context packets separate policy, canonical graph evidence, retrieved documents, and user input. Retrieved content is always marked untrusted and cannot authorize actions or expand identity scope. Aurora and Knowledge Agent use structured context by default:
+
+```env
+GRAPH_CONTEXT_ENABLED=1
+GRAPH_CONTEXT_SECURITY_MODE=strict
+GRAPH_CONTEXT_API_KEY=<at-least-24-character-random-local-key>
+CONTEXT_ENGINEERING_MODE=structured
+CONTEXT_MAX_CHARS=12000
+```
+
+The workflow runner includes the same packet contract in durable plans, keeping graph context, branch selection, worker delegation, and provenance symmetric with the orchestrator. Run the offline posture evaluator before a cohort starts:
+
+```bash
+python3 scripts/zodiac_bank_eval.py
+python3 scripts/zodiac_bank_eval.py --format json --output logs/zodiac-bank-evaluation.json
+```
+
+The evaluator never calls external services; it checks progression, graph provenance, scope isolation, context budgets, workflow approvals, orchestrator symmetry, and authentication wiring.
+
+The workflow runner command is:
+
+```bash
+RUNTIME=1 python3 scripts/zodiac_bank_workflows.py \\
+  --workflow fraud-investigation \\
+  --case-id ZB-CASE-002
+```
+
+See [`docs/graph-context-engineering.md`](docs/graph-context-engineering.md) for the graph schema, bounded traversal, context contract, and advanced security exercises. `CONTEXT_ENGINEERING_MODE=legacy` is retained only for controlled prompt-injection comparisons.
+
 ## 🧪 Run the training exercises
 
 All exercises are for authorized local use only. Runtime exercises are guarded by `RUNTIME=1`.
@@ -539,6 +733,17 @@ RUNTIME=1 ./exercises/mem0_attacks.sh
 
 # Storage backend reconnaissance (requires full-mode vector settings)
 RUNTIME=1 CHROMA_COLLECTION_ID=... QUERY_EMBEDDING_JSON='...' ./scripts/storage_recon.sh
+
+# Bounded Dependency Sweeper loop with persistent SQLite state
+RUNTIME=1 python3 scripts/dependency_sweeper.py
+
+# Validate canonical staff/customer/branch data and orchestrator symmetry
+python3 scripts/validate_zodiac_bank.py
+
+# Plan a branched Zodiac Bank workflow with persistent loop state
+RUNTIME=1 python3 scripts/zodiac_bank_workflows.py \\
+  --workflow fraud-investigation \\
+  --case-id ZB-CASE-002
 
 # Noisy versus stealthy detection practice
 RUNTIME=1 ./exercises/evasion_practice.sh
@@ -562,6 +767,9 @@ docs/
 | Aurora | `http://127.0.0.1:5000` |
 | Phoenix | `http://127.0.0.1:5001` |
 | Assistant | `http://127.0.0.1:5002` |
+| Zodiac Bank Training Gate | `http://127.0.0.1:5050` |
+| Zodiac Bank Challenge Surface | `http://127.0.0.1:5060` |
+| Zodiac Bank Graph Context | `http://127.0.0.1:5070` |
 
 ### Protocol services — `lite` / `full`
 
@@ -594,16 +802,21 @@ docs/
 
 ```text
 apps/                  Aurora, Phoenix, and Assistant
+training-gate/         Zodiac Bank hard-flag progression service
+training-challenges/   Unique per-stage flag-discovery surfaces
+bank-data/             Canonical Zodiac Bank entities and branched workflows
 mcp-server/            Deliberately vulnerable MCP server
 mcp-wrapper/           HTTP wrapper for MCP tools
 a2a-agents/            A2A Router and Knowledge Agent
-rag-docs/              Synthetic NovaTech knowledge corpus
+rag-docs/              Synthetic Zodiac Bank knowledge corpus
 sensitive-data/        Honeypot credentials and internal fixtures
 exercises/             Recon, attack, evasion, and fingerprint exercises
-scripts/               Startup, seeding, detection, and verification helpers
+scripts/               Startup, seeding, detection, verification, and progression helpers
 docs/                  Security notes and attack-surface guides
-orchestrator-config/   Agent Orchestrator project manifest
+orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
+loop-config/           Synthetic workflow inputs for Loop Engineering
 mem0-config/           Optional Mem0 configuration
+training-config/       Zodiac Bank curriculum and gate configuration
 models/                Local GGUF files; ignored by Git
 ```
 
@@ -712,7 +925,13 @@ Use core mode, reduce `BONSAI_CONTEXT_SIZE`, close other containers, or increase
 
 ### Mem0 or LightRAG fails in full mode
 
-Full mode needs an embedding provider. Bonsai only generates text. Configure the embedding variables in `.env` and review `mem0-config/config.yaml` before enabling storage seeding.
+Full mode enables external context automatically, but both integrations require a working embedding provider. Bonsai only generates text and cannot replace embeddings. Check service logs and run:
+
+```bash
+RUNTIME=1 ./scripts/verify_full_profile.sh
+```
+
+Configure `LIGHTRAG_EMBEDDING_*`, `MEM0_EMBEDDER_*`, and the Mem0 API/JWT secrets in `.env`. The stock Mem0 API image may require a locally customized image when using a provider not bundled by that image; its supported provider set must be checked before attempting a fully local deployment.
 
 ## 🛡️ VPS build-only policy
 
@@ -752,7 +971,7 @@ Never expose the lab to the public internet, reuse its credentials, place real s
 
 <div align="center">
 
-### ZODIAC // Built for controlled AI security research
+### ZODIAC BANK // Built for controlled AI security research
 
 `Recon → Exploit → Detect → Harden`
 

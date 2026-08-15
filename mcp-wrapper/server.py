@@ -15,7 +15,7 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="NovaTech MCP HTTP Wrapper", version="1.0")
+app = FastAPI(title="Zodiac Bank MCP HTTP Wrapper", version="1.0")
 
 TOOLS = [
     {"name": "memory", "description": "Read or write the configured memory MCP server", "inputSchema": {"type": "object", "properties": {"operation": {"type": "string"}, "key": {"type": "string"}, "value": {"type": "string"}}}},

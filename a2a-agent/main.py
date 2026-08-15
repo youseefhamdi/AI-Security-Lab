@@ -2,13 +2,13 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="NovaTech A2A Agent")
+app = FastAPI(title="Zodiac Bank A2A Agent")
 
 AGENT_CARD = {
-    "name": "NovaTech Support Orchestrator",
+    "name": "Zodiac Bank Support Orchestrator",
     "version": "2.1.0",
-    "description": "Multi-agent orchestrator for customer support workflows",
-    "endpoint": "http://aurora.novatech-internal.com:5000",
+    "description": "Multi-agent orchestrator for Zodiac Bank support workflows",
+    "endpoint": "http://aurora.zodiac-bank.local:5000",
     "capabilities": {
         "streaming": True,
         "pushNotifications": False,
@@ -39,12 +39,12 @@ AGENT_CARD = {
     ],
     "trust": {
         "delegatesTo": [
-            "aurora.novatech-internal.com",
-            "phoenix.novatech-internal.com"
+            "aurora.zodiac-bank.local",
+            "phoenix.zodiac-bank.local"
         ],
         "trustedBy": [
-            "api-gateway.novatech-internal.com",
-            "web-portal.novatech-internal.com"
+            "gateway.zodiac-bank.local",
+            "portal.zodiac-bank.local"
         ],
         "authMethod": "bearer_token",
         "internalApiKeyHint": "ntk_prod_"

@@ -1,5 +1,5 @@
 version: '3.8'
-name: zodiac-ai-security-lab
+name: zodiac-bank-ai-security-lab
 
 services:
   # ============= CORE: AUTO-SELECTED INFERENCE BACKEND =============
@@ -31,6 +31,59 @@ services:
       interval: 15s
       timeout: 5s
       retries: 20
+
+  training-gate:
+    build: ./training-gate
+    container_name: zodiac-bank-training-gate
+    ports:
+      - "127.0.0.1:5050:5050"
+    environment:
+      TRAINING_CURRICULUM: /app/config/curriculum.json
+      TRAINING_STATE_DB: /var/lib/training/progress.sqlite3
+      TRAINING_FLAG_SECRET: ${TRAINING_FLAG_SECRET:-zodiac-bank-change-this-training-secret}
+      TRAINING_ADMIN_KEY: ${TRAINING_ADMIN_KEY:-zodiac-bank-admin-change-me}
+      TRAINING_SECURITY_MODE: ${TRAINING_SECURITY_MODE:-strict}
+      TRAINING_MAX_SUBMISSIONS: ${TRAINING_MAX_SUBMISSIONS:-20}
+      TRAINING_ARTIFACT_DIR: /var/lib/training/learners
+    volumes:
+      - ./training-config:/app/config:ro
+      - training_data:/var/lib/training
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5050/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 128m
+
+  training-challenges:
+    build: ./training-challenges
+    container_name: zodiac-bank-challenges
+    ports:
+      - "127.0.0.1:5060:5060"
+    environment:
+      TRAINING_FLAG_SECRET: ${TRAINING_FLAG_SECRET:-zodiac-bank-change-this-training-secret}
+      TRAINING_SECURITY_MODE: ${TRAINING_SECURITY_MODE:-strict}
+    mem_limit: 128m
+
+  zodiac-context:
+    build:
+      context: .
+      dockerfile: graph-context/Dockerfile
+    container_name: zodiac-bank-graph-context
+    ports:
+      - "127.0.0.1:5070:5070"
+    environment:
+      GRAPH_CONTEXT_SECURITY_MODE: ${GRAPH_CONTEXT_SECURITY_MODE:-strict}
+      GRAPH_CONTEXT_API_KEY: ${GRAPH_CONTEXT_API_KEY:-zodiac-bank-context-change-me}
+    volumes:
+      - ./bank-data:/app/bank-data:ro
+      - ./rag-docs:/app/rag-docs:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5070/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 256m
 
   mcp-server:
     profiles: ["protocols", "full"]
@@ -74,10 +127,27 @@ services:
       MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
       RAG_DOCS_DIR: /app/rag-docs
       ENABLE_EXTERNAL_CONTEXT: ${ENABLE_EXTERNAL_CONTEXT:-0}
+      LIGHTRAG_URL: ${LIGHTRAG_URL:-http://lightrag:9621}
+      VECTOR_RAG_ENABLED: ${VECTOR_RAG_ENABLED:-0}
+      CHROMA_API_URL: ${CHROMA_CONTAINER_API_URL:-http://chromadb:8000/api/v1}
+      CHROMA_COLLECTION: ${CHROMA_COLLECTION:-zodiac_bank_docs}
+      CHROMA_TOP_K: ${CHROMA_TOP_K:-4}
+      EMBEDDING_BASE_URL: ${EMBEDDING_CONTAINER_BASE_URL:-${EMBEDDING_BASE_URL:-}}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/all-mpnet-base-v2}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-768}
+      GRAPH_CONTEXT_ENABLED: ${GRAPH_CONTEXT_ENABLED:-1}
+      GRAPH_CONTEXT_URL: ${GRAPH_CONTEXT_CONTAINER_URL:-http://zodiac-context:5070}
+      GRAPH_CONTEXT_API_KEY: ${GRAPH_CONTEXT_API_KEY:-zodiac-bank-context-change-me}
+      CONTEXT_ENGINEERING_MODE: ${CONTEXT_ENGINEERING_MODE:-structured}
+      CONTEXT_MAX_CHARS: ${CONTEXT_MAX_CHARS:-12000}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      zodiac-context:
+        condition: service_healthy
     mem_limit: 256m
 
   a2a-router:
@@ -108,11 +178,29 @@ services:
       MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
       RAG_DOCS_DIR: /app/rag-docs
       ENABLE_EXTERNAL_CONTEXT: ${ENABLE_EXTERNAL_CONTEXT:-0}
+      LIGHTRAG_URL: ${LIGHTRAG_URL:-http://lightrag:9621}
+      VECTOR_RAG_ENABLED: ${VECTOR_RAG_ENABLED:-0}
+      CHROMA_API_URL: ${CHROMA_CONTAINER_API_URL:-http://chromadb:8000/api/v1}
+      CHROMA_COLLECTION: ${CHROMA_COLLECTION:-zodiac_bank_docs}
+      CHROMA_TOP_K: ${CHROMA_TOP_K:-4}
+      EMBEDDING_BASE_URL: ${EMBEDDING_CONTAINER_BASE_URL:-${EMBEDDING_BASE_URL:-}}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/all-mpnet-base-v2}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-768}
+      MEM0_URL: ${MEM0_URL:-http://mem0:8000}
       MEM0_API_KEY: ${MEM0_ADMIN_API_KEY:-mem0_lab_admin_key_change_me}
+      GRAPH_CONTEXT_ENABLED: ${GRAPH_CONTEXT_ENABLED:-1}
+      GRAPH_CONTEXT_URL: ${GRAPH_CONTEXT_CONTAINER_URL:-http://zodiac-context:5070}
+      GRAPH_CONTEXT_API_KEY: ${GRAPH_CONTEXT_API_KEY:-zodiac-bank-context-change-me}
+      CONTEXT_ENGINEERING_MODE: ${CONTEXT_ENGINEERING_MODE:-structured}
+      CONTEXT_MAX_CHARS: ${CONTEXT_MAX_CHARS:-12000}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      zodiac-context:
+        condition: service_healthy
     mem_limit: 256m
 
   phoenix:
@@ -255,8 +343,19 @@ services:
       - mem0_data:/app/data
       - ./mem0-config:/app/config:ro
     environment:
+      # Mem0 uses the OpenAI-compatible client for its LLM. Bonsai can provide
+      # generation locally; embeddings still need a configured embedding model.
+      OPENAI_API_KEY: ${MEM0_LLM_API_KEY:-local}
+      OPENAI_BASE_URL: ${MEM0_LLM_BASE_URL:-${INFERENCE_BASE_URL:-http://bonsai:8000/v1}}
+      OPENAI_MODEL: ${MEM0_LLM_MODEL:-${INFERENCE_MODEL:-bonsai-27b}}
+      MEM0_EMBEDDER_PROVIDER: ${MEM0_EMBEDDER_PROVIDER:-openai}
+      MEM0_EMBEDDER_MODEL: ${MEM0_EMBEDDER_MODEL:-text-embedding-3-small}
+      MEM0_EMBEDDER_HOST: ${MEM0_EMBEDDER_HOST:-https://api.openai.com/v1}
+      MEM0_EMBEDDER_API_KEY: ${MEM0_EMBEDDER_API_KEY:-}
       ADMIN_API_KEY: ${MEM0_ADMIN_API_KEY:-mem0_lab_admin_key_change_me}
       JWT_SECRET: ${MEM0_JWT_SECRET:-mem0_lab_jwt_secret_change_me}
+    depends_on:
+      - chromadb
 
   # ============= OPTIONAL PROTOCOLS =============
   a2a-agent:
@@ -342,3 +441,4 @@ volumes:
   lightrag_data:
   mem0_data:
   es_data:
+  training_data:

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "bank_id": "ZB-BANK-001",
+  "orchestrator_id": "zodiac-bank-orchestrator",
+  "workers": [
+    {"worker_id": "customer-support", "role": "support", "endpoint": "http://127.0.0.1:5000", "source_service": "aurora"},
+    {"worker_id": "knowledge-retriever", "role": "retrieval", "endpoint": "http://127.0.0.1:5011", "source_service": "a2a-knowledge"},
+    {"worker_id": "fraud-analyst", "role": "fraud", "endpoint": "http://127.0.0.1:5002", "source_service": "assistant"},
+    {"worker_id": "compliance-officer", "role": "compliance", "endpoint": "http://127.0.0.1:5002", "source_service": "assistant"},
+    {"worker_id": "credit-reviewer", "role": "credit", "endpoint": "http://127.0.0.1:5001", "source_service": "phoenix"},
+    {"worker_id": "branch-manager-north", "role": "branch_manager", "endpoint": "http://127.0.0.1:5002", "source_service": "assistant"},
+    {"worker_id": "branch-manager-east", "role": "branch_manager", "endpoint": "http://127.0.0.1:5002", "source_service": "assistant"},
+    {"worker_id": "branch-manager-west", "role": "branch_manager", "endpoint": "http://127.0.0.1:5002", "source_service": "assistant"},
+    {"worker_id": "siem-analyst", "role": "detection", "endpoint": "http://127.0.0.1:5601", "source_service": "kibana"},
+    {"worker_id": "supply-chain-reviewer", "role": "supply_chain", "endpoint": "local://dependency-sweeper", "source_service": "dependency-sweeper"},
+    {"worker_id": "graph-context-engineer", "role": "graph_context", "endpoint": "http://127.0.0.1:5070", "source_service": "zodiac-context"},
+    {"worker_id": "context-engineer", "role": "context_engineering", "endpoint": "http://127.0.0.1:5070", "source_service": "zodiac-context"}
+  ],
+  "workflows": [
+    {
+      "workflow_id": "customer-onboarding",
+      "loop_pattern": "daily-triage",
+      "trigger": "new_customer_case",
+      "case_type": "customer_onboarding",
+      "input_entity": "case",
+      "max_steps": 6,
+      "max_retries": 2,
+      "approval_required": true,
+      "branches": [
+        {"branch_id": "kyc-clear", "when": {"kyc_status": "verified", "risk_rating": "low"}, "route": ["customer-support", "branch-manager-north"]},
+        {"branch_id": "manual-kyc", "when": {"kyc_status": "review"}, "route": ["compliance-officer", "branch-manager-east"]},
+        {"branch_id": "enhanced-review", "when": {"risk_rating": "high"}, "route": ["compliance-officer", "fraud-analyst"]}
+      ]
+    },
+    {
+      "workflow_id": "fraud-investigation",
+      "loop_pattern": "ci-sweeper",
+      "trigger": "suspicious_activity",
+      "case_type": "fraud_investigation",
+      "input_entity": "case",
+      "max_steps": 8,
+      "max_retries": 3,
+      "approval_required": true,
+      "branches": [
+        {"branch_id": "critical-freeze-review", "when": {"priority": "critical"}, "route": ["fraud-analyst", "compliance-officer", "branch-manager-east"]},
+        {"branch_id": "high-risk-review", "when": {"priority": "high"}, "route": ["fraud-analyst", "compliance-officer"]},
+        {"branch_id": "standard-monitoring", "when": {"priority": "normal"}, "route": ["fraud-analyst", "siem-analyst"]}
+      ]
+    },
+    {
+      "workflow_id": "credit-review",
+      "loop_pattern": "pr-babysitter",
+      "trigger": "credit_application",
+      "case_type": "credit_review",
+      "input_entity": "case",
+      "max_steps": 6,
+      "max_retries": 2,
+      "approval_required": true,
+      "branches": [
+        {"branch_id": "standard-credit", "when": {"risk_rating": "low"}, "route": ["credit-reviewer", "branch-manager-west"]},
+        {"branch_id": "manual-credit", "when": {"risk_rating": "medium"}, "route": ["credit-reviewer", "compliance-officer"]},
+        {"branch_id": "decline-or-escalate", "when": {"risk_rating": "high"}, "route": ["credit-reviewer", "fraud-analyst", "compliance-officer"]}
+      ]
+    },
+    {
+      "workflow_id": "support-escalation",
+      "loop_pattern": "daily-triage",
+      "trigger": "support_request",
+      "case_type": "support_request",
+      "input_entity": "case",
+      "max_steps": 5,
+      "max_retries": 2,
+      "approval_required": false,
+      "branches": [
+        {"branch_id": "knowledge-answer", "when": {"priority": "normal"}, "route": ["customer-support", "knowledge-retriever"]},
+        {"branch_id": "human-escalation", "when": {"priority": "high"}, "route": ["customer-support", "branch-manager-north"]},
+        {"branch_id": "security-escalation", "when": {"priority": "critical"}, "route": ["customer-support", "fraud-analyst", "siem-analyst"]}
+      ]
+    },
+    {
+      "workflow_id": "ai-incident-response",
+      "loop_pattern": "ci-sweeper",
+      "trigger": "ai_security_alert",
+      "case_type": "ai_security_alert",
+      "input_entity": "case",
+      "max_steps": 10,
+      "max_retries": 3,
+      "approval_required": true,
+      "branches": [
+        {"branch_id": "model-or-prompt-incident", "when": {"incident_type": "prompt_injection"}, "route": ["siem-analyst", "knowledge-retriever", "customer-support", "compliance-officer"]},
+        {"branch_id": "memory-incident", "when": {"incident_type": "memory_poisoning"}, "route": ["siem-analyst", "fraud-analyst", "compliance-officer"]},
+        {"branch_id": "supply-chain-incident", "when": {"incident_type": "supply_chain"}, "route": ["siem-analyst", "supply-chain-reviewer", "compliance-officer"]}
+      ]
+    }
+  ]
+}

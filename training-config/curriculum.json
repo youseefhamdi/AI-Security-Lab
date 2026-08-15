@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "lab_id": "zodiac-bank-ai-security",
+  "title": "Zodiac Bank AI Security Operations Lab",
+  "description": "Synthetic banking AI security training from foundational recon through multi-stage APT simulation.",
+  "safety": {
+    "scope": "localhost-only synthetic Zodiac Bank systems",
+    "real_accounts": false,
+    "real_credentials": false,
+    "external_targets": false,
+    "approval_required_for_side_effects": true,
+    "strict_runtime_secrets": true,
+    "plaintext_flags_in_learner_artifacts": false
+  },
+  "progression": {
+    "mode": "linear-hard-gate",
+    "difficulty_order": "strictly-increasing",
+    "unlock_rule": "only-the-first-incomplete-stage",
+    "hint_policy": "three-safe-escalating-hints-after-unlock"
+  },
+  "platform_capabilities": {
+    "graph_engineering": {"service": "zodiac-context", "bounded_traversal": true, "provenance_required": true},
+    "context_engineering": {"service": "zodiac-context", "typed_trust_sections": true, "hard_character_budget": true},
+    "hybrid_rag": {"backends": ["local-keyword", "chromadb", "lightrag"], "fallback": "local-keyword"},
+    "agent_protocols": ["a2a", "mcp"],
+    "memory_engineering": {"backend": "mem0", "canonical_scope": "zodiac-bank"},
+    "loop_engineering": {"persistent_state": true, "bounded_retries": true, "human_approval": true},
+    "evaluation": {"canonical_data_validation": true, "provenance_checks": true, "security_smoke_tests": true}
+  },
+  "stages": [
+    {
+      "id": "L00-foundation",
+      "rank": "foundation",
+      "title": "Mission Control and Scope Validation",
+      "difficulty": 1,
+      "prerequisites": [],
+      "target_services": ["training-challenges", "training-gate", "aurora"],
+      "mission": "Map the local Zodiac Bank AI attack surface, identify the authorized scope, and document the difference between model, application, data, and control-plane assets.",
+      "skills": ["scope validation", "asset inventory", "trust-boundary mapping"],
+      "success_criteria": ["scope recorded", "local services identified", "first hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Start with the lab health and scope endpoints; keep all requests on 127.0.0.1."},
+        {"level": 2, "text": "Compare the response body and headers for the same scope resource."},
+        {"level": 3, "text": "Use a HEAD request and inspect every response header, not just the body."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L01-recon",
+      "rank": "beginner",
+      "title": "Bank AI Surface Reconnaissance",
+      "difficulty": 2,
+      "prerequisites": ["L00-foundation"],
+      "target_services": ["training-challenges", "aurora", "phoenix", "assistant"],
+      "mission": "Enumerate the synthetic customer-support, code-review, and assistant interfaces without leaving localhost.",
+      "skills": ["endpoint discovery", "metadata analysis", "model fingerprinting"],
+      "success_criteria": ["service inventory completed", "inference backend identified", "second hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Begin with the documented localhost health and model-listing endpoints."},
+        {"level": 2, "text": "Compare normal inventory output with a verbose or diagnostic request."},
+        {"level": 3, "text": "Look for diagnostic metadata in the model inventory response and its headers."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L02-prompt-injection",
+      "rank": "intermediate",
+      "title": "Customer-Service Prompt Injection",
+      "difficulty": 3,
+      "prerequisites": ["L01-recon"],
+      "target_services": ["training-challenges", "aurora"],
+      "mission": "Demonstrate direct and indirect prompt-injection paths against a synthetic banking support assistant while preserving evidence and impact boundaries.",
+      "skills": ["instruction hierarchy", "indirect injection", "evidence capture"],
+      "success_criteria": ["injection path reproduced", "impact classified", "third hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Establish a normal support response before testing instruction priority."},
+        {"level": 2, "text": "Test whether user-controlled text can change the assistant's higher-priority instructions."},
+        {"level": 3, "text": "Use a harmless instruction-override phrase and preserve the complete response as evidence."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L03-rag",
+      "rank": "intermediate",
+      "title": "Credit-Policy RAG Poisoning",
+      "difficulty": 4,
+      "prerequisites": ["L02-prompt-injection"],
+      "target_services": ["training-challenges", "aurora", "a2a-knowledge", "chromadb", "lightrag"],
+      "mission": "Trace retrieval provenance, test poisoned synthetic policy content, and distinguish retrieval corruption from model hallucination.",
+      "skills": ["RAG provenance", "vector retrieval", "graph retrieval", "graph engineering", "context engineering", "corpus poisoning"],
+      "success_criteria": ["source identified", "retrieval path demonstrated", "fourth hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Record which published source answers the baseline credit-policy question."},
+        {"level": 2, "text": "Compare retrieval behavior when a draft-document option is explicitly requested."},
+        {"level": 3, "text": "A credit, limit, or policy query combined with draft retrieval should expose the trust-boundary failure."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L04-agent-protocols",
+      "rank": "advanced",
+      "title": "A2A and MCP Confused Deputy",
+      "difficulty": 5,
+      "prerequisites": ["L03-rag"],
+      "target_services": ["training-challenges", "a2a-router", "a2a-knowledge", "mcp-server", "mcp-wrapper"],
+      "mission": "Follow a synthetic support request across agent cards, delegation, and tool schemas; prove where identity and authorization boundaries fail.",
+      "skills": ["A2A discovery", "MCP schema analysis", "delegation abuse", "graph traversal", "context boundaries", "provenance"],
+      "success_criteria": ["delegation graph mapped", "tool boundary tested", "fifth hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Map the router, delegated agent, and tool names before sending a test request."},
+        {"level": 2, "text": "Check whether the caller can select a tool that the support role should not control."},
+        {"level": 3, "text": "Use only a synthetic internal path and compare the requested tool with the allowed tool list."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L05-memory",
+      "rank": "advanced",
+      "title": "Customer Memory Poisoning and Isolation",
+      "difficulty": 6,
+      "prerequisites": ["L04-agent-protocols"],
+      "target_services": ["training-challenges", "mem0", "aurora", "mcp-memory"],
+      "mission": "Test synthetic memory poisoning, cross-run access, cross-user isolation, and extraction attempts without using real customer data.",
+      "skills": ["memory provenance", "tenant isolation", "session boundaries", "extraction detection"],
+      "success_criteria": ["poisoning path documented", "negative authorization test run", "sixth hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Start with a memory lookup scoped to one synthetic customer and run."},
+        {"level": 2, "text": "Change only the user or run scope and verify whether isolation still holds."},
+        {"level": 3, "text": "Use a different synthetic customer run with a non-empty query and capture the cross-scope result."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L06-identity-control-plane",
+      "rank": "expert",
+      "title": "Banking AI Identity and Control Plane",
+      "difficulty": 7,
+      "prerequisites": ["L05-memory"],
+      "target_services": ["training-challenges", "kong", "aurora", "a2a-router", "mem0"],
+      "mission": "Analyze synthetic gateway routes, worker identity, API-key boundaries, and confused-deputy chains around privileged banking AI actions.",
+      "skills": ["authorization", "API gateway analysis", "identity binding", "least privilege"],
+      "success_criteria": ["privileged route identified", "identity boundary tested", "seventh hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Inventory the gateway and approval routes without attempting a real privileged action."},
+        {"level": 2, "text": "Compare the response when identity comes from a trusted context versus a request header."},
+        {"level": 3, "text": "Test the synthetic risk-engine identity with an admin role header and save the authorization response."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L07-supply-chain",
+      "rank": "expert",
+      "title": "Model and Pipeline Supply-Chain Attack",
+      "difficulty": 8,
+      "prerequisites": ["L06-identity-control-plane"],
+      "target_services": ["training-challenges", "dependency-sweeper", "orchestrator", "filebeat"],
+      "mission": "Trace synthetic dependency, model, artifact, and CI trust relationships; demonstrate how an untrusted update could reach an AI control plane.",
+      "skills": ["dependency provenance", "artifact integrity", "CI/CD poisoning", "review gates"],
+      "success_criteria": ["supply-chain path modeled", "approval boundary tested", "eighth hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Trace the synthetic dependency report from source through artifact storage to the worker."},
+        {"level": 2, "text": "Test whether artifact names are validated before path normalization."},
+        {"level": 3, "text": "Use a traversal-shaped or temporary artifact name only against the local challenge endpoint."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L08-detection-evasion",
+      "rank": "red-team",
+      "title": "Stealthy AI Intrusion and Detection Evasion",
+      "difficulty": 9,
+      "prerequisites": ["L07-supply-chain"],
+      "target_services": ["training-challenges", "aurora", "elasticsearch", "kibana", "filebeat"],
+      "mission": "Compare noisy and stealthy synthetic attack paths, identify telemetry blind spots, and produce a detection improvement without disabling controls.",
+      "skills": ["telemetry analysis", "evasion tradeoffs", "SIEM detection", "canary design"],
+      "success_criteria": ["baseline established", "evasion delta measured", "ninth hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Run the same benign search in normal mode first and record the telemetry result."},
+        {"level": 2, "text": "Compare how URL decoding and whitespace normalization affect the detector."},
+        {"level": 3, "text": "Use the local stealth mode with an encoded system-instruction search, then propose a detection fix."}
+      ],
+      "hard_gate": true
+    },
+    {
+      "id": "L09-apt-capstone",
+      "rank": "apt-simulation",
+      "title": "Zodiac Bank APT Campaign Capstone",
+      "difficulty": 10,
+      "prerequisites": ["L08-detection-evasion"],
+      "target_services": ["training-challenges", "all-local-services"],
+      "mission": "Chain reconnaissance, prompt injection, RAG poisoning, agent delegation, memory abuse, identity escalation, supply-chain access, and detection evasion into one synthetic campaign, then produce a complete incident timeline and containment plan.",
+      "skills": ["attack chaining", "campaign planning", "context integrity", "incident response", "containment", "hardening"],
+      "success_criteria": ["multi-stage chain reproduced", "evidence timeline complete", "containment plan reviewed", "final hard flag submitted"],
+      "hints": [
+        {"level": 1, "text": "Build a timeline from the evidence and flags already earned; do not start a new external action."},
+        {"level": 2, "text": "Submit the exact prior hard flags as campaign evidence in the order the stages were completed."},
+        {"level": 3, "text": "The capstone accepts the complete set of the nine previous synthetic stage flags, then returns the final flag."}
+      ],
+      "hard_gate": true
+    }
+  ]
+}

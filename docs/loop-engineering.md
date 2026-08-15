@@ -41,3 +41,48 @@ Loop Engineering runs recurring agent workflows with bounded inputs, explicit st
 ## Cross-loop safeguards
 
 Every loop should have a durable run ID, authenticated worker identity, bounded input/output, explicit approval gates, independent audit logs, and a kill switch. The loop must fail closed when its context, branch ownership, model provider, or tool authorization is ambiguous.
+
+## Runnable Dependency Sweeper
+
+The lab includes an offline-safe implementation of the Dependency Sweeper pattern in `scripts/dependency_sweeper.py`. It reads normalized JSON findings, persists runs/items/events in SQLite, creates review-only update proposals, recovers expired worker leases, and applies a bounded retry budget. It never installs packages, edits manifests, opens pull requests, or merges changes.
+
+Run the synthetic fixture locally:
+
+```bash
+RUNTIME=1 python3 scripts/dependency_sweeper.py
+```
+
+Defaults:
+
+- Input: `loop-config/dependency-findings.json`
+- State: `logs/dependency-sweeper.sqlite3`
+- Summary: `logs/dependency-sweeper-summary.json`
+- Retry budget: three retries plus the initial attempt
+- Maximum findings per run: 100
+- Maximum worker lease: five minutes
+
+Use a real, pre-generated finding file without allowing the workflow to invoke a package manager:
+
+```bash
+RUNTIME=1 python3 scripts/dependency_sweeper.py \\
+  --input ./dependency-findings.json \\
+  --state ./logs/dependency-sweeper.sqlite3 \\
+  --max-retries 2 \\
+  --retry-delay 1
+```
+
+The JSON summary reports bounded proposal records with `requires_human_approval: true` and `auto_merge: false`. Re-running the same finding is idempotent because its normalized content is fingerprinted; changing the finding creates a new review item.
+
+## Zodiac Bank branched workflows
+
+`bank-data/workflows.json` is the canonical Loop Engineering workflow registry. Every workflow declares a trigger, bounded step/retry budget, explicit branch predicates, and a worker route. `orchestrator-config/zodiac-bank.json` is its symmetric delegation projection; `scripts/validate_zodiac_bank.py` rejects missing workers, workflow IDs, or route delegates.
+
+The side-effect-free runner persists queued worker steps and emits a provenance-aware plan:
+
+```bash
+RUNTIME=1 python3 scripts/zodiac_bank_workflows.py \\
+  --workflow fraud-investigation \\
+  --case-id ZB-CASE-002
+```
+
+The runner resolves customer risk/KYC data and branch metadata from `bank-data/zodiac-bank.json`, selects the matching branch, caps the route by `max_steps`, and records the plan in `logs/zodiac-bank-workflows.sqlite3`. It does not approve accounts, freeze funds, send messages, or call external systems.

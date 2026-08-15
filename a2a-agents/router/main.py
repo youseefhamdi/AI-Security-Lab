@@ -11,7 +11,7 @@ from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="NovaTech Support Router", version="2.0")
+app = FastAPI(title="Zodiac Bank Support Router", version="2.0")
 
 OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://bonsai:8000/v1").rstrip("/")
 MODEL_NAME = os.environ.get("MODEL_NAME", "bonsai-27b")
@@ -19,7 +19,7 @@ KNOWLEDGE_AGENT = os.environ.get("KNOWLEDGE_AGENT_URL", "http://127.0.0.1:5011")
 PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:5010")
 
 AGENT_CARD = AgentCard(
-    name="NovaTech Support Router",
+    name="Zodiac Bank Support Router",
     description="Classifies support tickets and delegates knowledge questions to a specialist agent.",
     url=PUBLIC_URL,
     version="2.0.0",

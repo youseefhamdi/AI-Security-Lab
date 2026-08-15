@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "findings": [
+    {
+      "finding_id": "lab-requests-review",
+      "package": "requests",
+      "ecosystem": "python",
+      "manifest": "apps/aurora/requirements.txt",
+      "current_version": "2.31.0",
+      "target_version": "2.32.4",
+      "severity": "medium",
+      "advisory": "Synthetic lab finding: review the dependency update and rerun the application checks.",
+      "source": "synthetic-lab",
+      "simulated_transient_failures": 1
+    }
+  ]
+}

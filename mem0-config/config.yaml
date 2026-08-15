@@ -7,8 +7,9 @@
 llm:
   provider: openai
   config:
-    model: bonsai-27b
-    openai_base_url: http://bonsai:8000/v1
+    model: ${MEM0_LLM_MODEL:-bonsai-27b}
+    openai_base_url: ${MEM0_LLM_BASE_URL:-http://bonsai:8000/v1}
+    api_key: ${MEM0_LLM_API_KEY:-local}
     temperature: 0.2
 
 embedder:
@@ -16,11 +17,12 @@ embedder:
   config:
     model: ${MEM0_EMBEDDER_MODEL:-text-embedding-3-small}
     openai_base_url: ${MEM0_EMBEDDER_HOST:-https://api.openai.com/v1}
+    api_key: ${MEM0_EMBEDDER_API_KEY:-}
 
 vector_store:
   provider: chroma
   config:
-    collection_name: novatech_memories
+    collection_name: zodiac_bank_memories
     host: chromadb
     port: 8000
 
@@ -28,11 +30,15 @@ history_db_path: /data/mem0/history.db
 
 memory_levels:
   user_id:
-    description: Long-lived preferences and facts scoped to one user.
+    description: Customer or staff principal, using canonical ZB-CUS-* or ZB-STF-* IDs.
   run_id:
-    description: Short-lived conversation state for one execution/session.
+    description: Short-lived conversation or case state, using canonical case IDs where applicable.
   agent_id:
-    description: Agent-owned facts and observations scoped to one agent.
+    description: Orchestrator worker that owns or observed the fact.
+  branch_id:
+    description: Canonical ZB-BR-* branch scope retained as immutable provenance metadata.
+  entity_id:
+    description: Canonical customer, staff, account, policy, or case identifier.
 
 api:
   base_url: http://127.0.0.1:8888

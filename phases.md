@@ -21,6 +21,7 @@ flowchart TD
         MILVUS["💾 Milvus :19530<br/>Production Vector DB"]:::sto
         CHROMA["📚 ChromaDB :8010<br/>Optional Vector Store"]:::sto
         LR["🔗 LightRAG :9621<br/>Graph RAG"]:::sto
+        GC["🧠 Graph Context :5070<br/>Bounded graph + context packets"]:::sto
     end
 
     subgraph L4["Layer 4: Memory"]
@@ -56,13 +57,14 @@ flowchart TD
     end
 
     KONG --> A1 & A2 & A3
-    A1 --> BONSAI & MEM0 & MILVUS & LR
+    A1 --> BONSAI & MEM0 & MILVUS & LR & GC
     A2 --> BONSAI & MEM0 & MILVUS & LR
     A3 --> BONSAI
     A1 & A2 --> A2A1 & MCP1 & MCP2
     A2A1 --> A2A2
-    A2A2 --> LR
+    A2A2 --> LR & GC
     AO -.->|manages| A1 & A2 & A3
+    AO -.->|plans with bounded context| GC
     UA -.->|visualizes| LR
     A1 & A2 & A3 -.->|logs| FB
     FB --> ES

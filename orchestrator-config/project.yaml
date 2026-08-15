@@ -1,38 +1,90 @@
-# Lab manifest for the Agent Orchestrator setup helper.
-# AO persists its active project registry in SQLite; this file documents the
-# intended project/worker configuration for the red-team exercises.
+# Zodiac Bank manifest for the Agent Orchestrator setup helper.
+# The machine-readable workflow projection is validated against
+# bank-data/workflows.json by scripts/validate_zodiac_bank.py.
 version: 1
 upstream: https://github.com/Untrivial-ai/agent-orchestrator
 project:
-  id: ai-redteam-lab
+  id: zodiac-bank-ai-security
   repository: ~/ai-redteam-lab
   mode: local-git
+  bank_id: ZB-BANK-001
+  workflow_manifest: orchestrator-config/zodiac-bank.json
+  graph_context_contract: zodiac-context:v1
 orchestrator:
-  name: NovaTech Lab Orchestrator
-  role: plans tasks, delegates work to workers, and aggregates results
-  trust_policy: intentionally-insecure-lab
+  id: zodiac-bank-orchestrator
+  name: Zodiac Bank AI Security Orchestrator
+  role: plans bounded bank workflows, delegates to typed workers, and aggregates provenance-aware results
+  trust_policy: intentionally-insecure-training-lab
 workers:
-  - id: aurora
-    name: Aurora
+  - id: customer-support
+    name: Customer Support Worker
     role: support
     endpoint: http://127.0.0.1:5000
     model: bonsai-27b
-  - id: phoenix
-    name: Phoenix
-    role: code_review
-    endpoint: http://127.0.0.1:5001
+  - id: knowledge-retriever
+    name: Knowledge Retrieval Worker
+    role: retrieval
+    endpoint: http://127.0.0.1:5011
     model: bonsai-27b
-  - id: assistant
-    name: Assistant
-    role: general
+  - id: fraud-analyst
+    name: Fraud Analyst Worker
+    role: fraud
     endpoint: http://127.0.0.1:5002
     model: bonsai-27b
+  - id: compliance-officer
+    name: Compliance Officer Worker
+    role: compliance
+    endpoint: http://127.0.0.1:5002
+    model: bonsai-27b
+  - id: credit-reviewer
+    name: Credit Review Worker
+    role: credit
+    endpoint: http://127.0.0.1:5001
+    model: bonsai-27b
+  - id: branch-manager-north
+    name: North Branch Manager Worker
+    role: branch_manager
+    endpoint: http://127.0.0.1:5002
+    model: bonsai-27b
+  - id: branch-manager-east
+    name: East Branch Manager Worker
+    role: branch_manager
+    endpoint: http://127.0.0.1:5002
+    model: bonsai-27b
+  - id: branch-manager-west
+    name: West Branch Manager Worker
+    role: branch_manager
+    endpoint: http://127.0.0.1:5002
+    model: bonsai-27b
+  - id: graph-context-engineer
+    name: Graph Context Engineering Worker
+    role: graph_context
+    endpoint: http://127.0.0.1:5070
+    model: none
+  - id: context-engineer
+    name: Context Engineering Worker
+    role: context_engineering
+    endpoint: http://127.0.0.1:5070
+    model: none
+  - id: siem-analyst
+    name: SIEM Detection Worker
+    role: detection
+    endpoint: http://127.0.0.1:5601
+    model: none
+  - id: supply-chain-reviewer
+    name: Supply Chain Review Worker
+    role: supply_chain
+    endpoint: local://dependency-sweeper
+    model: none
 watch:
   repository: ~/ai-redteam-lab
   include:
     - apps/**
     - a2a-agents/**
-    - mcp-wrapper/**
+    - bank-data/**
+    - training-config/**
+    - loop-config/**
+    - orchestrator-config/**
     - exercises/**
   exclude:
     - models/*.gguf

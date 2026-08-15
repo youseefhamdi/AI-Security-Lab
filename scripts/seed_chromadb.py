@@ -19,7 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = Path(os.environ.get("RAG_DOCS_DIR", PROJECT_ROOT / "rag-docs"))
 CHROMA_URL = os.environ.get("CHROMA_URL", "http://localhost:8001").rstrip("/")
 CHROMA_API_URL = os.environ.get("CHROMA_API_URL", f"{CHROMA_URL}/api/v1").rstrip("/")
-COLLECTION_NAME = os.environ.get("CHROMA_COLLECTION", "novatech_docs")
+COLLECTION_NAME = os.environ.get("CHROMA_COLLECTION", "zodiac_bank_docs")
 CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "500"))
 CHUNK_OVERLAP = int(os.environ.get("CHUNK_OVERLAP", "100"))
 REQUEST_TIMEOUT = float(os.environ.get("CHROMA_TIMEOUT", "15"))
@@ -104,7 +104,7 @@ def get_or_create_collection(session: requests.Session) -> str:
     collection_url = f"{CHROMA_API_URL}/collections"
     payload = {
         "name": COLLECTION_NAME,
-        "metadata": {"description": "NovaTech AI Red Team Lab RAG documents"},
+        "metadata": {"description": "Zodiac Bank AI Security Lab RAG documents"},
         "get_or_create": True,
     }
     log(f"Creating or reusing collection '{COLLECTION_NAME}'")

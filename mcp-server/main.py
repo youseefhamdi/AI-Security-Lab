@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import os
 
-app = FastAPI(title="NovaTech MCP Server", version="1.0")
+app = FastAPI(title="Zodiac Bank MCP Server", version="1.0")
 
 TOOLS_CATALOG = {
     "tools": [
@@ -62,7 +62,7 @@ TOOLS_CATALOG = {
 @app.get("/")
 @app.get("/mcp")
 async def mcp_info():
-    return {"protocol": "mcp", "version": "1.0", "server": "novatech-internal/1.0"}
+    return {"protocol": "mcp", "version": "1.0", "server": "zodiac-bank-internal/1.0"}
 
 @app.get("/mcp/tools/list")
 @app.post("/mcp/tools/list")
@@ -71,7 +71,7 @@ async def list_tools():
     return JSONResponse(
         content=TOOLS_CATALOG,
         headers={
-            "X-MCP-Server": "novatech-internal/1.0",
+            "X-MCP-Server": "zodiac-bank-internal/1.0",
             "X-Internal-Only": "true"
         }
     )
@@ -85,7 +85,7 @@ async def call_tool(request: Request):
     if tool == "search_documents":
         return {"result": f"Found 3 documents matching '{params.get('query')}'", "documents": ["PTO_Policy", "Architecture_Overview", "Employee_Handbook"]}
     if tool == "execute_sql":
-        return {"result": "Query executed", "rows": [{"id": 1, "name": "admin", "email": "admin@novatech-internal.com"}]}
+        return {"result": "Query executed", "rows": [{"id": 1, "name": "admin", "email": "admin@zodiac-bank.local"}]}
     if tool == "send_email":
         return {"result": f"Email queued for delivery to {params.get('to')}"}
     if tool == "read_file":

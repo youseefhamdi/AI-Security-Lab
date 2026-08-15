@@ -9,6 +9,7 @@ script never downloads a model.
 from __future__ import annotations
 
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -22,21 +23,24 @@ except ImportError:
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = Path(os.environ.get("RAG_DOCS_DIR", PROJECT_ROOT / "rag-docs"))
-COLLECTION_NAME = os.environ.get("CHROMA_COLLECTION", "novatech_docs")
-MILVUS_COLLECTION = os.environ.get("MILVUS_COLLECTION", "novatech_vectors")
+COLLECTION_NAME = os.environ.get("CHROMA_COLLECTION", "zodiac_bank_docs")
+MILVUS_COLLECTION = os.environ.get("MILVUS_COLLECTION", "zodiac_bank_vectors")
 CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "500"))
 CHUNK_OVERLAP = int(os.environ.get("CHUNK_OVERLAP", "100"))
-VECTOR_DIMENSION = 768
+VECTOR_DIMENSION = int(os.environ.get("EMBEDDING_DIM", "768"))
+EMBEDDING_BASE_URL = os.environ.get("EMBEDDING_BASE_URL", "").rstrip("/")
+EMBEDDING_MODEL = os.environ.get(
+    "EMBEDDING_MODEL", "sentence-transformers/all-mpnet-base-v2"
+)
+EMBEDDING_API_KEY = os.environ.get("EMBEDDING_API_KEY", "")
 REQUEST_TIMEOUT = float(os.environ.get("STORAGE_TIMEOUT", "30"))
+EMBEDDING_TIMEOUT = float(os.environ.get("EMBEDDING_TIMEOUT", "120"))
 INDEX_TIMEOUT = int(os.environ.get("LIGHTRAG_INDEX_TIMEOUT", "300"))
 
 CHROMA_API = os.environ.get("CHROMA_API_URL", "http://localhost:8010/api/v1").rstrip("/")
 MILVUS_URI = os.environ.get("MILVUS_URI", "http://localhost:19530")
 LIGHTRAG_URL = os.environ.get("LIGHTRAG_URL", "http://localhost:9621").rstrip("/")
 # Official project: https://github.com/HKUDS/LightRAG
-EMBEDDING_MODEL = os.environ.get(
-    "EMBEDDING_MODEL", "sentence-transformers/all-mpnet-base-v2"
-)
 
 
 def log(message: str) -> None:
@@ -69,6 +73,7 @@ def load_chunks() -> list[dict[str, Any]]:
                     "text": text,
                     "source": path.name,
                     "chunk_id": chunk_id,
+                    "entity_ids": ",".join(sorted(set(re.findall(r"ZB-(?:BR|STF|CUS|PRD|ACCT|POL|CASE)-[A-Z0-9-]+", text)))),
                 }
             )
         log(f"Prepared {path.name}: {len(chunks)} chunk(s)")
@@ -78,6 +83,9 @@ def load_chunks() -> list[dict[str, Any]]:
 
 
 def embed_records(records: list[dict[str, Any]]) -> list[list[float]]:
+    if EMBEDDING_BASE_URL:
+        return embed_records_remote(records)
+
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     try:
         from sentence_transformers import SentenceTransformer
@@ -107,6 +115,35 @@ def embed_records(records: list[dict[str, Any]]) -> list[list[float]]:
     return embeddings
 
 
+def embed_records_remote(records: list[dict[str, Any]]) -> list[list[float]]:
+    """Create index vectors through an OpenAI-compatible embeddings endpoint."""
+    headers = {"Accept": "application/json", "Content-Type": "application/json"}
+    if EMBEDDING_API_KEY:
+        headers["Authorization"] = f"Bearer {EMBEDDING_API_KEY}"
+    try:
+        response = requests.post(
+            f"{EMBEDDING_BASE_URL}/embeddings",
+            headers=headers,
+            json={"model": EMBEDDING_MODEL, "input": [record["text"] for record in records]},
+            timeout=EMBEDDING_TIMEOUT,
+        )
+        response.raise_for_status()
+        body = response.json()
+        rows = sorted(body.get("data") or [], key=lambda row: int(row.get("index", 0)))
+        embeddings = [row.get("embedding") for row in rows]
+        if len(embeddings) != len(records) or any(not isinstance(vector, list) for vector in embeddings):
+            fail("embedding provider returned an incomplete vector batch")
+        normalized = [[float(value) for value in vector] for vector in embeddings]
+        if any(len(vector) != VECTOR_DIMENSION for vector in normalized):
+            actual = len(normalized[0]) if normalized else 0
+            fail(f"embedding dimension is {actual}; expected {VECTOR_DIMENSION}")
+        log(f"Created {len(normalized)} embeddings with {EMBEDDING_MODEL}")
+        return normalized
+    except (requests.RequestException, ValueError, TypeError, KeyError) as exc:
+        fail(f"remote embedding request failed: {exc}")
+        return []
+
+
 def response_error(response: requests.Response) -> str:
     try:
         return str(response.json())[:600]
@@ -130,7 +167,12 @@ def seed_chromadb(session: requests.Session, records: list[dict[str, Any]], embe
             "ids": [record["id"] for record in records],
             "documents": [record["text"] for record in records],
             "metadatas": [
-                {"source": record["source"], "chunk_id": record["chunk_id"]}
+                {
+                    "source": record["source"],
+                    "chunk_id": record["chunk_id"],
+                    "entity_ids": record["entity_ids"],
+                    "domain": "zodiac-bank",
+                }
                 for record in records
             ],
             "embeddings": embeddings,

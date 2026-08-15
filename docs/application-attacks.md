@@ -4,11 +4,11 @@ These exercises target the deliberately vulnerable Aurora and Phoenix applicatio
 
 ## Aurora prompt injection
 
-Aurora concatenates the user request with LightRAG and Mem0 context before sending it to the Ollama model. It does not robustly distinguish instructions from retrieved data. A user can attempt to override the support persona, request hidden context, or make retrieved text act as an instruction.
+Aurora uses structured context engineering by default: the user request, canonical graph packet, retrieved documents, LightRAG output, and Mem0 results are separated and marked by trust. Set `CONTEXT_ENGINEERING_MODE=legacy` only for the controlled comparison; legacy mode concatenates retrieved context with the user request and intentionally preserves the prompt-injection weakness. A user can then attempt to override the support persona, request hidden context, or make retrieved text act as an instruction.
 
 **Exercise:** send the prompt-injection payload in `exercises/app_attacks.sh` and inspect whether Aurora reveals its system prompt, internal backend details, or memory content.
 
-**Defenses to compare:** structured message roles, untrusted-context delimiters, retrieval sanitization, instruction hierarchy enforcement, output filtering, and human approval for sensitive actions.
+**Defenses to compare:** structured message roles, the bounded `/v1/context/assemble` packet, untrusted-context delimiters, provenance validation, instruction-like content detection, output filtering, and human approval for sensitive actions.
 
 ## Aurora debug endpoint exploitation
 

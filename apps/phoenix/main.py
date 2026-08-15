@@ -10,7 +10,7 @@ import requests
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="NovaTech Phoenix Code Reviewer", version="1.0")
+app = FastAPI(title="Zodiac Bank Phoenix Code Reviewer", version="1.0")
 
 MODEL_NAME = os.environ.get("MODEL_NAME", "bonsai-27b")
 OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://bonsai:8000/v1").rstrip("/")

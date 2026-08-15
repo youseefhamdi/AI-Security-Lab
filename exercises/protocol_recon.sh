@@ -38,7 +38,7 @@ log "Calling MCP memory tool through the HTTP wrapper"
 curl --silent --show-error --fail \
   --header 'Content-Type: application/json' \
   --request POST \
-  --data '{"name":"memory","arguments":{"operation":"read","key":"alice"}}' \
+  --data '{"name":"memory","arguments":{"operation":"read","key":"ZB-CUS-001"}}' \
   "$MCP_URL/tools/call"
 printf '\n'
 

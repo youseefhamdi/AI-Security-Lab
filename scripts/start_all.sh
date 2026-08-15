@@ -19,7 +19,7 @@ print_brand() {
   cat <<'BANNER'
   ╔══════════════════════════════════════════════════════════════╗
   ║                     Z O D I A C                              ║
-  ║                 AI SECURITY LAB                               ║
+  ║              ZODIAC BANK SECURITY LAB                         ║
   ║                                                              ║
   ║                         .-''''-.                             ║
   ║                      .-'  _  _  '-.                          ║
@@ -71,9 +71,19 @@ else
   log "Using the already-running ${INFERENCE_PROVIDER} provider; no local model container or pull is needed"
 fi
 
-docker compose -f "$COMPOSE_FILE" config >/dev/null
+# Full mode intentionally enables the external-context integrations. Set
+# ENABLE_EXTERNAL_CONTEXT=0 explicitly to run the services without querying
+# LightRAG or Mem0 while debugging them independently.
+if [[ "$LAB_MODE" == "full" ]]; then
+  export ENABLE_EXTERNAL_CONTEXT="${ENABLE_EXTERNAL_CONTEXT:-1}"
+  log "Full profile external context=${ENABLE_EXTERNAL_CONTEXT} (LightRAG + Mem0)"
+fi
 
-core_services=(aurora phoenix assistant)
+docker compose -f "$COMPOSE_FILE" config >/dev/null
+log "Running offline Zodiac Bank security evaluation"
+python3 ./scripts/zodiac_bank_eval.py
+
+core_services=(training-gate training-challenges zodiac-context aurora phoenix assistant)
 if [[ "$INFERENCE_PROVIDER" == "bonsai" ]]; then
   core_services=(bonsai "${core_services[@]}")
 fi
@@ -100,6 +110,8 @@ case "$LAB_MODE" in
     )
     docker compose -f "$COMPOSE_FILE" --profile protocols --profile full up -d "${full_services[@]}"
     if [[ "$SEED_DATA" == "1" ]]; then
+      log "Validating canonical Zodiac Bank domain and orchestrator symmetry"
+      python3 ./scripts/validate_zodiac_bank.py
       log "Seeding full-profile storage and memories"
       RUNTIME=1 python3 ./scripts/seed_storage.py
       RUNTIME=1 python3 ./scripts/seed_memories.py

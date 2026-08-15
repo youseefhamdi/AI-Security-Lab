@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "bank_id": "ZB-BANK-001",
+  "orchestrator_id": "zodiac-bank-orchestrator",
+  "workflow_source": "bank-data/workflows.json",
+  "capabilities": {
+    "graph_engineering": {"service": "zodiac-context", "schema_version": 1, "bounded_traversal_depth": 3},
+    "context_engineering": {"service": "zodiac-context", "schema_version": 1, "max_packet_chars": 16000, "evidence_is_untrusted": true}
+  },
+  "workers": [
+    "customer-support",
+    "knowledge-retriever",
+    "fraud-analyst",
+    "compliance-officer",
+    "credit-reviewer",
+    "branch-manager-north",
+    "branch-manager-east",
+    "branch-manager-west",
+    "siem-analyst",
+    "supply-chain-reviewer",
+    "graph-context-engineer",
+    "context-engineer"
+  ],
+  "workflows": [
+    {"workflow_id": "customer-onboarding", "delegates_to": ["customer-support", "branch-manager-north", "compliance-officer", "branch-manager-east", "fraud-analyst"]},
+    {"workflow_id": "fraud-investigation", "delegates_to": ["fraud-analyst", "compliance-officer", "branch-manager-east", "siem-analyst"]},
+    {"workflow_id": "credit-review", "delegates_to": ["credit-reviewer", "branch-manager-west", "compliance-officer", "fraud-analyst"]},
+    {"workflow_id": "support-escalation", "delegates_to": ["customer-support", "knowledge-retriever", "branch-manager-north", "fraud-analyst", "siem-analyst"]},
+    {"workflow_id": "ai-incident-response", "delegates_to": ["siem-analyst", "knowledge-retriever", "customer-support", "compliance-officer", "fraud-analyst", "supply-chain-reviewer"]}
+  ]
+}

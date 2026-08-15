@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "bank_id": "ZB-BANK-001",
+  "bank_name": "Zodiac Bank",
+  "data_classification": "synthetic-training-only",
+  "branches": [
+    {"branch_id": "ZB-BR-001", "name": "Aurora Heights", "region": "North", "risk_tier": "standard", "manager_staff_id": "ZB-STF-001"},
+    {"branch_id": "ZB-BR-002", "name": "Harbor Point", "region": "East", "risk_tier": "elevated", "manager_staff_id": "ZB-STF-002"},
+    {"branch_id": "ZB-BR-003", "name": "Cedar Square", "region": "West", "risk_tier": "standard", "manager_staff_id": "ZB-STF-003"}
+  ],
+  "staff": [
+    {"staff_id": "ZB-STF-001", "name": "Mira Rowan", "role": "branch_manager", "branch_id": "ZB-BR-001", "clearance": "branch", "worker_id": "branch-manager-north"},
+    {"staff_id": "ZB-STF-002", "name": "Jon Bell", "role": "branch_manager", "branch_id": "ZB-BR-002", "clearance": "branch", "worker_id": "branch-manager-east"},
+    {"staff_id": "ZB-STF-003", "name": "Lina Ortiz", "role": "branch_manager", "branch_id": "ZB-BR-003", "clearance": "branch", "worker_id": "branch-manager-west"},
+    {"staff_id": "ZB-STF-004", "name": "Ravi Chen", "role": "fraud_analyst", "branch_id": "ZB-BR-002", "clearance": "fraud", "worker_id": "fraud-analyst"},
+    {"staff_id": "ZB-STF-005", "name": "Nia Brooks", "role": "compliance_officer", "branch_id": "ZB-BR-001", "clearance": "compliance", "worker_id": "compliance-officer"},
+    {"staff_id": "ZB-STF-006", "name": "Owen Park", "role": "credit_reviewer", "branch_id": "ZB-BR-003", "clearance": "credit", "worker_id": "credit-reviewer"}
+  ],
+  "customers": [
+    {"customer_id": "ZB-CUS-001", "name": "Alice Morgan", "segment": "premier", "home_branch_id": "ZB-BR-001", "kyc_status": "verified", "risk_rating": "low"},
+    {"customer_id": "ZB-CUS-002", "name": "Benoit Hart", "segment": "small_business", "home_branch_id": "ZB-BR-002", "kyc_status": "review", "risk_rating": "medium"},
+    {"customer_id": "ZB-CUS-003", "name": "Cora Singh", "segment": "retail", "home_branch_id": "ZB-BR-003", "kyc_status": "verified", "risk_rating": "low"},
+    {"customer_id": "ZB-CUS-004", "name": "Dara Wells", "segment": "retail", "home_branch_id": "ZB-BR-002", "kyc_status": "verified", "risk_rating": "high"}
+  ],
+  "products": [
+    {"product_id": "ZB-PRD-CHECKING", "name": "Zodiac Everyday Checking", "category": "deposit", "approval_path": "standard"},
+    {"product_id": "ZB-PRD-SAVINGS", "name": "Zodiac Growth Savings", "category": "deposit", "approval_path": "standard"},
+    {"product_id": "ZB-PRD-CREDIT", "name": "Zodiac Flex Credit", "category": "credit", "approval_path": "manual-if-risk-high"}
+  ],
+  "accounts": [
+    {"account_id": "ZB-ACCT-1001", "customer_id": "ZB-CUS-001", "branch_id": "ZB-BR-001", "product_id": "ZB-PRD-CHECKING", "status": "active", "balance_band": "10k-25k"},
+    {"account_id": "ZB-ACCT-1002", "customer_id": "ZB-CUS-001", "branch_id": "ZB-BR-001", "product_id": "ZB-PRD-SAVINGS", "status": "active", "balance_band": "25k-50k"},
+    {"account_id": "ZB-ACCT-2001", "customer_id": "ZB-CUS-002", "branch_id": "ZB-BR-002", "product_id": "ZB-PRD-CHECKING", "status": "restricted", "balance_band": "50k-100k"},
+    {"account_id": "ZB-ACCT-3001", "customer_id": "ZB-CUS-003", "branch_id": "ZB-BR-003", "product_id": "ZB-PRD-CREDIT", "status": "active", "balance_band": "under-10k"},
+    {"account_id": "ZB-ACCT-4001", "customer_id": "ZB-CUS-004", "branch_id": "ZB-BR-002", "product_id": "ZB-PRD-CHECKING", "status": "monitored", "balance_band": "10k-25k"}
+  ],
+  "policies": [
+    {"policy_id": "ZB-POL-KYC-001", "name": "Customer Verification", "owner_worker_id": "compliance-officer", "applies_to": ["customer_onboarding", "high_risk_review"], "version": "2026.1"},
+    {"policy_id": "ZB-POL-FRAUD-001", "name": "Suspicious Activity Review", "owner_worker_id": "fraud-analyst", "applies_to": ["fraud_investigation", "account_monitoring"], "version": "2026.1"},
+    {"policy_id": "ZB-POL-CREDIT-001", "name": "Credit Decisioning", "owner_worker_id": "credit-reviewer", "applies_to": ["credit_review"], "version": "2026.1"}
+  ],
+  "cases": [
+    {"case_id": "ZB-CASE-001", "type": "customer_onboarding", "customer_id": "ZB-CUS-002", "branch_id": "ZB-BR-002", "priority": "high", "assigned_worker_id": "compliance-officer", "state": "review"},
+    {"case_id": "ZB-CASE-002", "type": "fraud_investigation", "customer_id": "ZB-CUS-004", "branch_id": "ZB-BR-002", "priority": "critical", "assigned_worker_id": "fraud-analyst", "state": "open"},
+    {"case_id": "ZB-CASE-003", "type": "credit_review", "customer_id": "ZB-CUS-003", "branch_id": "ZB-BR-003", "priority": "normal", "assigned_worker_id": "credit-reviewer", "state": "queued"},
+    {"case_id": "ZB-CASE-004", "type": "support_request", "customer_id": "ZB-CUS-001", "branch_id": "ZB-BR-001", "priority": "normal", "assigned_worker_id": "customer-support", "state": "open"},
+    {"case_id": "ZB-CASE-005", "type": "ai_security_alert", "incident_type": "prompt_injection", "customer_id": "ZB-CUS-001", "branch_id": "ZB-BR-001", "priority": "critical", "assigned_worker_id": "siem-analyst", "state": "open"},
+    {"case_id": "ZB-CASE-006", "type": "ai_security_alert", "incident_type": "memory_poisoning", "customer_id": "ZB-CUS-002", "branch_id": "ZB-BR-002", "priority": "high", "assigned_worker_id": "fraud-analyst", "state": "open"},
+    {"case_id": "ZB-CASE-007", "type": "ai_security_alert", "incident_type": "supply_chain", "customer_id": "ZB-CUS-003", "branch_id": "ZB-BR-003", "priority": "high", "assigned_worker_id": "supply-chain-reviewer", "state": "open"}
+  ],
+  "relationships": [
+    {"from": "ZB-CUS-001", "relation": "owns", "to": "ZB-ACCT-1001"},
+    {"from": "ZB-CUS-001", "relation": "owns", "to": "ZB-ACCT-1002"},
+    {"from": "ZB-CUS-002", "relation": "owns", "to": "ZB-ACCT-2001"},
+    {"from": "ZB-CUS-003", "relation": "owns", "to": "ZB-ACCT-3001"},
+    {"from": "ZB-CUS-004", "relation": "owns", "to": "ZB-ACCT-4001"},
+    {"from": "ZB-BR-001", "relation": "managed_by", "to": "ZB-STF-001"},
+    {"from": "ZB-BR-002", "relation": "managed_by", "to": "ZB-STF-002"},
+    {"from": "ZB-BR-003", "relation": "managed_by", "to": "ZB-STF-003"}
+  ]
+}

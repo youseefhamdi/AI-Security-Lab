@@ -5,11 +5,11 @@ CHROMA_API_URL="${CHROMA_API_URL:-http://127.0.0.1:8010/api/v1}"
 CHROMA_COLLECTION_ID="${CHROMA_COLLECTION_ID:-}"
 # Official project: https://github.com/milvus-io/milvus
 MILVUS_URL="${MILVUS_URL:-http://127.0.0.1:19530}"
-MILVUS_COLLECTION="${MILVUS_COLLECTION:-novatech_vectors}"
+MILVUS_COLLECTION="${MILVUS_COLLECTION:-zodiac_bank_vectors}"
 LIGHTRAG_URL="${LIGHTRAG_URL:-http://127.0.0.1:9621}"
 QUERY_EMBEDDING_JSON="${QUERY_EMBEDDING_JSON:-}"
 RECON_QUERY="${RECON_QUERY:-vacation policy and internal infrastructure}"
-ENTITY="${ENTITY:-NovaTech}"
+ENTITY="${ENTITY:-Zodiac Bank}"
 
 log() {
   printf '[storage-recon] %s\n' "$*"
@@ -35,7 +35,7 @@ curl --silent --show-error --fail \
   --header 'Accept: application/json' \
   --header 'Content-Type: application/json' \
   --request POST \
-  --data "{\"query_embeddings\":[${QUERY_EMBEDDING_JSON}],\"n_results\":5,\"where_document\":{\"\$contains\":\"NovaTech\"}}" \
+  --data "{\"query_embeddings\":[${QUERY_EMBEDDING_JSON}],\"n_results\":5,\"where_document\":{\"\$contains\":\"Zodiac Bank\"}}" \
   "${CHROMA_API_URL}/collections/${CHROMA_COLLECTION_ID}/query"
 printf '\n'
 
