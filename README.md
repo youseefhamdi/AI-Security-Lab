@@ -174,7 +174,7 @@ docker compose config >/tmp/zodiac-compose.yml
 If the Bonsai model is outside the repository, set its directory in `.env`:
 
 ```bash
-printf 'BONSAI_MODEL_DIR=/home/elaref/.lmstudio/hub/models/prism-ml/bonsai-27b\n' > .env
+printf 'BONSAI_MODEL_DIR=/mnt/nvme5/lmstudio/models/lmstudio-community/Bonsai-27B-GGUF\n' > .env
 ```
 
 The lab recursively discovers the `.gguf` file in that directory. Do not leave the placeholder `your-actual-file.gguf` in `.env`.
@@ -292,7 +292,7 @@ BONSAI_MODEL_FILE=your-actual-bonsai-file.gguf
 If the model is stored outside the repository—for example in your LM Studio hub on another partition—point the lab at that directory. The scripts recursively discover the first `.gguf` file and Compose mounts the directory read-only:
 
 ```bash
-printf 'BONSAI_MODEL_DIR=/home/elaref/.lmstudio/hub/models/prism-ml/bonsai-27b\n' > .env
+printf 'BONSAI_MODEL_DIR=/mnt/nvme5/lmstudio/models/lmstudio-community/Bonsai-27B-GGUF\n' > .env
 ./scripts/pull_models.sh
 ```
 
