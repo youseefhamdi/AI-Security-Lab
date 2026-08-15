@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/youseefhamdi/AI-Security-Lab">
-  <img src="docs/assets/ai-security-lab-banner.svg" alt="Zodiac AI Security Lab — Spartan-inspired security banner" width="100%" />
+  <img src="docs/assets/ai-security-lab-banner.svg" alt="Animated AI Security Lab banner with a Spartan fighter emblem" width="100%" />
 </a>
 
 [![Brand](https://img.shields.io/badge/Brand-ZODIAC-0F172A?logo=target&logoColor=67E8F9)](#-what-is-this)
@@ -157,16 +157,16 @@ RUNTIME=1 ./scripts/test_inference.sh
 
 ### Core mode
 
-The startup helper displays the ZODIAC Spartan terminal banner, and Compose uses the project name `zodiac-ai-security-lab`.
-
-```bash
-docker compose up -d
-```
-
-Or use the guarded startup helper:
+Use the branded startup helper. It displays the animated ZODIAC Spartan activation before launching the lab, and Compose uses the project name `zodiac-ai-security-lab`.
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
+```
+
+Direct Compose startup is also supported, but bypasses the terminal brand animation:
+
+```bash
+docker compose up -d
 ```
 
 ### Lite protocol mode

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="360" viewBox="0 0 1400 360" role="img" aria-labelledby="title desc">
-  <title id="title">Zodiac AI Security Lab</title>
-  <desc id="desc">Animated neon banner with a Spartan emblem for Zodiac AI Security Lab.</desc>
+  <title id="title">AI Security Lab</title>
+  <desc id="desc">Animated neon banner with a Spartan fighter emblem for an AI security lab.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#070b1c"/>
@@ -35,13 +35,18 @@
       .float2 { animation: float 6s ease-in-out 1s infinite; }
       .scan { animation: scan 4.5s linear infinite; }
       .dash { animation: dash 3s linear infinite; }
+      .orbit { transform-box: view-box; transform-origin: 147px 171px; animation: orbit 12s linear infinite; }
+      .particle { animation: particle 3.8s ease-in-out infinite; }
+      .particle2 { animation: particle 3.8s ease-in-out 1.4s infinite; }
       @keyframes pulse { 0%,100% { opacity: .35; transform: scale(.75); } 50% { opacity: 1; transform: scale(1.25); } }
       @keyframes titleGlow { 0%,100% { opacity: .78; filter: drop-shadow(0 0 2px #67e8f9); } 50% { opacity: 1; filter: drop-shadow(0 0 12px #c4b5fd); } }
       @keyframes subtitleFade { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
       @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
       @keyframes scan { from { transform: translateX(-260px); } to { transform: translateX(1460px); } }
       @keyframes dash { to { stroke-dashoffset: -80; } }
-      @media (prefers-reduced-motion: reduce) { .pulse,.pulse2,.float,.float2,.scan,.dash,.title,.subtitle { animation: none; } }
+      @keyframes orbit { to { transform: rotate(360deg); } }
+      @keyframes particle { 0%,100% { opacity: .1; transform: translateY(8px) scale(.7); } 50% { opacity: .9; transform: translateY(-12px) scale(1.2); } }
+      @media (prefers-reduced-motion: reduce) { .pulse,.pulse2,.float,.float2,.scan,.dash,.title,.subtitle,.orbit,.particle,.particle2 { animation: none; } }
     </style>
   </defs>
 
@@ -71,12 +76,21 @@
     <text x="1050" y="203" class="micro" fill="#c4b5fd">RAG / A2A / MCP / SIEM</text>
   </g>
 
-  <image href="zodiac-spartan-logo.svg" x="58" y="82" width="178" height="178" class="float"/>
+  <g class="orbit" fill="none" stroke-linecap="round">
+    <ellipse cx="147" cy="171" rx="112" ry="76" stroke="#67e8f9" stroke-opacity=".35" stroke-width="2" stroke-dasharray="3 15"/>
+    <ellipse cx="147" cy="171" rx="96" ry="64" stroke="#f9a8d4" stroke-opacity=".28" stroke-width="2" stroke-dasharray="2 12" transform="rotate(60 147 171)"/>
+  </g>
+  <g fill="#67e8f9">
+    <circle class="particle" cx="52" cy="70" r="3"/>
+    <circle class="particle2" cx="242" cy="275" r="2"/>
+    <circle class="particle" cx="248" cy="56" r="2"/>
+  </g>
+  <image href="spartan-emblem.svg" x="58" y="82" width="178" height="178" class="float"/>
 
   <g transform="translate(270 76)">
-    <text class="micro" fill="#67e8f9">[ ZODIAC // AUTHORIZED RESEARCH ]</text>
-    <text y="78" class="title" fill="url(#titleGradient)">ZODIAC</text>
-    <text y="119" class="subtitle" fill="#e2e8f0">AI SECURITY LAB  ·  RECON  ·  ATTACK</text>
+    <text class="micro" fill="#67e8f9">[ LOCAL-FIRST // AUTHORIZED RESEARCH ]</text>
+    <text y="78" class="title" fill="url(#titleGradient)">AI SECURITY LAB</text>
+    <text y="119" class="subtitle" fill="#e2e8f0">RED TEAM WORKBENCH  ·  RECON  ·  ATTACK</text>
     <text y="160" class="micro" fill="#94a3b8">OBSERVE  /  DETECT  /  HARDEN</text>
 
     <g transform="translate(0 194)">
