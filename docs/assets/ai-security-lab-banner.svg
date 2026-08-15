@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="360" viewBox="0 0 1400 360" role="img" aria-labelledby="title desc">
+  <title id="title">AI Security Lab</title>
+  <desc id="desc">Animated neon banner for a local AI red team laboratory.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#070b1c"/>
+      <stop offset="48%" stop-color="#11133a"/>
+      <stop offset="100%" stop-color="#240d35"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#f472b6"/>
+    </linearGradient>
+    <linearGradient id="titleGradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="52%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#f9a8d4"/>
+    </linearGradient>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M 36 0 L 0 0 0 36" fill="none" stroke="#94a3b8" stroke-opacity=".09" stroke-width="1"/>
+    </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      .title { font: 800 58px 'Inter', 'Segoe UI', sans-serif; letter-spacing: 7px; }
+      .subtitle { font: 600 18px 'Inter', 'Segoe UI', sans-serif; letter-spacing: 5px; }
+      .micro { font: 500 13px 'JetBrains Mono', 'SFMono-Regular', monospace; letter-spacing: 2px; }
+      .badge { font: 700 13px 'Inter', 'Segoe UI', sans-serif; letter-spacing: 1px; }
+      .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.8s ease-in-out infinite; }
+      .pulse2 { transform-box: fill-box; transform-origin: center; animation: pulse 2.8s ease-in-out 1.2s infinite; }
+      .float { animation: float 5s ease-in-out infinite; }
+      .float2 { animation: float 6s ease-in-out 1s infinite; }
+      .scan { animation: scan 4.5s linear infinite; }
+      .dash { animation: dash 3s linear infinite; }
+      @keyframes pulse { 0%,100% { opacity: .35; transform: scale(.75); } 50% { opacity: 1; transform: scale(1.25); } }
+      @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+      @keyframes scan { from { transform: translateX(-260px); } to { transform: translateX(1460px); } }
+      @keyframes dash { to { stroke-dashoffset: -80; } }
+      @media (prefers-reduced-motion: reduce) { .pulse,.pulse2,.float,.float2,.scan,.dash { animation: none; } }
+    </style>
+  </defs>
+
+  <rect width="1400" height="360" rx="26" fill="url(#bg)"/>
+  <rect x="1.5" y="1.5" width="1397" height="357" rx="25" fill="none" stroke="url(#edge)" stroke-opacity=".8" stroke-width="3"/>
+  <rect x="22" y="22" width="1356" height="316" rx="18" fill="url(#grid)"/>
+
+  <g opacity=".55" filter="url(#glow)">
+    <circle class="pulse" cx="1080" cy="92" r="5" fill="#22d3ee"/>
+    <circle class="pulse2" cx="1190" cy="238" r="4" fill="#f472b6"/>
+    <circle class="pulse" cx="1280" cy="155" r="3" fill="#a78bfa"/>
+  </g>
+
+  <g class="float" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 1015 78 L 1095 125 L 1170 82 L 1250 130 L 1325 91" stroke="#67e8f9" stroke-opacity=".65" stroke-width="2" stroke-dasharray="8 12" class="dash"/>
+    <path d="M 1035 260 L 1120 205 L 1200 254 L 1285 195 L 1350 230" stroke="#f9a8d4" stroke-opacity=".45" stroke-width="2" stroke-dasharray="5 14" class="dash"/>
+    <circle cx="1015" cy="78" r="7" fill="#0f172a" stroke="#67e8f9" stroke-width="3"/>
+    <circle cx="1095" cy="125" r="7" fill="#0f172a" stroke="#a78bfa" stroke-width="3"/>
+    <circle cx="1170" cy="82" r="7" fill="#0f172a" stroke="#67e8f9" stroke-width="3"/>
+    <circle cx="1250" cy="130" r="7" fill="#0f172a" stroke="#f9a8d4" stroke-width="3"/>
+    <circle cx="1325" cy="91" r="7" fill="#0f172a" stroke="#67e8f9" stroke-width="3"/>
+  </g>
+
+  <g class="float2" opacity=".7">
+    <rect x="1028" y="150" width="252" height="74" rx="10" fill="#020617" fill-opacity=".65" stroke="#64748b" stroke-opacity=".45"/>
+    <text x="1050" y="177" class="micro" fill="#67e8f9">THREAT_SURFACE</text>
+    <text x="1050" y="203" class="micro" fill="#c4b5fd">RAG / A2A / MCP / SIEM</text>
+  </g>
+
+  <g transform="translate(78 76)">
+    <text class="micro" fill="#67e8f9">[ LOCAL-FIRST // AUTHORIZED RESEARCH ]</text>
+    <text y="78" class="title" fill="url(#titleGradient)">AI SECURITY LAB</text>
+    <text y="119" class="subtitle" fill="#e2e8f0">RECON  ·  ATTACK  ·  OBSERVE  ·  DETECT</text>
+    <text y="160" class="micro" fill="#94a3b8">A DELIBERATELY VULNERABLE WORKBENCH FOR AI RED TEAMING</text>
+
+    <g transform="translate(0 194)">
+      <rect width="138" height="34" rx="17" fill="#0e7490" fill-opacity=".28" stroke="#22d3ee" stroke-opacity=".7"/>
+      <text x="69" y="22" text-anchor="middle" class="badge" fill="#a5f3fc">BONSAI 27B</text>
+      <rect x="150" width="126" height="34" rx="17" fill="#6d28d9" fill-opacity=".25" stroke="#a78bfa" stroke-opacity=".7"/>
+      <text x="213" y="22" text-anchor="middle" class="badge" fill="#ddd6fe">LLAMA.CPP</text>
+      <rect x="288" width="150" height="34" rx="17" fill="#be185d" fill-opacity=".22" stroke="#f472b6" stroke-opacity=".7"/>
+      <text x="363" y="22" text-anchor="middle" class="badge" fill="#fbcfe8">DOCKER LAB</text>
+    </g>
+  </g>
+
+  <rect class="scan" x="0" y="30" width="2" height="300" fill="#67e8f9" opacity=".6" filter="url(#glow)"/>
+  <circle cx="1330" cy="310" r="4" fill="#22d3ee" class="pulse"/>
+  <text x="1320" y="322" text-anchor="end" class="micro" fill="#64748b">STATUS: LAB_READY</text>
+</svg>

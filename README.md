@@ -1,20 +1,14 @@
 <div align="center">
 
-# 🛡️ AI SECURITY LAB
-
-### A local, deliberately vulnerable playground for AI red teaming
-
-**Recon · Attack · Observe · Detect**
+<a href="https://github.com/youseefhamdi/AI-Security-Lab">
+  <img src="docs/assets/ai-security-lab-banner.svg" alt="AI Security Lab — Recon, Attack, Observe, Detect" width="100%" />
+</a>
 
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose%20v2-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![Model](https://img.shields.io/badge/Model-PrismML%20Bonsai%2027B-7C3AED)](https://huggingface.co/prism-ml/bonsai-27b)
 [![Inference](https://img.shields.io/badge/Inference-llama.cpp-111827)](https://github.com/ggml-org/llama.cpp)
 [![Security Lab](https://img.shields.io/badge/Purpose-AI%20Security%20Training-EF4444)](#-security-boundary)
 [![Build Policy](https://img.shields.io/badge/VPS-Build--only-F59E0B)](#-vps-build-only-policy)
-
-</div>
-
-<div align="center">
 
 > **An isolated AI security lab for practicing model fingerprinting, prompt injection, RAG attacks, agent protocol abuse, memory poisoning, supply-chain scenarios, and SIEM detection.**
 
