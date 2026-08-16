@@ -19,6 +19,3 @@ models/*.gguf
 # Local build and tooling artifacts
 *.egg-info/
 .pytest_cache/
-
-# Dev-only UI typechecking (npm run typecheck)
-node_modules/

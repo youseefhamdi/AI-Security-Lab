@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 /**
- * Dev-only UI typechecker.
+ * Standalone TypeScript check for the single-file UIs — no npm required.
  *
  * Every Zodiac Bank UI is a single self-contained HTML file (the offline
  * evaluation harness asserts on strings inside those files, so the JS cannot
  * be split out). Type safety is still enforced: this script extracts each
- * inline <script>, writes it to a temp file, and runs the real TypeScript
- * compiler in checkJs mode (tsc --noEmit --allowJs --checkJs). No runtime
- * dependency, no bundler, no build step — the shipped HTML stays vanilla JS.
+ * inline <script>, writes it to a temp file, and runs the TypeScript compiler
+ * in checkJs mode (tsc --noEmit --allowJs --checkJs). No runtime dependency,
+ * no bundler, no build step — the shipped HTML stays vanilla JS.
+ *
+ * It needs the `tsc` binary, resolved in this order:
+ *   1. $TSC                  (explicit path, e.g. a TypeScript install)
+ *   2. tsc on $PATH          (global/standalone TypeScript)
  *
  * Usage:
- *   npm run typecheck          # extract + tsc --checkJs every UI
+ *   node scripts/check_ui_types.mjs            # check every UI
  *   node scripts/check_ui_types.mjs --file apps/aurora/index.html
  */
 
@@ -41,15 +45,15 @@ function extractScripts(htmlPath) {
   return bodies;
 }
 
-/** Locate the TypeScript compiler, preferring a local install. */
+/** Locate the TypeScript compiler: $TSC, then tsc on PATH. */
 function findTsc() {
-  const local = join(ROOT, "node_modules", ".bin", process.platform === "win32" ? "tsc.cmd" : "tsc");
+  if (process.env.TSC) return process.env.TSC;
   try {
-    execFileSync(local, ["--version"], { stdio: "ignore" });
-    return local;
-  } catch {
-    // fall back to a global/whatever tsc resolves on PATH
+    execFileSync("tsc", ["--version"], { stdio: "ignore" });
     return "tsc";
+  } catch {
+    console.error("tsc not found — install TypeScript or set $TSC to the tsc binary.");
+    process.exit(2);
   }
 }
 

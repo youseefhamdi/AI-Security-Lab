@@ -1513,17 +1513,17 @@ Strict mode intentionally withholds stage flags from legacy one-request routes; 
 ## 🛠️ Frontend developer tooling
 
 The trainer, Aurora, Phoenix, and Assistant UIs are deliberate single-file
-vanilla-JS apps — no framework, no bundler, no build step, nothing to serve
-that isn't already in the repo. Type safety is still enforced: the inline
-scripts are JSDoc-typed (`// @ts-check`) and verified with the real TypeScript
-compiler in `checkJs` mode, which runs with zero runtime overhead.
+vanilla-JS apps — no framework, no bundler, no build step, and **no npm or
+package.json anywhere in the project**. Type safety is still enforced: the
+inline scripts are JSDoc-typed (`// @ts-check`) and verified with the real
+TypeScript compiler in `checkJs` mode, which runs with zero runtime overhead.
 
 ```bash
-npm install          # dev-only: installs typescript
-npm run typecheck    # extracts each inline <script> and runs tsc --checkJs
+node scripts/check_ui_types.mjs    # extracts each <script> and runs tsc --checkJs
 ```
 
-The harness (`scripts/check_ui_types.mjs`) validates every UI in one pass:
+The script needs a `tsc` binary (any standalone/global TypeScript install),
+resolved from `$TSC` or `PATH`. It validates every UI in one pass:
 `training-challenges`, `apps/aurora`, `apps/phoenix`, `apps/assistant`.
 
 ## 📜 License
