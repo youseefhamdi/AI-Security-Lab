@@ -25,7 +25,7 @@
     --text: #e9eef7;
     --text-2: #a7b3cb;
     --muted: #8b98b4;
-    --faint: #5a6783;
+    --faint: #71809e;
 
     /* Accents — green is the single hero accent (security), cyan = AI */
     --green: #34d399;
@@ -237,7 +237,7 @@
     padding: 20px 24px; align-items: start; max-width: 1600px; margin: 0 auto;
   }
   @media (max-width: 1120px) { .layout { grid-template-columns: 1fr; } }
-  .sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 78px; }
+  .sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 78px; min-width: 0; }
   @media (max-width: 1120px) { .sidebar { position: static; } }
   .content { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
@@ -265,7 +265,7 @@
   }
   .panel > h2 .count { margin-left: auto; color: var(--faint); font-weight: 600; letter-spacing: 1px; text-transform: none; }
 
-  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
   @media (max-width: 1280px) { .detail-grid { grid-template-columns: 1fr; } }
 
   /* ---------- Range map ---------- */
@@ -284,9 +284,10 @@
     border-radius: 5px; padding: 2px 6px;
   }
   .stage.current .stage-head .num { color: var(--green); border-color: rgba(52,211,153,.4); }
-  .stage-head .name { font-weight: 700; font-size: 13.5px; letter-spacing: .2px; }
+  .stage-head .name { font-weight: 700; font-size: 13.5px; letter-spacing: .2px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .stage-head .meta { margin-left: auto; color: var(--faint); font: 600 10.5px var(--mono); white-space: nowrap; }
-  .stage-body { padding: 2px 0 7px; }
+  .stage-body { display: none; padding: 2px 0 7px; }
+  .stage.open .stage-body { display: block; }
   .scenario-item {
     display: flex; align-items: center; gap: 9px;
     padding: 7px 10px 7px 26px; cursor: pointer;
@@ -300,7 +301,7 @@
     font: 700 10px var(--mono); background: rgba(251,191,36,.08);
     border: 1px solid rgba(251,191,36,.25); border-radius: 4px; padding: 1px 5px;
   }
-  .scenario-item .title { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scenario-item .title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .state {
     flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px;
     font: 600 9.5px var(--mono); letter-spacing: .5px; text-transform: uppercase;
@@ -338,7 +339,7 @@
     background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.25);
     border-radius: 5px; padding: 1px 6px;
   }
-  .gate-row .gtitle { flex: 1 1 auto; color: var(--text); }
+  .gate-row .gtitle { flex: 1 1 auto; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* ---------- Chips ---------- */
   .chip-grid { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -379,8 +380,8 @@
   .hint { font-size: 12.5px; color: var(--muted); }
   .hint code { color: var(--cyan); }
 
-  /* Evidence form */
-  .ev-row { display: grid; grid-template-columns: 170px minmax(0,1fr); gap: 8px; margin-top: 9px; align-items: center; }
+  /* Evidence form */  .ev-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px; margin-top: 9px; align-items: center; }
+  @media (max-width: 480px) { .ev-row { grid-template-columns: 1fr; align-items: stretch; } }
   .ev-row input[readonly] { color: var(--muted); }
   .candidate-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .candidate-chip {
@@ -703,7 +704,7 @@ function renderRange() {
       </div>`;
     }).join("");
     return `<div class="stage ${isCurrent ? "current open" : ""}">
-      <div class="stage-head" data-stage="${esc(stage.stage_id)}" role="button" tabindex="0" aria-expanded="true">
+      <div class="stage-head" data-stage="${esc(stage.stage_id)}" role="button" tabindex="0" aria-expanded="${isCurrent}">
         <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
         <span class="num">${esc(stage.stage_id.split("-")[0])}</span>
         <span class="name">${esc(stage.stage_id)}</span>
@@ -713,7 +714,11 @@ function renderRange() {
     </div>`;
   }).join("");
   list.querySelectorAll(".stage-head").forEach((head) => {
-    const activate = () => head.parentElement.classList.toggle("open");
+    const activate = () => {
+      const stage = head.parentElement;
+      const open = stage.classList.toggle("open");
+      head.setAttribute("aria-expanded", String(open));
+    };
     head.addEventListener("click", activate);
     head.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); } });
   });
