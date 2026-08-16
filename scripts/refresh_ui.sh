@@ -35,7 +35,7 @@ check lab-assistant "Assistant" assistant
 cat <<'EOF'
 
 [refresh-ui] URLs (this repo's port map):
-  Trainer    http://127.0.0.1:5060/   <- the CWL-style lab UI
+  Trainer    http://127.0.0.1:8060/   <- the CWL-style lab UI
   Aurora     http://127.0.0.1:5000/
   Phoenix    http://127.0.0.1:5001/
   Assistant  http://127.0.0.1:5002/

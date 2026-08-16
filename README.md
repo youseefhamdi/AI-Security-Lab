@@ -486,7 +486,7 @@ Check the result:
 ```bash
 docker compose ps
 curl --fail http://127.0.0.1:5050/health
-curl --fail http://127.0.0.1:5060/health
+curl --fail http://127.0.0.1:8060/health
 curl --fail http://127.0.0.1:5070/health
 curl --fail http://127.0.0.1:5000/health
 curl --fail http://127.0.0.1:5001/api/health
@@ -528,7 +528,7 @@ Once the core profile is running, a real learner walks the same journey in the b
    python3 scripts/zodiac_bank_admin.py cohort-add cohort-2026 analyst-01  # returns LEARNER_TOKEN
    ```
 
-2. Open the trainer console at `http://127.0.0.1:5060` and complete the current stage's required scenarios (hints expose only the current step and its candidate pool).
+2. Open the trainer console at `http://127.0.0.1:8060` and complete the current stage's required scenarios (hints expose only the current step and its candidate pool).
 
 3. Synthesize the stage once every required scenario is complete — the hard flag is issued only after evidence tokens, detection coverage, controls, timeline, and concepts all validate.
 
@@ -733,7 +733,7 @@ docker compose --profile protocols --profile full ps
 
 ```bash
 curl --fail http://127.0.0.1:5050/health  # progression gate
-curl --fail http://127.0.0.1:5060/health  # challenge surface
+curl --fail http://127.0.0.1:8060/health  # challenge surface
 curl --fail http://127.0.0.1:5070/health  # graph/context plane
 curl --fail http://127.0.0.1:5000/health   # Aurora
 curl --fail http://127.0.0.1:5001/api/health # Phoenix
@@ -863,7 +863,7 @@ curl --fail http://127.0.0.1:5050/api/flags/submit \\
   -d '{"learner_id":"analyst-01","stage_id":"L00-foundation","flag":"ZODIAC-BANK-..."}'
 ```
 
-Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. In strict mode, legacy challenge routes do not issue flags: complete the required multi-step scenarios at `http://127.0.0.1:5060`, synthesize the evidence, then submit the returned gate flag to `/api/gates/submit` (each stage auto-completes after its fifth and final gate).
+Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. In strict mode, legacy challenge routes do not issue flags: complete the required multi-step scenarios at `http://127.0.0.1:8060`, synthesize the evidence, then submit the returned gate flag to `/api/gates/submit` (each stage auto-completes after its fifth and final gate).
 
 Flag submission is forgiving and auditable:
 
@@ -881,7 +881,7 @@ Inspect the learner's current dynamic bank posture after enrollment or after eve
 curl --fail 'http://127.0.0.1:5050/api/bank/profile?learner_id=analyst-01' \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
 # The challenge service exposes the same shared state:
-curl --fail 'http://127.0.0.1:5060/api/bank/state?learner_id=analyst-01' \\
+curl --fail 'http://127.0.0.1:8060/api/bank/state?learner_id=analyst-01' \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
 ```
 
@@ -927,11 +927,11 @@ After the learner reaches the protected-assistant profile, the same domain is av
 
 ```bash
 # Inspect the synthetic in-memory bank snapshot
-curl --fail "http://127.0.0.1:5060/api/bank/snapshot?learner_id=${LEARNER_ID}" \\
+curl --fail "http://127.0.0.1:8060/api/bank/snapshot?learner_id=${LEARNER_ID}" \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
 
 # Plan a virtual receive; the response returns the employee loop and approval rule
-curl --fail -X POST http://127.0.0.1:5060/api/bank/operations/plan \\
+curl --fail -X POST http://127.0.0.1:8060/api/bank/operations/plan \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
   -H 'Content-Type: application/json' \\
   -d '{"learner_id":"analyst-01","operation_type":"receive","actor_worker_id":"teller-north","amount_cents":25000,"destination_account_id":"ZB-ACCT-1001","operation_id":"OP-TRAINING-001"}'
@@ -1131,7 +1131,7 @@ flowchart LR
 
 ### Browser trainer UI
 
-The challenge service serves a browser-based trainer console at `http://127.0.0.1:5060` (no extra dependencies). The console provides:
+The challenge service serves a browser-based trainer console at `http://127.0.0.1:8060` (no extra dependencies). The console provides:
 
 - a full 100-scenario / 50-hard-gate range map across all 10 stages with per-stage status;
 - progressive objective clues, detection rules, and required controls per scenario;
@@ -1145,7 +1145,7 @@ The trainer UI reads the same learner token as the API. Hints expose only the cu
 Open the console with the learner's private token:
 
 ```text
-http://127.0.0.1:5060
+http://127.0.0.1:8060
 ```
 
 The API surface is also available directly. It exposes only metadata and clues; it never exposes scenario matchers or flags:
@@ -1154,10 +1154,10 @@ The API surface is also available directly. It exposes only metadata and clues; 
 export LEARNER_ID=analyst-01
 export LEARNER_TOKEN='<token returned by cohort-add>'
 
-curl --fail "http://127.0.0.1:5060/api/scenarios?learner_id=${LEARNER_ID}" \\
+curl --fail "http://127.0.0.1:8060/api/scenarios?learner_id=${LEARNER_ID}" \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
 
-curl --fail -X POST http://127.0.0.1:5060/api/scenarios/direct-goal-hijack/start \\
+curl --fail -X POST http://127.0.0.1:8060/api/scenarios/direct-goal-hijack/start \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
   -H 'Content-Type: application/json' \\
   -d '{"learner_id":"analyst-01"}'
@@ -1166,7 +1166,7 @@ curl --fail -X POST http://127.0.0.1:5060/api/scenarios/direct-goal-hijack/start
 Each observation must be discovered from the authorized local surface and submitted in order:
 
 ```bash
-curl --fail -X POST http://127.0.0.1:5060/api/scenarios/direct-goal-hijack/event \\
+curl --fail -X POST http://127.0.0.1:8060/api/scenarios/direct-goal-hijack/event \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
   -H 'Content-Type: application/json' \\
   -d '{"learner_id":"analyst-01","event":"<discovered-event>","evidence":{}}'
@@ -1175,7 +1175,7 @@ curl --fail -X POST http://127.0.0.1:5060/api/scenarios/direct-goal-hijack/event
 After both scenarios in the currently unlocked hard gate are complete, the learner submits a gate synthesis. The hard-gate flag is issued only when all required evidence, detection rules, controls, concepts, and timeline entries validate:
 
 ```bash
-curl --fail -X POST http://127.0.0.1:5060/api/gates/G11-direct-injection/synthesize \\
+curl --fail -X POST http://127.0.0.1:8060/api/gates/G11-direct-injection/synthesize \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
   -H 'Content-Type: application/json' \\
   -d '{"learner_id":"analyst-01","scenario_ids":[],"evidence_tokens":[],"detection_rule_ids":[],"controls":[],"timeline":[],"summary":""}'
@@ -1271,23 +1271,21 @@ docs/
 | Phoenix | `http://127.0.0.1:5001` |
 | Assistant | `http://127.0.0.1:5002` |
 | Zodiac Bank Training Gate | `http://127.0.0.1:5050` |
-| Zodiac Bank Challenge Surface | `http://127.0.0.1:5060` — trainer UI at `/`, scenario API under `/api/` |
+| Zodiac Bank Challenge Surface | `http://127.0.0.1:8060` — trainer UI at `/`, scenario API under `/api/` (container port 5060, published on 8060) |
 | Zodiac Bank Graph Context | `http://127.0.0.1:5070` — data routes require `X-Graph-Context-Key` in strict mode |
 
-> ⚠️ **Chrome (and Edge/Chromium) block port `5060`.** It is on Chromium's
+> ℹ️ **Why 8060 and not 5060?** The challenge service listens on `5060` inside
+> its container, but Chrome (and Edge/Chromium) refuse to load that port — it is
+> on Chromium's
 > [restricted-port list](https://chromium.googlesource.com/chromium/src/+/main/net/base/port_util.cc#L26)
-> (SIP), so a tab pointed at `http://127.0.0.1:5060` shows `ERR_UNSAFE_PORT`
+> (SIP), so a tab pointed at `http://127.0.0.1:5060` (the container's internal
+> port) shows `ERR_UNSAFE_PORT`
 > instead of the trainer console — even when the service is healthy (curl
-> works). To open the trainer UI in Chrome either:
->
-> - remap the port in `docker-compose.yml` (`"127.0.0.1:5060:5060"` →
->   `"127.0.0.1:8060:5060"`) and recreate the `training-challenges` container,
->   then use `http://127.0.0.1:8060`, or
-> - open `http://127.0.0.1:5060` in Firefox, or
-> - launch Chrome with `--explicitly-allowed-ports=5060`.
->
-> The API and curl examples in this README are unaffected; only the browser
-> console is blocked.
+> works). `docker-compose.yml` therefore publishes the service on the
+> non-blocked host port `8060` (`"127.0.0.1:8060:5060"`), so the trainer UI
+> opens directly in Chrome at `http://127.0.0.1:8060`. If you need the raw
+> `5060` mapping back, either open it in Firefox or launch Chrome with
+> `--explicitly-allowed-ports=5060`.
 
 ### Protocol services — `lite` / `full`
 

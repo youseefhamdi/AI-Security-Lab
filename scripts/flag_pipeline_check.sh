@@ -13,7 +13,7 @@
 # Env:    TRAINING_ADMIN_KEY       must match the running Training Gate
 #         TRAINING_FLAG_SECRET     must match the running services
 #         TRAINING_GATE_URL        default http://127.0.0.1:5050
-#         TRAINING_CHALLENGE_URL   default http://127.0.0.1:5060
+#         TRAINING_CHALLENGE_URL   default http://127.0.0.1:8060
 #         FLAG_CHECK_COHORT        default flag-pipeline-check
 #         FLAG_CHECK_LEARNER       default flag-pipeline-check
 
@@ -22,7 +22,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 GATE_URL="${TRAINING_GATE_URL:-http://127.0.0.1:5050}"
-CHALLENGE_URL="${TRAINING_CHALLENGE_URL:-http://127.0.0.1:5060}"
+CHALLENGE_URL="${TRAINING_CHALLENGE_URL:-http://127.0.0.1:8060}"
 COHORT_ID="${FLAG_CHECK_COHORT:-flag-pipeline-check}"
 LEARNER_ID="${FLAG_CHECK_LEARNER:-flag-pipeline-check}"
 REQUEST_TIMEOUT="${REQUEST_TIMEOUT:-30}"

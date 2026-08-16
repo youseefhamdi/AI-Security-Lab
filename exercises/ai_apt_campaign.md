@@ -31,7 +31,7 @@ python3 scripts/zodiac_bank_threats.py \
 With the core profile running and the learner enrolled, list the current stage's scenarios:
 
 ```bash
-curl --fail 'http://127.0.0.1:5060/api/scenarios?learner_id=analyst-01' \\
+curl --fail 'http://127.0.0.1:8060/api/scenarios?learner_id=analyst-01' \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
 ```
 

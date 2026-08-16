@@ -12,7 +12,7 @@ A learner must:
 2. Exercise only the listed local target services.
 3. Preserve request/response evidence and explain the impact.
 4. In strict mode, complete the current stage's multi-step scenarios and hard-gate
-   synthesis at `http://127.0.0.1:5060`, then submit the returned gate flag to
+   synthesis at `http://127.0.0.1:8060`, then submit the returned gate flag to
    `/api/gates/submit`. In development mode, find the stage's hard flag through
    the intended vulnerable lab surface and submit it to `/api/flags/submit`.
 5. Receive the next unlocked stage (a stage auto-completes after its fifth gate).
@@ -53,7 +53,7 @@ The challenge surface is deliberately separate from the progression API. It is a
 | L08 | Compare normalized stealth telemetry with normal detection. |
 | L09 | Submit evidence from every previous stage as the capstone chain. |
 
-The route is `http://127.0.0.1:5060`. The challenge service does not unlock stages; it only provides the synthetic discovery condition. The Training Gate remains the sole authority for progression.
+The route is `http://127.0.0.1:8060`. The challenge service does not unlock stages; it only provides the synthetic discovery condition. The Training Gate remains the sole authority for progression.
 
 ## Synthetic bank operations and employee loops
 
@@ -86,7 +86,7 @@ The learner can inspect only the current profile:
 ```bash
 curl --fail 'http://127.0.0.1:5050/api/bank/profile?learner_id=analyst-01' \
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
-curl --fail 'http://127.0.0.1:5060/api/bank/state?learner_id=analyst-01' \
+curl --fail 'http://127.0.0.1:8060/api/bank/state?learner_id=analyst-01' \
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
 ```
 
@@ -134,14 +134,14 @@ Reading `training-config/scenarios.json` or another learner's solution therefore
 List the current stage's scenarios after enrollment:
 
 ```bash
-curl --fail 'http://127.0.0.1:5060/api/scenarios?learner_id=analyst-01' \
+curl --fail 'http://127.0.0.1:8060/api/scenarios?learner_id=analyst-01' \
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
 ```
 
 Start and advance a scenario only with the private learner token:
 
 ```bash
-curl --fail -X POST http://127.0.0.1:5060/api/scenarios/scope-integrity/start \
+curl --fail -X POST http://127.0.0.1:8060/api/scenarios/scope-integrity/start \
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \
   -H 'Content-Type: application/json' \
   -d '{"learner_id":"analyst-01"}'
@@ -151,7 +151,7 @@ The API deliberately does not expose step matchers or future steps. The step hin
 
 ### Browser trainer console
 
-The challenge service also serves a trainer console at `http://127.0.0.1:5060`. It renders the full 100-scenario / 50-hard-gate range map, per-stage status, progressive clues, next-step hints with candidate-chip evidence picking, chained-proof handling, gate synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
+The challenge service also serves a trainer console at `http://127.0.0.1:8060`. It renders the full 100-scenario / 50-hard-gate range map, per-stage status, progressive clues, next-step hints with candidate-chip evidence picking, chained-proof handling, gate synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
 
 ## API examples
 
@@ -208,7 +208,7 @@ The CLI refuses non-local Training Gate URLs unless `ALLOW_REMOTE_ADMIN=1` is ex
 
 Changing `TRAINING_FLAG_SECRET` invalidates all generated flags. Use `reset-cohort` for a scoped reset; removing the `training_data` volume is the destructive all-cohort reset and deletes all learner progress and generated training artifacts.
 
-Each lesson has a hard scenario surface under `http://127.0.0.1:5060`. In strict mode, legacy one-request routes never issue hard flags. Learners must complete the stage's required multi-step scenarios, preserve ordered evidence tokens, cover detections and controls, and pass the currently unlocked hard-gate synthesis before submitting the returned HMAC-backed flag to the Training Gate. Scenario state is persistent and token-bound; responses are synthetic training findings and must not be cached or copied outside the lab.
+Each lesson has a hard scenario surface under `http://127.0.0.1:8060`. In strict mode, legacy one-request routes never issue hard flags. Learners must complete the stage's required multi-step scenarios, preserve ordered evidence tokens, cover detections and controls, and pass the currently unlocked hard-gate synthesis before submitting the returned HMAC-backed flag to the Training Gate. Scenario state is persistent and token-bound; responses are synthetic training findings and must not be cached or copied outside the lab.
 
 ## Hint progression
 

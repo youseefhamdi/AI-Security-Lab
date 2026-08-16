@@ -66,7 +66,9 @@ services:
       dockerfile: training-challenges/Dockerfile
     container_name: zodiac-bank-challenges
     ports:
-      - "127.0.0.1:5060:5060"
+      # Host port 8060 (not 5060): Chrome blocks 5060 (SIP) with ERR_UNSAFE_PORT.
+      # The container still listens on 5060 internally.
+      - "127.0.0.1:8060:5060"
     environment:
       TRAINING_FLAG_SECRET: ${TRAINING_FLAG_SECRET:-zodiac-bank-change-this-training-secret}
       TRAINING_SECURITY_MODE: ${TRAINING_SECURITY_MODE:-strict}
