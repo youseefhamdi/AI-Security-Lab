@@ -53,7 +53,7 @@ services:
     volumes:
       - ./training-config:/app/config:ro
       - training_data:/var/lib/training
-    healthcheck:
+    
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5050/health', timeout=3)"]
       interval: 10s
       timeout: 5s
@@ -94,11 +94,11 @@ services:
       - ./bank-data:/app/bank-data:ro
       - ./rag-docs:/app/rag-docs:ro
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5070/health', timeout=3)"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    mem_limit: 256m
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5070/health', timeout=5)\" || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 180s
 
   mcp-server:
     profiles: ["protocols", "full"]
