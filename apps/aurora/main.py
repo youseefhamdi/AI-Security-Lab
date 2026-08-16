@@ -9,6 +9,7 @@ servers.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -19,7 +20,7 @@ from typing import Any
 
 import requests
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Zodiac Bank Aurora Support Chatbot", version="3.0")
@@ -356,6 +357,99 @@ async def chat(request: ChatRequest) -> JSONResponse:
         "rag": lightrag_result,
         "memories": memories,
     })
+
+
+def _sse(payload: dict[str, Any]) -> str:
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+@app.post("/api/chat/stream")
+async def chat_stream(request: ChatRequest) -> StreamingResponse:
+    """Stream the assistant answer token-by-token over Server-Sent Events.
+
+    Uses the exact same retrieval + context assembly as /api/chat so the two
+    endpoints stay behaviourally identical, but emits `meta`, `delta`, `done`,
+    and `end` events instead of a single JSON body.
+    """
+    return StreamingResponse(
+        _stream_chat(request),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+def _stream_chat(request: ChatRequest):
+    session_id = request.session_id or str(uuid.uuid4())
+    conversation = ACTIVE_CONVERSATIONS.setdefault(session_id, [])
+    sources, retrieval_backend = retrieve_sources(request.query)
+    graph_context = query_graph_context(request.query, request.user_id)
+    lightrag_result = query_lightrag(request.query)
+    memories = query_mem0(request.query, request.user_id, session_id)
+    context = format_context(sources, lightrag_result, memories, graph_context)
+    messages = build_messages(conversation, request.query, context)
+    conversation.append({"role": "user", "content": request.query})
+
+    yield _sse({
+        "event": "meta",
+        "session_id": session_id,
+        "user_id": request.user_id,
+        "model": MODEL_NAME,
+        "sources": sources,
+        "retrieval_backend": retrieval_backend,
+        "context_engineering": {
+            "enabled": GRAPH_CONTEXT_ENABLED,
+            "mode": CONTEXT_ENGINEERING_MODE,
+            "packet_id": graph_context.get("packet_id") if graph_context else None,
+            "truncated": graph_context.get("budget", {}).get("truncated", False) if graph_context else False,
+        },
+    })
+
+    answer_parts: list[str] = []
+    error: str | None = None
+    try:
+        with requests.post(
+            f"{OPENAI_BASE_URL}/chat/completions",
+            json={"model": MODEL_NAME, "messages": messages, "temperature": 0.2, "max_tokens": 700, "stream": True},
+            stream=True,
+            timeout=REQUEST_TIMEOUT,
+        ) as response:
+            if response.status_code != 200:
+                error = f"inference backend returned HTTP {response.status_code}"
+            else:
+                for raw_line in response.iter_lines():
+                    if not raw_line:
+                        continue
+                    if isinstance(raw_line, bytes):
+                        raw_line = raw_line.decode("utf-8", "replace")
+                    line = raw_line.strip()
+                    if not line.startswith("data:"):
+                        continue
+                    payload = line[5:].strip()
+                    if payload == "[DONE]":
+                        break
+                    try:
+                        obj = json.loads(payload)
+                    except ValueError:
+                        continue
+                    delta = (((obj.get("choices") or [{}])[0].get("delta") or {}).get("content"))
+                    if delta:
+                        answer_parts.append(delta)
+                        yield _sse({"delta": delta})
+    except (requests.RequestException, ValueError) as exc:
+        error = str(exc)
+
+    if error and not answer_parts:
+        yield _sse({"error": "Bonsai inference backend unavailable", "detail": error, "session_id": session_id})
+
+    answer = "".join(answer_parts)
+    if answer:
+        conversation.append({"role": "assistant", "content": answer})
+    yield _sse({"event": "done", "response": answer, "session_id": session_id, "sources": sources, "retrieval_backend": retrieval_backend})
+    yield _sse({"event": "end"})
 
 
 @app.get("/debug")

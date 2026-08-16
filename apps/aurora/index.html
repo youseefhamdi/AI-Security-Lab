@@ -228,12 +228,9 @@
   }
   .msg-meta button { padding: 3px 8px; font-size: 10.5px; border-radius: 6px; }
 
-  /* typing indicator */
-  .typing { display: inline-flex; gap: 5px; align-items: center; height: 16px; }
-  .typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: tdot 1.2s ease-in-out infinite; }
-  .typing span:nth-child(2) { animation-delay: .18s; }
-  .typing span:nth-child(3) { animation-delay: .36s; }
-  @keyframes tdot { 0%,100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+  /* streaming cursor */
+  .cursor { display: inline-block; width: 9px; margin-left: 2px; color: var(--cyan); animation: caret .9s steps(2, start) infinite; }
+  @keyframes caret { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
 
   /* empty state */
   .welcome { text-align: center; margin: auto 0; padding: 40px 8px; }
@@ -403,15 +400,23 @@ function renderSources(sources) {
   return `<div class="sources"><div class="label">Retrieved sources</div>${items}</div>`;
 }
 
-function typingIndicator() {
+function addAssistantStream() {
   const wrap = document.createElement("div");
   wrap.className = "msg assistant";
-  wrap.id = "typing-msg";
-  wrap.innerHTML = `<div class="avatar" aria-hidden="true">${AVATAR_AURORA}</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  wrap.innerHTML = `<div class="avatar" aria-hidden="true">${AVATAR_AURORA}</div>
+    <div class="bubble">
+      <div class="body"><span class="cursor" aria-hidden="true">▍</span></div>
+      <div class="sources-wrap"></div>
+      <div class="msg-meta"></div>
+    </div>`;
   messagesEl.appendChild(wrap);
   scrollBottom();
+  return {
+    body: wrap.querySelector(".body"),
+    sources: wrap.querySelector(".sources-wrap"),
+    meta: wrap.querySelector(".msg-meta"),
+  };
 }
-function removeTyping() { const t = $("typing-msg"); if (t) t.remove(); }
 
 function showWelcome() {
   messagesEl.innerHTML = `
@@ -441,31 +446,75 @@ async function submit(query) {
 
   if (messagesEl.querySelector(".welcome")) messagesEl.innerHTML = "";
   addMsg("user", `<div class="body">${esc(q).replace(/\n/g, "<br>")}</div>`);
-  typingIndicator();
+
+  const view = addAssistantStream();
+  let acc = "";
+  let meta = null;
+  let errored = false;
+
+  const finish = () => {
+    view.body.innerHTML = md(acc) || '<em style="color:var(--muted)">No answer received.</em>';
+    view.sources.innerHTML = renderSources(meta ? meta.sources : []);
+    view.meta.innerHTML =
+      `<span>${esc((meta && meta.model) || "model")}</span>` +
+      `<span>retrieval: ${esc((meta && meta.retrieval_backend) || "—")}</span>` +
+      `<span>context: ${esc((meta && meta.context_engineering && meta.context_engineering.mode) || "—")}</span>` +
+      `<button class="ghost" type="button" data-copy="${esc(acc)}">Copy</button>`;
+    const copy = view.meta.querySelector("[data-copy]");
+    if (copy) copy.addEventListener("click", (e) => {
+      navigator.clipboard.writeText(e.target.dataset.copy).then(() => { e.target.textContent = "Copied"; setTimeout(() => (e.target.textContent = "Copy"), 1200); });
+    });
+    scrollBottom();
+  };
+  const fail = (html) => { view.body.innerHTML = html; scrollBottom(); };
 
   try {
-    const res = await fetch("/api/chat", {
+    const res = await fetch("/api/chat/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: q, session_id: sessionId, user_id: customerId || "anonymous" }),
     });
-    const data = await res.json().catch(() => ({}));
-    removeTyping();
-
     if (!res.ok) {
-      addMsg("assistant", `<div class="body"><strong style="color:var(--danger)">Backend unavailable</strong><br>${esc(data.detail || data.error || res.statusText)}</div>`);
+      const data = await res.json().catch(() => ({}));
+      fail(`<strong style="color:var(--danger)">Backend unavailable</strong><br>${esc(data.detail || data.error || res.statusText)}`);
       return;
     }
-    const body = `<div class="body">${md(data.response || "")}</div>` +
-      renderSources(data.sources) +
-      `<div class="msg-meta"><span>${esc(data.model || "model")}</span><span>context: ${esc((data.context_engineering && data.context_engineering.mode) || "—")}</span><button class="ghost" type="button" data-copy="${esc(data.response || "")}">Copy</button></div>`;
-    const bubble = addMsg("assistant", body);
-    bubble.querySelector("[data-copy]").addEventListener("click", (e) => {
-      navigator.clipboard.writeText(e.target.dataset.copy).then(() => { e.target.textContent = "Copied"; setTimeout(() => (e.target.textContent = "Copy"), 1200); });
-    });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf("\n\n")) >= 0) {
+        const frame = buf.slice(0, idx);
+        buf = buf.slice(idx + 2);
+        for (const line of frame.split("\n")) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          let ev;
+          try { ev = JSON.parse(payload); } catch (_) { continue; }
+          if (ev.event === "meta") {
+            meta = ev;
+          } else if (ev.delta) {
+            acc += ev.delta;
+            view.body.innerHTML = esc(acc).replace(/\n/g, "<br>") + '<span class="cursor" aria-hidden="true">▍</span>';
+            scrollBottom();
+          } else if (ev.event === "done") {
+            acc = ev.response || acc;
+          } else if (ev.error) {
+            errored = true;
+            acc = "";
+            fail(`<strong style="color:var(--danger)">${esc(ev.error)}</strong>${ev.detail ? "<br>" + esc(ev.detail) : ""}`);
+          }
+        }
+      }
+    }
+    if (!errored) finish();
   } catch (err) {
-    removeTyping();
-    addMsg("assistant", `<div class="body"><strong style="color:var(--danger)">Request failed</strong><br>${esc(err.message)}</div>`);
+    fail(`<strong style="color:var(--danger)">Request failed</strong><br>${esc(err.message)}`);
   } finally {
     busy = false;
     queryEl.focus();
