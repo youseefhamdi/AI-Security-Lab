@@ -72,7 +72,7 @@ The lab models a complete training environment: branches, employees, staff roles
 
 The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Spartan defense emblem, hard-gated progression, graph RAG, and APT-range training.
 
-The hero is a self-contained professional dark animated SVG: a near-black operations-console palette, restrained cyan/indigo rails, scanning telemetry, flowing intent-to-audit signal paths, live control-coverage meter, and a Spartan defense emblem. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and is intentionally static-friendly so GitHub still shows the complete design if SVG motion is reduced. The terminal startup banner is activated with:
+The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic ledger streams, branch-network telemetry, cyan/indigo security rails, and a Spartan defense emblem. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
