@@ -7,9 +7,8 @@
 <style>
   /* ============================================================
      ZODIAC BANK — AURORA · AI SUPPORT CONSOLE
-     Same design language as the trainer: deep near-black base,
-     security-green brand accent, cyan reserved for the AI assistant.
-     System fonts only (local-only lab, no network). No emoji icons.
+     Deep near-black base, security-green brand accent, cyan for the
+     AI assistant. System fonts only (local-only lab). No emoji icons.
      ============================================================ */
   :root {
     --bg-0: #02040a;
@@ -47,7 +46,8 @@
     background: var(--bg-0);
     color: var(--text);
     font: 15px/1.6 var(--sans);
-    min-height: 100vh;
+    height: 100vh; height: 100dvh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     -webkit-font-smoothing: antialiased;
@@ -80,10 +80,10 @@
 
   /* ---------- Top bar ---------- */
   .topbar {
-    position: sticky; top: 0; z-index: 30;
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-    padding: 13px 22px;
-    background: rgba(4, 7, 13, .84);
+    position: relative; z-index: 30;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 20px;
+    background: rgba(4, 7, 13, .88);
     backdrop-filter: blur(14px) saturate(140%);
     border-bottom: 1px solid var(--line);
   }
@@ -92,6 +92,12 @@
     background: linear-gradient(90deg, transparent, rgba(52,211,153,.5), rgba(34,211,238,.4), transparent);
     opacity: .7;
   }
+  .icon-btn {
+    width: 38px; height: 38px; flex: 0 0 38px; padding: 0; justify-content: center;
+    border-radius: 9px; background: transparent; border: 1px solid transparent; color: var(--muted);
+  }
+  .icon-btn:hover { color: var(--text); background: var(--panel-2); border-color: var(--line-2); }
+  .icon-btn svg { width: 19px; height: 19px; }
   .brand { display: flex; align-items: center; gap: 13px; }
   .brand .mark {
     width: 42px; height: 42px; flex: 0 0 42px;
@@ -119,10 +125,49 @@
   .badge .dot.blink { animation: blink 2s ease-in-out infinite; }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
 
+  /* ---------- App shell (sidebar + main) ---------- */
+  .app { flex: 1 1 auto; display: flex; min-height: 0; }
+
+  .sidebar {
+    flex: 0 0 300px; width: 300px; min-width: 0;
+    border-right: 1px solid var(--line);
+    background: rgba(6, 10, 18, .94);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    transition: flex-basis .24s ease, width .24s ease, opacity .18s ease;
+  }
+  body:not(.sb-open) .sidebar { flex-basis: 0; width: 0; opacity: 0; border-right-color: transparent; }
+  .sidebar-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 15px; border-bottom: 1px solid var(--line);
+  }
+  .sidebar-head h2 { margin: 0; margin-right: auto; font: 700 11px var(--mono); letter-spacing: 2px; text-transform: uppercase; color: var(--green); }
+  .sidebar-head .icon-btn { width: 30px; height: 30px; flex-basis: 30px; }
+  .sidebar-list { flex: 1 1 auto; overflow-y: auto; padding: 10px 12px; }
+  .history-empty { color: var(--faint); font-size: 13px; text-align: center; padding: 26px 8px; }
+  .session-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 10px 11px; margin-bottom: 6px; border-radius: var(--r-sm);
+    border: 1px solid transparent; cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .session-item:hover { background: var(--panel-2); }
+  .session-item.active { border-color: rgba(34,211,238,.35); background: rgba(34,211,238,.06); }
+  .si-main { flex: 1 1 auto; min-width: 0; }
+  .si-title { font-weight: 600; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .si-meta { font: 600 10.5px var(--mono); color: var(--faint); margin-top: 2px; }
+  .si-del { flex: 0 0 auto; border: 0; background: transparent; color: var(--faint); padding: 1px 6px; font-size: 15px; line-height: 1; border-radius: 5px; opacity: 0; }
+  .session-item:hover .si-del { opacity: 1; }
+  .si-del:hover { color: var(--danger); background: rgba(251,113,133,.12); }
+
+  .main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+
+  .backdrop { display: none; }
+
   /* ---------- Session bar ---------- */
   .sessionbar {
     display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
-    padding: 12px 22px;
+    padding: 11px 22px;
     border-bottom: 1px solid var(--line);
     background: rgba(7, 11, 21, .6);
   }
@@ -163,7 +208,7 @@
 
   /* ---------- Chat ---------- */
   .chat-wrap {
-    flex: 1 1 auto;
+    flex: 1 1 auto; min-height: 0;
     width: 100%; max-width: 860px; margin: 0 auto;
     padding: 20px 22px 8px;
     display: flex; flex-direction: column;
@@ -199,15 +244,20 @@
     font: 12.5px var(--mono); background: var(--panel-3); color: var(--cyan);
     border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px;
   }
+  .bubble .body .codeblock { position: relative; margin: 9px 0; }
   .bubble .body pre {
-    margin: 8px 0; padding: 11px 13px; overflow-x: auto;
+    margin: 0; padding: 12px 14px; padding-right: 64px; overflow-x: auto;
     background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--r-sm);
     font: 12.5px/1.55 var(--mono); color: #c9d4e8;
   }
   .bubble .body pre code { background: none; border: 0; padding: 0; color: inherit; font-size: inherit; }
   .bubble .body strong { color: var(--text); }
-  .bubble .body p { margin: 0 0 8px; }
-  .bubble .body p:last-child { margin-bottom: 0; }
+  .code-copy {
+    position: absolute; top: 7px; right: 7px;
+    padding: 3px 9px; font-size: 10.5px; border-radius: 6px;
+    background: var(--panel-2); border: 1px solid var(--line-2); color: var(--muted);
+  }
+  .code-copy:hover { color: var(--text); border-color: var(--cyan); }
 
   /* sources */
   .sources { margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line); }
@@ -223,7 +273,7 @@
   .src .be { margin-left: auto; color: var(--faint); font-size: 10.5px; }
 
   .msg-meta {
-    display: flex; align-items: center; gap: 12px; margin-top: 9px;
+    display: flex; align-items: center; gap: 12px; margin-top: 9px; flex-wrap: wrap;
     font: 600 10.5px var(--mono); color: var(--faint);
   }
   .msg-meta button { padding: 3px 8px; font-size: 10.5px; border-radius: 6px; }
@@ -253,13 +303,13 @@
 
   /* ---------- Composer ---------- */
   .composer {
-    position: sticky; bottom: 0; z-index: 20;
+    flex: 0 0 auto;
     width: 100%; max-width: 860px; margin: 0 auto;
     padding: 10px 22px 16px;
   }
   .composer form {
     display: flex; gap: 10px; align-items: flex-end;
-    background: rgba(7, 11, 21, .92);
+    background: rgba(7, 11, 21, .94);
     border: 1px solid var(--line-2); border-radius: var(--r-md);
     padding: 10px 10px 10px 14px;
     box-shadow: var(--shadow);
@@ -274,6 +324,19 @@
   .composer .send { flex: 0 0 auto; min-height: 44px; padding: 0 20px; }
   .composer .hint { margin: 7px 2px 0; font: 600 10.5px var(--mono); color: var(--faint); }
 
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1023px) {
+    .sidebar {
+      position: fixed; top: 0; bottom: 0; left: 0; z-index: 45;
+      width: 300px; flex-basis: auto;
+      transform: translateX(-102%); transition: transform .22s ease;
+      border-right: 1px solid var(--line);
+    }
+    body:not(.sb-open) .sidebar { transform: translateX(-102%); width: 300px; opacity: 1; flex-basis: auto; border-right-color: var(--line); }
+    body.sb-open .sidebar { transform: translateX(0); box-shadow: 16px 0 40px rgba(0,0,0,.45); }
+    .backdrop { display: block; position: fixed; inset: 0; z-index: 44; background: rgba(1,3,7,.55); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+    body.sb-open .backdrop { opacity: 1; pointer-events: auto; }
+  }
   @media (max-width: 560px) {
     .bubble { max-width: 88%; }
     .topbar, .sessionbar { padding-left: 14px; padding-right: 14px; }
@@ -286,13 +349,16 @@
   }
 </style>
 </head>
-<body>
+<body class="sb-open">
 <div class="bg-fx" aria-hidden="true">
   <div class="bg-grid"></div>
   <div class="bg-aurora"></div>
 </div>
 
 <header class="topbar">
+  <button id="sidebar-toggle" class="icon-btn" type="button" aria-label="Toggle conversation history" title="Conversation history">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
   <div class="brand">
     <span class="mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
@@ -312,32 +378,49 @@
   </div>
 </header>
 
-<section class="sessionbar">
-  <div class="field">
-    <label for="customer-id">Customer ID (optional)</label>
-    <input id="customer-id" placeholder="e.g. ZB-CUS-1001" autocomplete="off" spellcheck="false" style="width:200px" />
-  </div>
-  <div class="field">
-    <label>Session</label>
-    <span class="session-chip"><code id="session-id">…</code><button id="copy-session" class="ghost" type="button" style="padding:3px 8px" title="Copy session id">Copy</button></span>
-  </div>
-  <button id="new-session" class="ghost" type="button" style="margin-left:auto">New session</button>
-</section>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Conversation history">
+    <div class="sidebar-head">
+      <h2>Conversations</h2>
+      <button id="new-session" class="ghost" type="button" style="padding:6px 10px">New</button>
+      <button id="sidebar-close" class="icon-btn" type="button" aria-label="Close history" title="Close history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-list" id="history-list"></div>
+  </aside>
 
-<main class="chat-wrap">
-  <div id="messages" aria-live="polite"></div>
-</main>
+  <main class="main">
+    <section class="sessionbar">
+      <div class="field">
+        <label for="customer-id">Customer ID (optional)</label>
+        <input id="customer-id" placeholder="e.g. ZB-CUS-1001" autocomplete="off" spellcheck="false" style="width:200px" />
+      </div>
+      <div class="field">
+        <label>Session</label>
+        <span class="session-chip"><code id="session-id">…</code><button id="copy-session" class="ghost" type="button" style="padding:3px 8px" title="Copy session id">Copy</button></span>
+      </div>
+    </section>
 
-<footer class="composer">
-  <form id="chat-form">
-    <textarea id="query" rows="1" placeholder="Ask Aurora a Zodiac Bank question…" autocomplete="off" required></textarea>
-    <button id="send-btn" class="primary send" type="submit">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-      Send
-    </button>
-  </form>
-  <div class="hint">Enter to send · Shift+Enter for a new line</div>
-</footer>
+    <div class="chat-wrap">
+      <div id="messages" aria-live="polite"></div>
+    </div>
+
+    <footer class="composer">
+      <form id="chat-form">
+        <textarea id="query" rows="1" placeholder="Ask Aurora a Zodiac Bank question…" autocomplete="off" required></textarea>
+        <button id="send-btn" class="primary send" type="submit">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Send
+        </button>
+      </form>
+      <div class="hint">Enter to send · Shift+Enter for a new line</div>
+    </footer>
+  </main>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 "use strict";
@@ -350,10 +433,20 @@ const queryEl = $("query");
 let sessionId = (crypto.randomUUID ? crypto.randomUUID() : "zb-" + Date.now());
 let customerId = "";
 let busy = false;
+let sbOpen = window.innerWidth >= 1024;
 
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
 }[c]));
+
+function truncate(s, n) { const t = String(s).replace(/\s+/g, " ").trim(); return t.length > n ? t.slice(0, n - 1) + "…" : t; }
+function relTime(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60); if (m < 60) return m + "m ago";
+  const h = Math.floor(m / 60); if (h < 24) return h + "h ago";
+  return Math.floor(h / 24) + "d ago";
+}
 
 /* Markdown-lite: fenced code, inline code, bold, italics, line breaks. */
 function md(raw) {
@@ -362,7 +455,7 @@ function md(raw) {
   chunks.forEach((chunk, i) => {
     if (i % 2 === 1) {
       const code = chunk.replace(/^\s*\n/, "").replace(/\n\s*$/, "");
-      html += `<pre><code>${esc(code)}</code></pre>`;
+      html += `<div class="codeblock"><pre><code>${esc(code)}</code></pre></div>`;
     } else {
       let t = esc(chunk);
       t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
@@ -373,6 +466,24 @@ function md(raw) {
     }
   });
   return html;
+}
+
+function decorateCodeBlocks(root) {
+  root.querySelectorAll(".codeblock").forEach((block) => {
+    if (block.dataset.decorated) return;
+    block.dataset.decorated = "1";
+    const code = block.querySelector("code");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "code-copy";
+    btn.textContent = "Copy";
+    btn.addEventListener("click", () => {
+      navigator.clipboard.writeText(code ? code.textContent : "").then(() => {
+        btn.textContent = "Copied"; setTimeout(() => (btn.textContent = "Copy"), 1200);
+      });
+    });
+    block.prepend(btn);
+  });
 }
 
 const AVATAR_AURORA = `<svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/></svg>`;
@@ -418,6 +529,92 @@ function addAssistantStream() {
   };
 }
 
+/* ---------- History (client-side, localStorage) ---------- */
+const STORE_KEY = "zb-aurora-sessions";
+let sessions = [];
+let currentMessages = [];
+let currentTitle = "";
+
+function loadSessions() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || "[]"); } catch (_) { return []; } }
+function persistSessions() { try { localStorage.setItem(STORE_KEY, JSON.stringify(sessions)); } catch (_) {} }
+
+function renderHistory() {
+  const list = $("history-list");
+  if (!sessions.length) { list.innerHTML = '<div class="history-empty">No conversations yet.</div>'; return; }
+  const sorted = sessions.slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  list.innerHTML = sorted.map((s) => `
+    <div class="session-item ${s.id === sessionId ? "active" : ""}" data-id="${esc(s.id)}" role="button" tabindex="0">
+      <div class="si-main">
+        <div class="si-title">${esc(s.title || "New conversation")}</div>
+        <div class="si-meta">${(s.messages || []).length} messages · ${relTime(s.updatedAt || Date.now())}</div>
+      </div>
+      <button class="si-del" type="button" data-del="${esc(s.id)}" title="Delete conversation">×</button>
+    </div>`).join("");
+  list.querySelectorAll(".session-item").forEach((item) => {
+    const open = () => openSession(item.dataset.id);
+    item.addEventListener("click", (e) => { if (e.target.closest(".si-del")) return; open(); });
+    item.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+  });
+  list.querySelectorAll(".si-del").forEach((btn) => {
+    btn.addEventListener("click", (e) => { e.stopPropagation(); deleteSession(btn.dataset.del); });
+  });
+}
+
+function saveCurrentSession() {
+  if (!currentMessages.length) return;
+  const title = currentTitle || (currentMessages[0] ? truncate(currentMessages[0].content, 40) : "Conversation");
+  const entry = { id: sessionId, title, updatedAt: Date.now(), messages: currentMessages.slice() };
+  const existing = sessions.find((s) => s.id === sessionId);
+  if (existing) Object.assign(existing, entry); else sessions.push(entry);
+  persistSessions();
+}
+
+function newSession() {
+  saveCurrentSession();
+  sessionId = crypto.randomUUID ? crypto.randomUUID() : "zb-" + Date.now();
+  currentMessages = []; currentTitle = "";
+  $("session-id").textContent = sessionId.slice(0, 13);
+  showWelcome();
+  renderHistory();
+}
+
+function openSession(id) {
+  if (id === sessionId && messagesEl.querySelector(".msg")) return;
+  saveCurrentSession();
+  const s = sessions.find((x) => x.id === id);
+  if (!s) return;
+  sessionId = s.id;
+  currentMessages = (s.messages || []).slice();
+  currentTitle = s.title || "";
+  $("session-id").textContent = sessionId.slice(0, 13);
+  renderMessages();
+  renderHistory();
+  setSidebar(window.innerWidth < 1024 ? false : sbOpen);
+}
+
+function deleteSession(id) {
+  sessions = sessions.filter((s) => s.id !== id);
+  persistSessions();
+  if (id === sessionId) newSession(); else renderHistory();
+}
+
+function renderMessages() {
+  messagesEl.innerHTML = "";
+  if (!currentMessages.length) { showWelcome(); return; }
+  currentMessages.forEach((m) => {
+    if (m.role === "user") addMsg("user", `<div class="body">${esc(m.content).replace(/\n/g, "<br>")}</div>`);
+    else addMsg("assistant", `<div class="body">${md(m.content)}</div>`);
+  });
+  messagesEl.querySelectorAll(".msg.assistant .body").forEach((b) => decorateCodeBlocks(b));
+  scrollBottom();
+}
+
+function setSidebar(open) {
+  sbOpen = open;
+  document.body.classList.toggle("sb-open", open);
+}
+
+/* ---------- Welcome ---------- */
 function showWelcome() {
   messagesEl.innerHTML = `
     <div class="welcome">
@@ -438,6 +635,7 @@ function showWelcome() {
   });
 }
 
+/* ---------- Submit (streaming) ---------- */
 async function submit(query) {
   const q = (query || queryEl.value).trim();
   if (!q || busy) return;
@@ -446,6 +644,10 @@ async function submit(query) {
 
   if (messagesEl.querySelector(".welcome")) messagesEl.innerHTML = "";
   addMsg("user", `<div class="body">${esc(q).replace(/\n/g, "<br>")}</div>`);
+  currentMessages.push({ role: "user", content: q });
+  if (!currentTitle) currentTitle = truncate(q, 40);
+  saveCurrentSession();
+  renderHistory();
 
   const view = addAssistantStream();
   let acc = "";
@@ -454,6 +656,7 @@ async function submit(query) {
 
   const finish = () => {
     view.body.innerHTML = md(acc) || '<em style="color:var(--muted)">No answer received.</em>';
+    decorateCodeBlocks(view.body);
     view.sources.innerHTML = renderSources(meta ? meta.sources : []);
     view.meta.innerHTML =
       `<span>${esc((meta && meta.model) || "model")}</span>` +
@@ -464,6 +667,7 @@ async function submit(query) {
     if (copy) copy.addEventListener("click", (e) => {
       navigator.clipboard.writeText(e.target.dataset.copy).then(() => { e.target.textContent = "Copied"; setTimeout(() => (e.target.textContent = "Copy"), 1200); });
     });
+    if (acc) { currentMessages.push({ role: "assistant", content: acc }); saveCurrentSession(); renderHistory(); }
     scrollBottom();
   };
   const fail = (html) => { view.body.innerHTML = html; scrollBottom(); };
@@ -537,15 +741,15 @@ fetch("/health")
   });
 
 /* ---------- wiring ---------- */
+sessions = loadSessions();
 $("session-id").textContent = sessionId.slice(0, 13);
 $("copy-session").addEventListener("click", () => {
   navigator.clipboard.writeText(sessionId).then(() => { $("copy-session").textContent = "Copied"; setTimeout(() => ($("copy-session").textContent = "Copy"), 1200); });
 });
-$("new-session").addEventListener("click", () => {
-  sessionId = crypto.randomUUID ? crypto.randomUUID() : "zb-" + Date.now();
-  $("session-id").textContent = sessionId.slice(0, 13);
-  showWelcome();
-});
+$("new-session").addEventListener("click", newSession);
+$("sidebar-toggle").addEventListener("click", () => setSidebar(!sbOpen));
+$("sidebar-close").addEventListener("click", () => setSidebar(false));
+$("backdrop").addEventListener("click", () => setSidebar(false));
 $("customer-id").addEventListener("input", (e) => { customerId = e.target.value.trim(); });
 
 form.addEventListener("submit", (e) => { e.preventDefault(); submit(); });
@@ -556,8 +760,12 @@ queryEl.addEventListener("input", () => {
   queryEl.style.height = "auto";
   queryEl.style.height = Math.min(queryEl.scrollHeight, 160) + "px";
 });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") setSidebar(false); });
+window.addEventListener("resize", () => { if (window.innerWidth < 1024 && sbOpen) setSidebar(false); });
 
+setSidebar(window.innerWidth >= 1024);
 showWelcome();
+renderHistory();
 </script>
 </body>
 </html>
