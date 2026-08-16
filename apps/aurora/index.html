@@ -1,52 +1,514 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Aurora Support Chat</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
-    #messages { min-height: 240px; border: 1px solid #ccc; border-radius: 8px; padding: 1rem; white-space: pre-wrap; }
-    form { display: flex; gap: .5rem; margin-top: 1rem; }
-    input { flex: 1; padding: .7rem; }
-    button { padding: .7rem 1rem; cursor: pointer; }
-    .user { color: #245; }
-    .assistant { color: #152; }
-    .sources { color: #666; font-size: .9rem; margin-top: .5rem; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aurora · Zodiac Bank Support</title>
+<style>
+  /* ============================================================
+     ZODIAC BANK — AURORA · AI SUPPORT CONSOLE
+     Same design language as the trainer: deep near-black base,
+     security-green brand accent, cyan reserved for the AI assistant.
+     System fonts only (local-only lab, no network). No emoji icons.
+     ============================================================ */
+  :root {
+    --bg-0: #02040a;
+    --bg-1: #05080f;
+    --bg-2: #070b15;
+    --panel: #0a0f1b;
+    --panel-2: #0e1524;
+    --panel-3: #131c31;
+    --line: #1a2438;
+    --line-2: #24304c;
+    --line-3: #31406a;
+    --text: #e9eef7;
+    --muted: #8b98b4;
+    --faint: #71809e;
+    --green: #34d399;
+    --green-2: #10b981;
+    --mint: #2dd4bf;
+    --cyan: #22d3ee;
+    --amber: #fbbf24;
+    --danger: #fb7185;
+
+    --mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --display: "Space Grotesk", "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 12px 34px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: dark; }
+  body {
+    margin: 0;
+    background: var(--bg-0);
+    color: var(--text);
+    font: 15px/1.6 var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: rgba(52, 211, 153, .3); color: #fff; }
+
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: var(--bg-1); }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 8px; border: 2px solid var(--bg-1); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--line-3); }
+
+  /* ---------- Ambient background ---------- */
+  .bg-fx { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(52,211,153,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52,211,153,.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(1100px 640px at 50% 0%, #000 30%, transparent 80%);
+    mask-image: radial-gradient(1100px 640px at 50% 0%, #000 30%, transparent 80%);
+  }
+  .bg-aurora {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(820px 460px at 10% -10%, rgba(16,185,129,.12), transparent 60%),
+      radial-gradient(720px 420px at 96% 0%, rgba(34,211,238,.10), transparent 55%);
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 13px 22px;
+    background: rgba(4, 7, 13, .84);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(52,211,153,.5), rgba(34,211,238,.4), transparent);
+    opacity: .7;
+  }
+  .brand { display: flex; align-items: center; gap: 13px; }
+  .brand .mark {
+    width: 42px; height: 42px; flex: 0 0 42px;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: linear-gradient(150deg, rgba(34,211,238,.16), rgba(13,23,42,.6));
+    border: 1px solid rgba(34,211,238,.35);
+    box-shadow: 0 0 24px rgba(34,211,238,.18);
+  }
+  .brand .mark svg { width: 23px; height: 23px; }
+  .brand h1 { margin: 0; font: 800 16px/1.1 var(--display); letter-spacing: 3px; }
+  .brand h1 .aur { color: var(--cyan); }
+  .brand .sub { display: block; margin-top: 3px; color: var(--green); font: 600 10px var(--mono); letter-spacing: 2.6px; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    font: 600 10.5px var(--mono); letter-spacing: 1px;
+    padding: 5px 11px; border: 1px solid var(--line-2); border-radius: 999px;
+    color: var(--muted); background: rgba(10,15,27,.6); white-space: nowrap;
+  }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 9px currentColor; }
+  .badge.ok { color: var(--green); border-color: rgba(52,211,153,.4); }
+  .badge.accent { color: var(--cyan); border-color: rgba(34,211,238,.4); }
+  .badge.warn { color: var(--amber); border-color: rgba(251,191,36,.4); }
+  .badge .dot.blink { animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+
+  /* ---------- Session bar ---------- */
+  .sessionbar {
+    display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(7, 11, 21, .6);
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font: 700 10px var(--mono); letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
+  input, textarea, button { font: inherit; color: var(--text); }
+  input, textarea {
+    background: var(--panel-2); border: 1px solid var(--line-2); border-radius: var(--r-sm);
+    padding: 9px 12px; transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(34,211,238,.14); }
+  input::placeholder, textarea::placeholder { color: var(--faint); }
+  button {
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text);
+    border-radius: var(--r-sm); padding: 9px 13px; font-weight: 600; font-size: 13.5px;
+    transition: border-color .15s, background .15s, transform .05s, color .15s;
+  }
+  button:hover:not(:disabled) { border-color: var(--cyan); background: var(--panel-3); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  button.primary {
+    background: linear-gradient(180deg, #10b981, #0a7d5c);
+    border-color: rgba(52,211,153,.6); color: #03130d; font-weight: 700;
+    box-shadow: 0 0 0 1px rgba(52,211,153,.22), 0 0 22px rgba(52,211,153,.14);
+  }
+  button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #12c18b, #0c8f68); }
+  button.ghost { background: transparent; border-color: var(--line-2); color: var(--muted); }
+  button.ghost:hover:not(:disabled) { color: var(--text); }
+  .session-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    font: 600 11px var(--mono); color: var(--muted);
+    border: 1px dashed var(--line-2); border-radius: var(--r-sm); padding: 8px 11px;
+    white-space: nowrap;
+  }
+  .session-chip code { color: var(--cyan); }
+
+  /* ---------- Chat ---------- */
+  .chat-wrap {
+    flex: 1 1 auto;
+    width: 100%; max-width: 860px; margin: 0 auto;
+    padding: 20px 22px 8px;
+    display: flex; flex-direction: column;
+  }
+  #messages {
+    flex: 1 1 auto;
+    display: flex; flex-direction: column; gap: 16px;
+    overflow-y: auto; padding-bottom: 8px;
+    scroll-behavior: smooth;
+  }
+  .msg { display: flex; gap: 11px; max-width: 100%; }
+  .msg.user { flex-direction: row-reverse; }
+  .avatar {
+    flex: 0 0 auto; width: 34px; height: 34px;
+    display: grid; place-items: center; border-radius: 10px;
+    border: 1px solid var(--line-2); background: var(--panel-2);
+  }
+  .msg.assistant .avatar { border-color: rgba(34,211,238,.4); box-shadow: 0 0 16px rgba(34,211,238,.14); }
+  .msg.user .avatar { border-color: rgba(52,211,153,.4); }
+  .avatar svg { width: 18px; height: 18px; }
+  .bubble {
+    max-width: min(78%, 640px);
+    padding: 13px 15px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--panel), rgba(10,15,27,.9));
+    border: 1px solid var(--line);
+    font-size: 14.5px; line-height: 1.62;
+    overflow-wrap: anywhere;
+  }
+  .msg.assistant .bubble { border-top-left-radius: 4px; border-left: 3px solid var(--cyan); }
+  .msg.user .bubble { border-top-right-radius: 4px; border-right: 3px solid var(--green); background: linear-gradient(180deg, var(--panel-3), var(--panel-2)); }
+  .bubble .body code {
+    font: 12.5px var(--mono); background: var(--panel-3); color: var(--cyan);
+    border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px;
+  }
+  .bubble .body pre {
+    margin: 8px 0; padding: 11px 13px; overflow-x: auto;
+    background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--r-sm);
+    font: 12.5px/1.55 var(--mono); color: #c9d4e8;
+  }
+  .bubble .body pre code { background: none; border: 0; padding: 0; color: inherit; font-size: inherit; }
+  .bubble .body strong { color: var(--text); }
+  .bubble .body p { margin: 0 0 8px; }
+  .bubble .body p:last-child { margin-bottom: 0; }
+
+  /* sources */
+  .sources { margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .sources .label { font: 700 10px var(--mono); letter-spacing: 1.6px; text-transform: uppercase; color: var(--faint); margin-bottom: 7px; }
+  .src {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font: 600 11.5px var(--mono); color: var(--muted);
+    background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 7px;
+    padding: 6px 10px; margin: 3px 0;
+  }
+  .src .t { color: var(--text); }
+  .src .cid { color: var(--cyan); }
+  .src .be { margin-left: auto; color: var(--faint); font-size: 10.5px; }
+
+  .msg-meta {
+    display: flex; align-items: center; gap: 12px; margin-top: 9px;
+    font: 600 10.5px var(--mono); color: var(--faint);
+  }
+  .msg-meta button { padding: 3px 8px; font-size: 10.5px; border-radius: 6px; }
+
+  /* typing indicator */
+  .typing { display: inline-flex; gap: 5px; align-items: center; height: 16px; }
+  .typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: tdot 1.2s ease-in-out infinite; }
+  .typing span:nth-child(2) { animation-delay: .18s; }
+  .typing span:nth-child(3) { animation-delay: .36s; }
+  @keyframes tdot { 0%,100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+
+  /* empty state */
+  .welcome { text-align: center; margin: auto 0; padding: 40px 8px; }
+  .welcome .mark {
+    width: 64px; height: 64px; margin: 0 auto 18px;
+    display: grid; place-items: center; border-radius: 18px;
+    background: linear-gradient(150deg, rgba(34,211,238,.14), rgba(13,23,42,.6));
+    border: 1px solid rgba(34,211,238,.35);
+    box-shadow: 0 0 34px rgba(34,211,238,.16);
+  }
+  .welcome .mark svg { width: 34px; height: 34px; }
+  .welcome h2 { margin: 0 0 8px; font: 800 22px var(--display); letter-spacing: .5px; }
+  .welcome p { margin: 0 auto 18px; max-width: 460px; color: var(--muted); font-size: 14px; }
+  .prompts { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+  .prompt {
+    border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 15px;
+    background: var(--panel-2); color: var(--muted); font-size: 13px; font-weight: 600;
+  }
+  .prompt:hover { border-color: var(--cyan); color: var(--text); }
+
+  /* ---------- Composer ---------- */
+  .composer {
+    position: sticky; bottom: 0; z-index: 20;
+    width: 100%; max-width: 860px; margin: 0 auto;
+    padding: 10px 22px 16px;
+  }
+  .composer form {
+    display: flex; gap: 10px; align-items: flex-end;
+    background: rgba(7, 11, 21, .92);
+    border: 1px solid var(--line-2); border-radius: var(--r-md);
+    padding: 10px 10px 10px 14px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(12px);
+  }
+  .composer textarea {
+    flex: 1 1 auto; min-height: 44px; max-height: 160px; resize: none;
+    background: transparent; border: 0; padding: 8px 4px;
+    font-size: 14.5px; line-height: 1.5;
+  }
+  .composer textarea:focus { outline: none; box-shadow: none; border-color: transparent; }
+  .composer .send { flex: 0 0 auto; min-height: 44px; padding: 0 20px; }
+  .composer .hint { margin: 7px 2px 0; font: 600 10.5px var(--mono); color: var(--faint); }
+
+  @media (max-width: 560px) {
+    .bubble { max-width: 88%; }
+    .topbar, .sessionbar { padding-left: 14px; padding-right: 14px; }
+    .chat-wrap { padding-left: 14px; padding-right: 14px; }
+    .composer { padding-left: 14px; padding-right: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    #messages { scroll-behavior: auto; }
+  }
+</style>
 </head>
 <body>
-  <h1>Aurora Support</h1>
-  <div id="messages" aria-live="polite">Ask a Zodiac Bank support question.</div>
-  <form id="chat-form">
-    <input id="query" name="query" placeholder="Ask about a policy..." autocomplete="off" required>
-    <button type="submit">Send</button>
-  </form>
-  <script>
-    const form = document.querySelector('#chat-form');
-    const queryInput = document.querySelector('#query');
-    const messages = document.querySelector('#messages');
-    const sessionId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+<div class="bg-fx" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="bg-aurora"></div>
+</div>
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const query = queryInput.value.trim();
-      if (!query) return;
-      messages.textContent += `\n\nYou: ${query}\nAurora: thinking...`;
-      queryInput.value = '';
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({query, session_id: sessionId})
-        });
-        const data = await response.json();
-        const sourceText = (data.sources || []).map(source => `${source.title} (${source.chunk_id})`).join(', ');
-        messages.textContent = messages.textContent.replace('Aurora: thinking...', `Aurora: ${data.response || data.error}\nSources: ${sourceText || 'none'}`);
-      } catch (error) {
-        messages.textContent = messages.textContent.replace('Aurora: thinking...', `Aurora: request failed: ${error}`);
-      }
+<header class="topbar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z" stroke="#22d3ee"/>
+        <circle cx="12" cy="11" r="1.6" fill="#34d399" stroke="none"/>
+      </svg>
+    </span>
+    <div>
+      <h1>ZODIAC&nbsp;BANK <span class="aur">· AURORA</span></h1>
+      <span class="sub">AI SUPPORT CONSOLE</span>
+    </div>
+  </div>
+  <div class="badges">
+    <span class="badge accent" id="model-badge"><span class="dot blink"></span>CONNECTING…</span>
+    <span class="badge" id="backend-badge"><span class="dot"></span>RETRIEVAL: —</span>
+    <span class="badge ok" id="scope-badge"><span class="dot"></span>SYNTHETIC · LOCAL-ONLY</span>
+  </div>
+</header>
+
+<section class="sessionbar">
+  <div class="field">
+    <label for="customer-id">Customer ID (optional)</label>
+    <input id="customer-id" placeholder="e.g. ZB-CUS-1001" autocomplete="off" spellcheck="false" style="width:200px" />
+  </div>
+  <div class="field">
+    <label>Session</label>
+    <span class="session-chip"><code id="session-id">…</code><button id="copy-session" class="ghost" type="button" style="padding:3px 8px" title="Copy session id">Copy</button></span>
+  </div>
+  <button id="new-session" class="ghost" type="button" style="margin-left:auto">New session</button>
+</section>
+
+<main class="chat-wrap">
+  <div id="messages" aria-live="polite"></div>
+</main>
+
+<footer class="composer">
+  <form id="chat-form">
+    <textarea id="query" rows="1" placeholder="Ask Aurora a Zodiac Bank question…" autocomplete="off" required></textarea>
+    <button id="send-btn" class="primary send" type="submit">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      Send
+    </button>
+  </form>
+  <div class="hint">Enter to send · Shift+Enter for a new line</div>
+</footer>
+
+<script>
+"use strict";
+
+const $ = (id) => document.getElementById(id);
+const messagesEl = $("messages");
+const form = $("chat-form");
+const queryEl = $("query");
+
+let sessionId = (crypto.randomUUID ? crypto.randomUUID() : "zb-" + Date.now());
+let customerId = "";
+let busy = false;
+
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+}[c]));
+
+/* Markdown-lite: fenced code, inline code, bold, italics, line breaks. */
+function md(raw) {
+  const chunks = String(raw).split("```");
+  let html = "";
+  chunks.forEach((chunk, i) => {
+    if (i % 2 === 1) {
+      const code = chunk.replace(/^\s*\n/, "").replace(/\n\s*$/, "");
+      html += `<pre><code>${esc(code)}</code></pre>`;
+    } else {
+      let t = esc(chunk);
+      t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
+      t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      t = t.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+      t = t.replace(/\n/g, "<br>");
+      html += t;
+    }
+  });
+  return html;
+}
+
+const AVATAR_AURORA = `<svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/></svg>`;
+const AVATAR_USER = `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z"/><path d="M8.5 15.5l2.2-4.6 2.2 2.3 2.6-5.2"/></svg>`;
+
+function scrollBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+function addMsg(role, html) {
+  const wrap = document.createElement("div");
+  wrap.className = "msg " + role;
+  wrap.innerHTML = `<div class="avatar" aria-hidden="true">${role === "user" ? AVATAR_USER : AVATAR_AURORA}</div><div class="bubble">${html}</div>`;
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+  return wrap.querySelector(".bubble");
+}
+
+function renderSources(sources) {
+  if (!sources || !sources.length) return "";
+  const items = sources.map((s) => `
+    <div class="src">
+      <span class="t">${esc(s.title || "source")}</span>
+      <span class="cid">${esc(s.chunk_id || "")}</span>
+      <span class="be">${esc(s.backend || "")}</span>
+    </div>`).join("");
+  return `<div class="sources"><div class="label">Retrieved sources</div>${items}</div>`;
+}
+
+function typingIndicator() {
+  const wrap = document.createElement("div");
+  wrap.className = "msg assistant";
+  wrap.id = "typing-msg";
+  wrap.innerHTML = `<div class="avatar" aria-hidden="true">${AVATAR_AURORA}</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+}
+function removeTyping() { const t = $("typing-msg"); if (t) t.remove(); }
+
+function showWelcome() {
+  messagesEl.innerHTML = `
+    <div class="welcome">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/></svg>
+      </div>
+      <h2>Aurora Support</h2>
+      <p>Your synthetic Zodiac Bank assistant. Ask about policies, accounts, or support — answers are grounded in the local knowledge corpus.</p>
+      <div class="prompts">
+        <button class="prompt" type="button" data-q="What are your business banking hours?">Business banking hours</button>
+        <button class="prompt" type="button" data-q="How do I dispute a transaction?">Dispute a transaction</button>
+        <button class="prompt" type="button" data-q="What is the overdraft policy?">Overdraft policy</button>
+        <button class="prompt" type="button" data-q="How do I reset my online banking password?">Reset my password</button>
+      </div>
+    </div>`;
+  messagesEl.querySelectorAll(".prompt").forEach((b) => {
+    b.addEventListener("click", () => { queryEl.value = b.dataset.q; submit(b.dataset.q); });
+  });
+}
+
+async function submit(query) {
+  const q = (query || queryEl.value).trim();
+  if (!q || busy) return;
+  busy = true;
+  queryEl.value = "";
+
+  if (messagesEl.querySelector(".welcome")) messagesEl.innerHTML = "";
+  addMsg("user", `<div class="body">${esc(q).replace(/\n/g, "<br>")}</div>`);
+  typingIndicator();
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: q, session_id: sessionId, user_id: customerId || "anonymous" }),
     });
-  </script>
+    const data = await res.json().catch(() => ({}));
+    removeTyping();
+
+    if (!res.ok) {
+      addMsg("assistant", `<div class="body"><strong style="color:var(--danger)">Backend unavailable</strong><br>${esc(data.detail || data.error || res.statusText)}</div>`);
+      return;
+    }
+    const body = `<div class="body">${md(data.response || "")}</div>` +
+      renderSources(data.sources) +
+      `<div class="msg-meta"><span>${esc(data.model || "model")}</span><span>context: ${esc((data.context_engineering && data.context_engineering.mode) || "—")}</span><button class="ghost" type="button" data-copy="${esc(data.response || "")}">Copy</button></div>`;
+    const bubble = addMsg("assistant", body);
+    bubble.querySelector("[data-copy]").addEventListener("click", (e) => {
+      navigator.clipboard.writeText(e.target.dataset.copy).then(() => { e.target.textContent = "Copied"; setTimeout(() => (e.target.textContent = "Copy"), 1200); });
+    });
+  } catch (err) {
+    removeTyping();
+    addMsg("assistant", `<div class="body"><strong style="color:var(--danger)">Request failed</strong><br>${esc(err.message)}</div>`);
+  } finally {
+    busy = false;
+    queryEl.focus();
+  }
+}
+
+/* ---------- health / badges ---------- */
+fetch("/health")
+  .then((r) => r.json())
+  .then((h) => {
+    $("model-badge").innerHTML = `<span class="dot blink"></span>MODEL: ${esc(h.model || "—").toUpperCase()}`;
+    const backends = [];
+    if (h.vector_rag && h.vector_rag.enabled) backends.push("chromadb");
+    if (h.context_engineering && h.context_engineering.enabled) backends.push("graph");
+    backends.push("keyword");
+    $("backend-badge").innerHTML = `<span class="dot"></span>RETRIEVAL: ${backends.join(" + ")}`;
+  })
+  .catch(() => {
+    $("model-badge").innerHTML = `<span class="dot"></span>MODEL: OFFLINE`;
+  });
+
+/* ---------- wiring ---------- */
+$("session-id").textContent = sessionId.slice(0, 13);
+$("copy-session").addEventListener("click", () => {
+  navigator.clipboard.writeText(sessionId).then(() => { $("copy-session").textContent = "Copied"; setTimeout(() => ($("copy-session").textContent = "Copy"), 1200); });
+});
+$("new-session").addEventListener("click", () => {
+  sessionId = crypto.randomUUID ? crypto.randomUUID() : "zb-" + Date.now();
+  $("session-id").textContent = sessionId.slice(0, 13);
+  showWelcome();
+});
+$("customer-id").addEventListener("input", (e) => { customerId = e.target.value.trim(); });
+
+form.addEventListener("submit", (e) => { e.preventDefault(); submit(); });
+queryEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+});
+queryEl.addEventListener("input", () => {
+  queryEl.style.height = "auto";
+  queryEl.style.height = Math.min(queryEl.scrollHeight, 160) + "px";
+});
+
+showWelcome();
+</script>
 </body>
 </html>
