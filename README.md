@@ -431,14 +431,18 @@ Verify the fallback file without downloading anything:
 
 ### Recommended first run
 
-From the repository root, configure strong local secrets first. Docker Compose reads `.env` automatically:
+From the repository root, `start_all.sh` bootstraps the strict-mode secrets for you: on first run it generates strong, persistent values and stores them in `.env` (gitignored, mode `600`). Docker Compose reads `.env` automatically.
 
 ```bash
 cd /path/to/AI-Security-Lab  # replace with your clone path
 chmod +x scripts/*.sh exercises/*.sh
 ```
 
-Create or edit `.env` with values that are at least the documented lengths:
+You can also run the secret bootstrap manually, or hand-write `.env` with values that are at least the documented lengths:
+
+```bash
+./scripts/bootstrap_secrets.sh
+```
 
 ```env
 TRAINING_SECURITY_MODE=strict
@@ -447,6 +451,8 @@ TRAINING_ADMIN_KEY=<at-least-24-character-separate-instructor-key>
 GRAPH_CONTEXT_SECURITY_MODE=strict
 GRAPH_CONTEXT_API_KEY=<at-least-24-character-separate-context-key>
 ```
+
+> **Important:** `TRAINING_FLAG_SECRET` must stay stable for the life of a cohort. The bootstrap preserves any non-placeholder value you set, and regenerating the secret invalidates every already-issued hard-gate flag.
 
 Then verify the configuration and local model without starting services. If `.env` contains `BONSAI_MODEL_DIR`, the local Bonsai model takes precedence over a detected host provider:
 
@@ -491,9 +497,14 @@ RUNTIME=1 ./scripts/test_inference.sh
 If startup fails, inspect the relevant service:
 
 ```bash
+docker compose ps
 docker compose logs --tail=100 bonsai
+docker compose logs --tail=100 training-gate
+docker compose logs --tail=100 zodiac-context
 docker compose logs --tail=100 aurora
 ```
+
+A `zodiac-bank-graph-context is unhealthy` error usually means the graph/context service rejected its placeholder API key in strict mode. Re-run `./scripts/bootstrap_secrets.sh` to provision the missing secret, then start again.
 
 ### Verify the flag flow end to end
 

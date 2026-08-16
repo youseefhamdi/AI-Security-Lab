@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
 LAB_MODE="${LAB_MODE:-core}"
 SEED_DATA="${SEED_DATA:-0}"
@@ -58,6 +59,17 @@ fi
 
 command -v docker >/dev/null 2>&1 || fail "RUNTIME=1 requires docker"
 command -v curl >/dev/null 2>&1 || fail "RUNTIME=1 requires curl"
+
+# Generate strong, persistent local secrets for strict security mode. The
+# services refuse to boot on the placeholder Compose defaults, and
+# TRAINING_FLAG_SECRET must stay stable so already-issued flags keep working.
+"${SCRIPT_DIR}/bootstrap_secrets.sh"
+if [[ -f "$ROOT_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/.env"
+  set +a
+fi
 
 # Exports INFERENCE_PROVIDER, INFERENCE_BASE_URL, INFERENCE_LOCAL_BASE_URL,
 # and INFERENCE_MODEL for Compose and all application containers.
