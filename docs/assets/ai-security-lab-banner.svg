@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420" role="img" aria-labelledby="title desc">
   <title id="title">Zodiac Bank AI Security Lab</title>
-  <desc id="desc">Cinematic dark cyber-bank security operations banner with a rotating radar vault, holographic security ledger, fraud telemetry, and 2026 agentic defense phases.</desc>
+  <desc id="desc">Cinematic dark cyber-bank security operations banner with a rotating radar vault, synthwave perspective floor, holographic security ledger, network telemetry, and 2026 agentic defense phases.</desc>
   <defs>
     <linearGradient id="space" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#01030a"/>
@@ -31,6 +31,15 @@
       <stop offset=".7" stop-color="#38bdf8" stop-opacity=".16"/>
       <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
     </radialGradient>
+    <linearGradient id="floorFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#01030a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#01030a" stop-opacity=".78"/>
+    </linearGradient>
+    <linearGradient id="scanGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#22d3ee" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </linearGradient>
     <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#f8fafc"/>
       <stop offset=".22" stop-color="#64748b"/>
@@ -96,15 +105,19 @@
       .star { animation: twinkle 4s ease-in-out infinite; }
       .data { stroke-dasharray: 2 12; animation: data 2.4s linear infinite; }
       .dataSlow { stroke-dasharray: 3 16; animation: data 4.6s linear 1s infinite; }
+      .flow { stroke-dasharray: 3 12; animation: data 2.6s linear infinite; }
       .beam { animation: beam 5.5s linear infinite; }
       .beam2 { animation: beam 7s linear 2.5s infinite; opacity: .34; }
       .meter { transform-box: fill-box; transform-origin: left center; animation: meter 4s ease-in-out infinite; }
       .gauge { transform-box: fill-box; transform-origin: center; animation: gauge 6s ease-in-out infinite; }
-      .wave { stroke-dasharray: 180 600; animation: wave 3.4s linear infinite; }
+      .eq { transform-box: fill-box; transform-origin: 50% 100%; animation: eq 1.4s ease-in-out infinite; }
       .flicker { animation: flicker 2.8s steps(2,end) infinite; }
       .tick { animation: tick 3.2s ease-in-out infinite; }
       .rain { animation: rain 3.4s linear infinite; }
       .bracket { animation: tick 4s ease-in-out infinite; }
+      .glint { animation: glint 4s ease-in-out infinite; }
+      .glitch { animation: glitch 2.6s steps(1,end) infinite; }
+      .scanline { animation: scanline 8s linear infinite; }
       @keyframes orbit { to { transform: rotate(360deg); } }
       @keyframes orbitReverse { to { transform: rotate(-360deg); } }
       @keyframes pulse { 0%,100% { opacity: .28; transform: scale(.68); } 50% { opacity: 1; transform: scale(1.38); } }
@@ -113,11 +126,14 @@
       @keyframes beam { from { transform: translateX(-260px); } to { transform: translateX(1660px); } }
       @keyframes meter { 0%,100% { transform: scaleX(.6); } 50% { transform: scaleX(1); } }
       @keyframes gauge { 0%,100% { transform: rotate(-86deg); } 50% { transform: rotate(86deg); } }
-      @keyframes wave { to { stroke-dashoffset: -780; } }
+      @keyframes eq { 0%,100% { transform: scaleY(.28); } 50% { transform: scaleY(1); } }
       @keyframes flicker { 0%,46% { opacity: .4; } 47%,100% { opacity: 1; } }
       @keyframes tick { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
       @keyframes rain { from { transform: translateY(-46px); opacity: 0; } 30% { opacity: .9; } to { transform: translateY(46px); opacity: 0; } }
-      @media (prefers-reduced-motion: reduce) { .orbit,.orbitReverse,.pulse,.pulseLate,.star,.data,.dataSlow,.beam,.beam2,.meter,.gauge,.wave,.flicker,.tick,.rain,.bracket { animation: none; } }
+      @keyframes glint { 0%,100% { opacity: 0; } 50% { opacity: .5; } }
+      @keyframes glitch { 0%,91% { transform: translateX(0); opacity: .65; } 92%,94% { transform: translateX(3px); opacity: 1; } 95%,97% { transform: translateX(-2px); opacity: .8; } 98%,100% { transform: translateX(1px); opacity: .9; } }
+      @keyframes scanline { from { transform: translateY(-80px); } to { transform: translateY(430px); } }
+      @media (prefers-reduced-motion: reduce) { .orbit,.orbitReverse,.pulse,.pulseLate,.star,.data,.dataSlow,.flow,.beam,.beam2,.meter,.gauge,.eq,.flicker,.tick,.rain,.bracket,.glint,.glitch,.scanline { animation: none; } }
     </style>
   </defs>
 
@@ -130,6 +146,14 @@
   <rect x="18" y="18" width="1364" height="384" rx="16" fill="url(#fineGrid)"/>
   <path d="M18 76H1382M18 348H1382" stroke="#475569" stroke-opacity=".5"/>
   <path d="M586 76V348" stroke="#475569" stroke-opacity=".4"/>
+
+  <!-- Synthwave perspective floor -->
+  <g stroke="#0ea5e9" stroke-opacity=".16" fill="none">
+    <path d="M18 348 H1382"/>
+    <path d="M700 348 L18 420 M700 348 L160 420 M700 348 L300 420 M700 348 L440 420 M700 348 L580 420 M700 348 L820 420 M700 348 L960 420 M700 348 L1100 420 M700 348 L1240 420 M700 348 L1382 420"/>
+    <path d="M18 356 H1382 M18 366 H1382 M18 380 H1382 M18 398 H1382 M18 420 H1382"/>
+  </g>
+  <rect x="18" y="348" width="1364" height="72" fill="url(#floorFade)"/>
 
   <!-- Animated corner brackets -->
   <g stroke="#22d3ee" stroke-opacity=".7" fill="none" class="bracket">
@@ -151,6 +175,13 @@
     <circle cx="1290" cy="70" r="1" class="star" style="animation-delay:2.8s"/>
     <circle cx="70" cy="220" r="1" class="star" style="animation-delay:3.4s"/>
     <circle cx="460" cy="150" r="1" class="star" style="animation-delay:1s"/>
+  </g>
+
+  <!-- Network flow arcs connecting the vault, identity, and ledger -->
+  <g fill="none" stroke-width="1.5" stroke-linecap="round">
+    <path d="M400 132 C 500 92, 600 92, 700 118" stroke="#0ea5e9" stroke-opacity=".5" class="flow"/>
+    <path d="M828 118 C 890 88, 960 88, 1014 108" stroke="#6366f1" stroke-opacity=".5" class="flow" style="animation-delay:.9s"/>
+    <path d="M400 300 C 500 336, 900 336, 1014 300" stroke="#34d399" stroke-opacity=".38" class="flow" style="animation-delay:1.7s"/>
   </g>
 
   <!-- Header rail -->
@@ -186,8 +217,10 @@
   <g transform="translate(430 108)">
     <text class="eyebrow" fill="#22d3ee">[ SYNTHETIC FINANCIAL-SERVICES SECURITY RANGE ]</text>
     <text y="70" class="title" fill="url(#headline)" filter="url(#textGlow)">ZODIAC BANK</text>
+    <text y="70" class="title glint" fill="#ffffff" filter="url(#textGlow)">ZODIAC BANK</text>
     <text y="108" class="subtitle" fill="#cbd5e1">AI SECURITY LAB  /  ATTACK  /  DEFEND  /  ADVANCE</text>
     <text y="142" class="micro" fill="#64748b">GRAPH · RAG · MEMORY · AGENTS · FRAUD · RESILIENCE</text>
+    <text y="158" class="micro glitch" fill="#38bdf8">// SECURE CHANNEL ACTIVE</text>
 
     <g transform="translate(0 168)">
       <rect width="128" height="30" rx="6" fill="#082f49" stroke="#0891b2" stroke-opacity=".9"/>
@@ -210,33 +243,47 @@
     <text x="308" y="30" text-anchor="end" class="micro" fill="#34d399">LIVE</text>
 
     <!-- Defense phases -->
-    <g transform="translate(22 64)">
+    <g transform="translate(22 62)">
       <g transform="translate(0 0)">
         <rect x="0" y="0" width="6" height="6" rx="1.5" fill="#22d3ee" class="tick"/>
         <text x="14" y="6" class="micro" fill="#cbd5e1">IDENTITY &amp; CAPABILITY</text>
         <text x="284" y="6" text-anchor="end" class="micro" fill="#22d3ee">BOUND</text>
       </g>
-      <g transform="translate(0 26)">
+      <g transform="translate(0 24)">
         <rect x="0" y="0" width="6" height="6" rx="1.5" fill="#f59e0b" class="tick"/>
         <text x="14" y="6" class="micro" fill="#cbd5e1">FRAUD &amp; TELEMETRY</text>
         <text x="284" y="6" text-anchor="end" class="micro" fill="#fbbf24">TRACED</text>
       </g>
-      <g transform="translate(0 52)">
+      <g transform="translate(0 48)">
         <rect x="0" y="0" width="6" height="6" rx="1.5" fill="#a78bfa" class="tick"/>
         <text x="14" y="6" class="micro" fill="#cbd5e1">SANDBOX &amp; PRIVACY</text>
         <text x="284" y="6" text-anchor="end" class="micro" fill="#a78bfa">NO-EGRESS</text>
       </g>
-      <g transform="translate(0 78)">
+      <g transform="translate(0 72)">
         <rect x="0" y="0" width="6" height="6" rx="1.5" fill="#34d399" class="tick"/>
         <text x="14" y="6" class="micro" fill="#cbd5e1">RECOVERY &amp; EVALUATION</text>
         <text x="284" y="6" text-anchor="end" class="micro" fill="#34d399">RESILIENT</text>
       </g>
     </g>
 
-    <!-- Telemetry waveform -->
-    <g transform="translate(20 156)">
-      <path d="M0 20 L30 20 L44 4 L58 34 L72 12 L86 26 L100 8 L114 30 L128 16 L142 22 L156 10 L170 26 L184 14 L198 20 L212 6 L226 26 L240 18 L254 24 L268 12 L282 20 L308 20" fill="none" stroke="#1e293b" stroke-width="2"/>
-      <path d="M0 20 L30 20 L44 4 L58 34 L72 12 L86 26 L100 8 L114 30 L128 16 L142 22 L156 10 L170 26 L184 14 L198 20 L212 6 L226 26 L240 18 L254 24 L268 12 L282 20 L308 20" fill="none" stroke="url(#neon)" stroke-width="2" class="wave"/>
+    <!-- Telemetry equalizer -->
+    <g transform="translate(20 142)">
+      <rect x="0" y="0" width="5" height="26" fill="url(#neon)" class="eq"/>
+      <rect x="11" y="0" width="5" height="26" fill="#38bdf8" class="eq" style="animation-delay:.1s"/>
+      <rect x="22" y="0" width="5" height="26" fill="#818cf8" class="eq" style="animation-delay:.2s"/>
+      <rect x="33" y="0" width="5" height="26" fill="#22d3ee" class="eq" style="animation-delay:.3s"/>
+      <rect x="44" y="0" width="5" height="26" fill="#34d399" class="eq" style="animation-delay:.4s"/>
+      <rect x="55" y="0" width="5" height="26" fill="#f59e0b" class="eq" style="animation-delay:.5s"/>
+      <rect x="66" y="0" width="5" height="26" fill="#ec4899" class="eq" style="animation-delay:.6s"/>
+      <rect x="77" y="0" width="5" height="26" fill="#38bdf8" class="eq" style="animation-delay:.7s"/>
+      <rect x="88" y="0" width="5" height="26" fill="#22d3ee" class="eq" style="animation-delay:.8s"/>
+      <rect x="99" y="0" width="5" height="26" fill="#818cf8" class="eq" style="animation-delay:.9s"/>
+      <rect x="110" y="0" width="5" height="26" fill="#34d399" class="eq" style="animation-delay:1s"/>
+      <rect x="121" y="0" width="5" height="26" fill="#22d3ee" class="eq" style="animation-delay:1.1s"/>
+      <rect x="132" y="0" width="5" height="26" fill="#38bdf8" class="eq" style="animation-delay:1.2s"/>
+      <rect x="143" y="0" width="5" height="26" fill="#ec4899" class="eq" style="animation-delay:1.3s"/>
+      <rect x="154" y="0" width="5" height="26" fill="#22d3ee" class="eq" style="animation-delay:1.4s"/>
+      <rect x="165" y="0" width="5" height="26" fill="#818cf8" class="eq" style="animation-delay:1.5s"/>
     </g>
 
     <!-- Control gauges -->
@@ -271,4 +318,5 @@
   </g>
   <rect class="beam" x="0" y="78" width="2" height="280" fill="#67e8f9" opacity=".78" filter="url(#glow)"/>
   <rect class="beam2" x="0" y="78" width="1" height="280" fill="#818cf8" filter="url(#glow)"/>
+  <rect class="scanline" x="18" y="0" width="1364" height="70" fill="url(#scanGrad)"/>
 </svg>

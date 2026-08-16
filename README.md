@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/youseefhamdi/AI-Security-Lab">
-  <img src="docs/assets/ai-security-lab-banner.svg?v=2026-radar-vault" alt="Cinematic dark Zodiac Bank AI Security Operations banner with a rotating radar vault, holographic security ledger, telemetry waveform, and 2026 agentic defense phases" width="100%" />
+  <img src="docs/assets/ai-security-lab-banner.svg?v=2026-synthwave-vault" alt="Cinematic dark Zodiac Bank AI Security Operations banner with a rotating radar vault, synthwave perspective floor, network telemetry, equalizer, and 2026 agentic defense phases" width="100%" />
 </a>
 
 [![Brand](https://img.shields.io/badge/Brand-ZODIAC%20BANK-0F172A?logo=target&logoColor=67E8F9)](#-zodiac-bank-brand)
