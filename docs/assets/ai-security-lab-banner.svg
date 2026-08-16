@@ -1,23 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420" role="img" aria-labelledby="title desc">
   <title id="title">Zodiac Bank AI Security Lab</title>
-  <desc id="desc">Cinematic dark cyber-bank banner with a glowing security vault, holographic ledger streams, and synthetic AI security telemetry.</desc>
+  <desc id="desc">Upgraded dark cyber-bank security operations banner with the Zodiac defense vault, fraud telemetry, no-egress sandbox, privacy, and resilient recovery controls.</desc>
   <defs>
     <linearGradient id="space" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#02040b"/>
-      <stop offset="0.42" stop-color="#07111f"/>
-      <stop offset="0.75" stop-color="#10152d"/>
-      <stop offset="1" stop-color="#060816"/>
+      <stop offset="0" stop-color="#01030a"/>
+      <stop offset="0.4" stop-color="#061120"/>
+      <stop offset="0.72" stop-color="#0d1430"/>
+      <stop offset="1" stop-color="#040713"/>
     </linearGradient>
     <radialGradient id="vaultAura" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#22d3ee" stop-opacity=".3"/>
-      <stop offset=".42" stop-color="#2563eb" stop-opacity=".11"/>
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".34"/>
+      <stop offset=".4" stop-color="#2563eb" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="coreAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#818cf8" stop-opacity=".28"/>
       <stop offset="1" stop-color="#020617" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#e0f2fe"/>
+      <stop offset="0" stop-color="#f8fafc"/>
       <stop offset=".22" stop-color="#64748b"/>
-      <stop offset=".52" stop-color="#dbeafe"/>
-      <stop offset=".75" stop-color="#334155"/>
+      <stop offset=".5" stop-color="#dbeafe"/>
+      <stop offset=".78" stop-color="#334155"/>
       <stop offset="1" stop-color="#a5b4fc"/>
     </linearGradient>
     <linearGradient id="neon" x1="0" y1="0" x2="1" y2="0">
@@ -25,7 +29,15 @@
       <stop offset=".48" stop-color="#38bdf8"/>
       <stop offset="1" stop-color="#818cf8"/>
     </linearGradient>
-    <linearGradient id="pinkNeon" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="emerald" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="rose" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#6366f1"/>
       <stop offset="1" stop-color="#ec4899"/>
     </linearGradient>
@@ -34,48 +46,52 @@
       <stop offset=".45" stop-color="#dbeafe"/>
       <stop offset="1" stop-color="#a5b4fc"/>
     </linearGradient>
-    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
-      <path d="M36 0H0V36" fill="none" stroke="#94a3b8" stroke-opacity=".085"/>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#94a3b8" stroke-opacity=".08"/>
     </pattern>
-    <pattern id="fineGrid" width="9" height="9" patternUnits="userSpaceOnUse">
-      <path d="M9 0H0V9" fill="none" stroke="#38bdf8" stroke-opacity=".045"/>
+    <pattern id="fineGrid" width="8.5" height="8.5" patternUnits="userSpaceOnUse">
+      <path d="M8.5 0H0V8.5" fill="none" stroke="#38bdf8" stroke-opacity=".05"/>
     </pattern>
     <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feGaussianBlur stdDeviation="4.5" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <filter id="largeGlow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="24"/>
+      <feGaussianBlur stdDeviation="26"/>
     </filter>
     <filter id="textGlow" x="-20%" y="-40%" width="140%" height="180%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <style>
       .micro { font: 600 10px 'JetBrains Mono','SFMono-Regular',monospace; letter-spacing: 2px; }
-      .eyebrow { font: 600 12px 'JetBrains Mono','SFMono-Regular',monospace; letter-spacing: 3px; }
-      .title { font: 900 58px 'Inter','Segoe UI',sans-serif; letter-spacing: 7px; }
+      .eyebrow { font: 700 12px 'JetBrains Mono','SFMono-Regular',monospace; letter-spacing: 3px; }
+      .title { font: 900 60px 'Inter','Segoe UI',sans-serif; letter-spacing: 8px; }
       .subtitle { font: 600 17px 'Inter','Segoe UI',sans-serif; letter-spacing: 4px; }
       .metric { font: 700 13px 'JetBrains Mono','SFMono-Regular',monospace; letter-spacing: 1px; }
-      .chip { font: 800 10px 'Inter','Segoe UI',sans-serif; letter-spacing: 1.4px; }
-      .orbit { transform-box: fill-box; transform-origin: center; animation: orbit 18s linear infinite; }
-      .orbitReverse { transform-box: fill-box; transform-origin: center; animation: orbitReverse 13s linear infinite; }
+      .chip { font: 800 10px 'Inter','Segoe UI',sans-serif; letter-spacing: 1.3px; }
+      .orbit { transform-box: fill-box; transform-origin: center; animation: orbit 16s linear infinite; }
+      .orbitReverse { transform-box: fill-box; transform-origin: center; animation: orbitReverse 11s linear infinite; }
       .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 3s ease-in-out infinite; }
       .pulseLate { transform-box: fill-box; transform-origin: center; animation: pulse 3s ease-in-out 1.4s infinite; }
-      .data { stroke-dasharray: 2 12; animation: data 2.6s linear infinite; }
-      .dataSlow { stroke-dasharray: 3 18; animation: data 5s linear 1s infinite; }
+      .data { stroke-dasharray: 2 12; animation: data 2.4s linear infinite; }
+      .dataSlow { stroke-dasharray: 3 16; animation: data 4.6s linear 1s infinite; }
       .beam { animation: beam 5.5s linear infinite; }
-      .beam2 { animation: beam 7s linear 2.5s infinite; opacity: .35; }
+      .beam2 { animation: beam 7s linear 2.5s infinite; opacity: .34; }
       .meter { transform-box: fill-box; transform-origin: left center; animation: meter 4s ease-in-out infinite; }
+      .gauge { transform-box: fill-box; transform-origin: center; animation: gauge 6s ease-in-out infinite; }
       .flicker { animation: flicker 2.8s steps(2,end) infinite; }
+      .tick { animation: tick 3.2s ease-in-out infinite; }
       @keyframes orbit { to { transform: rotate(360deg); } }
       @keyframes orbitReverse { to { transform: rotate(-360deg); } }
-      @keyframes pulse { 0%,100% { opacity: .3; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.35); } }
+      @keyframes pulse { 0%,100% { opacity: .28; transform: scale(.68); } 50% { opacity: 1; transform: scale(1.38); } }
       @keyframes data { to { stroke-dashoffset: -84; } }
-      @keyframes beam { from { transform: translateX(-240px); } to { transform: translateX(1640px); } }
-      @keyframes meter { 0%,100% { transform: scaleX(.62); } 50% { transform: scaleX(1); } }
-      @keyframes flicker { 0%,46% { opacity: .45; } 47%,100% { opacity: 1; } }
-      @media (prefers-reduced-motion: reduce) { .orbit,.orbitReverse,.pulse,.pulseLate,.data,.dataSlow,.beam,.beam2,.meter,.flicker { animation: none; } }
+      @keyframes beam { from { transform: translateX(-260px); } to { transform: translateX(1660px); } }
+      @keyframes meter { 0%,100% { transform: scaleX(.6); } 50% { transform: scaleX(1); } }
+      @keyframes gauge { 0%,100% { transform: rotate(-86deg); } 50% { transform: rotate(86deg); } }
+      @keyframes flicker { 0%,46% { opacity: .4; } 47%,100% { opacity: 1; } }
+      @keyframes tick { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { .orbit,.orbitReverse,.pulse,.pulseLate,.data,.dataSlow,.beam,.beam2,.meter,.gauge,.flicker,.tick { animation: none; } }
     </style>
   </defs>
 
@@ -84,94 +100,107 @@
   <rect x="2" y="2" width="1396" height="416" rx="22" fill="none" stroke="#334155" stroke-width="3"/>
   <rect x="18" y="18" width="1364" height="384" rx="16" fill="url(#grid)"/>
   <rect x="18" y="18" width="1364" height="384" rx="16" fill="url(#fineGrid)"/>
-  <path d="M18 76H1382M18 350H1382" stroke="#475569" stroke-opacity=".5"/>
-  <path d="M586 76V350" stroke="#475569" stroke-opacity=".4"/>
-  <ellipse cx="300" cy="220" rx="310" ry="250" fill="url(#vaultAura)" filter="url(#largeGlow)"/>
+  <path d="M18 76H1382M18 348H1382" stroke="#475569" stroke-opacity=".5"/>
+  <path d="M586 76V348" stroke="#475569" stroke-opacity=".4"/>
+  <ellipse cx="300" cy="214" rx="310" ry="250" fill="url(#vaultAura)" filter="url(#largeGlow)"/>
+  <ellipse cx="300" cy="214" rx="150" ry="150" fill="url(#coreAura)" filter="url(#largeGlow)"/>
 
   <!-- Header rail -->
   <g transform="translate(48 45)">
-    <circle cx="4" cy="0" r="4" fill="#22d3ee" class="pulse" filter="url(#glow)"/>
-    <text x="19" y="4" class="eyebrow" fill="#94a3b8">ZODIAC BANK / SECURE DIGITAL VAULT</text>
-    <text x="1330" y="4" text-anchor="end" class="micro" fill="#64748b">SIMULATION // LOCAL-ONLY // 2026</text>
+    <circle cx="4" cy="0" r="4" fill="#34d399" class="pulse" filter="url(#glow)"/>
+    <text x="19" y="4" class="eyebrow" fill="#94a3b8">ZODIAC BANK / AI SECURITY OPERATIONS</text>
+    <text x="1330" y="4" text-anchor="end" class="micro" fill="#64748b">SIMULATION // LOCAL-ONLY // HARDENED 2026</text>
   </g>
 
-  <!-- Cinematic security vault -->
-  <g transform="translate(34 98)">
+  <!-- Cinematic defense vault -->
+  <g transform="translate(34 96)">
     <circle cx="214" cy="122" r="155" fill="#020617" fill-opacity=".72" stroke="#0e7490" stroke-opacity=".35" stroke-width="2"/>
-    <circle cx="214" cy="122" r="140" fill="none" stroke="#1e40af" stroke-opacity=".48" stroke-width="14"/>
+    <circle cx="214" cy="122" r="140" fill="none" stroke="#1e40af" stroke-opacity=".5" stroke-width="14"/>
     <circle cx="214" cy="122" r="140" fill="none" stroke="url(#neon)" stroke-width="3" stroke-dasharray="5 19" class="orbit"/>
     <circle cx="214" cy="122" r="116" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="2 10" class="orbitReverse"/>
     <circle cx="214" cy="122" r="92" fill="#030712" stroke="url(#chrome)" stroke-width="3" opacity=".96"/>
     <circle cx="214" cy="122" r="74" fill="none" stroke="#0e7490" stroke-opacity=".8" stroke-width="2"/>
     <circle cx="214" cy="122" r="55" fill="#071525" stroke="#22d3ee" stroke-opacity=".55"/>
     <image href="spartan-emblem.svg" x="166" y="74" width="96" height="96"/>
-    <circle cx="214" cy="122" r="102" fill="none" stroke="#22d3ee" stroke-opacity=".4" stroke-width="2" stroke-dasharray="1 26" class="orbit"/>
+    <circle cx="214" cy="122" r="102" fill="none" stroke="#34d399" stroke-opacity=".45" stroke-width="2" stroke-dasharray="1 26" class="orbit"/>
     <circle cx="214" cy="-18" r="5" fill="#22d3ee" class="pulse" filter="url(#glow)"/>
     <circle cx="344" cy="122" r="5" fill="#818cf8" class="pulseLate" filter="url(#glow)"/>
     <circle cx="214" cy="262" r="5" fill="#38bdf8" class="pulse" filter="url(#glow)"/>
-    <text x="214" y="302" text-anchor="middle" class="micro" fill="#67e8f9">ZB // DEFENSE VAULT ONLINE</text>
+    <text x="214" y="302" text-anchor="middle" class="micro" fill="#6ee7b7">ZB // DEFENSE VAULT ONLINE</text>
   </g>
 
   <!-- Main identity -->
-  <g transform="translate(430 112)">
+  <g transform="translate(430 108)">
     <text class="eyebrow" fill="#22d3ee">[ SYNTHETIC FINANCIAL-SERVICES SECURITY RANGE ]</text>
-    <text y="72" class="title" fill="url(#headline)" filter="url(#textGlow)">ZODIAC BANK</text>
-    <text y="111" class="subtitle" fill="#cbd5e1">AI SECURITY LAB  /  ATTACK  /  DEFEND  /  ADVANCE</text>
-    <text y="146" class="micro" fill="#64748b">GRAPH · RAG · MEMORY · AGENTS · APT RESPONSE</text>
+    <text y="70" class="title" fill="url(#headline)" filter="url(#textGlow)">ZODIAC BANK</text>
+    <text y="108" class="subtitle" fill="#cbd5e1">AI SECURITY LAB  /  ATTACK  /  DEFEND  /  ADVANCE</text>
+    <text y="142" class="micro" fill="#64748b">GRAPH · RAG · MEMORY · AGENTS · FRAUD · RESILIENCE</text>
 
-    <g transform="translate(0 178)">
-      <rect width="132" height="32" rx="7" fill="#082f49" stroke="#0891b2" stroke-opacity=".9"/>
-      <circle cx="16" cy="16" r="4" fill="#22d3ee" class="flicker"/>
-      <text x="29" y="21" class="chip" fill="#a5f3fc">100 SCENARIOS</text>
-      <rect x="144" width="126" height="32" rx="7" fill="#172554" stroke="#4f46e5" stroke-opacity=".9"/>
-      <circle cx="160" cy="16" r="4" fill="#818cf8" class="flicker"/>
-      <text x="173" y="21" class="chip" fill="#c7d2fe">50 HARD GATES</text>
-      <rect x="282" width="118" height="32" rx="7" fill="#111827" stroke="#64748b" stroke-opacity=".9"/>
-      <circle cx="298" cy="16" r="4" fill="#86efac" class="flicker"/>
-      <text x="311" y="21" class="chip" fill="#bbf7d0">NO EGRESS</text>
+    <g transform="translate(0 168)">
+      <rect width="128" height="30" rx="6" fill="#082f49" stroke="#0891b2" stroke-opacity=".9"/>
+      <circle cx="16" cy="15" r="4" fill="#22d3ee" class="flicker"/>
+      <text x="29" y="20" class="chip" fill="#a5f3fc">100 SCENARIOS</text>
+      <rect x="140" width="122" height="30" rx="6" fill="#172554" stroke="#4f46e5" stroke-opacity=".9"/>
+      <circle cx="156" cy="15" r="4" fill="#818cf8" class="flicker"/>
+      <text x="169" y="20" class="chip" fill="#c7d2fe">50 HARD GATES</text>
+      <rect x="274" width="112" height="30" rx="6" fill="#052e2b" stroke="#10b981" stroke-opacity=".9"/>
+      <circle cx="290" cy="15" r="4" fill="#34d399" class="flicker"/>
+      <text x="303" y="20" class="chip" fill="#a7f3d0">NO EGRESS</text>
     </g>
   </g>
 
-  <!-- Holographic ledger / bank network -->
+  <!-- Security posture ledger -->
   <g transform="translate(1014 94)">
-    <rect width="328" height="222" rx="14" fill="#020617" fill-opacity=".86" stroke="#334155" stroke-opacity=".95"/>
-    <path d="M0 48H328M0 174H328" stroke="#334155"/>
-    <text x="20" y="30" class="eyebrow" fill="#e2e8f0">SECURITY LEDGER</text>
-    <text x="308" y="30" text-anchor="end" class="micro" fill="#22d3ee">LIVE</text>
+    <rect width="328" height="228" rx="14" fill="#020617" fill-opacity=".86" stroke="#334155" stroke-opacity=".95"/>
+    <path d="M0 48H328M0 182H328" stroke="#334155"/>
+    <text x="20" y="30" class="eyebrow" fill="#e2e8f0">SECURITY POSTURE</text>
+    <text x="308" y="30" text-anchor="end" class="micro" fill="#34d399">LIVE</text>
 
-    <!-- Branch network -->
-    <g transform="translate(26 70)">
-      <path d="M26 47 L138 47 L238 11M138 47L238 84" fill="none" stroke="#0e7490" stroke-width="2"/>
-      <path d="M26 47 L138 47 L238 11M138 47L238 84" fill="none" stroke="url(#neon)" stroke-width="2" class="data"/>
-      <circle cx="26" cy="47" r="12" fill="#071525" stroke="#22d3ee" stroke-width="2"/>
-      <circle cx="138" cy="47" r="12" fill="#071525" stroke="#38bdf8" stroke-width="2"/>
-      <circle cx="238" cy="11" r="12" fill="#071525" stroke="#818cf8" stroke-width="2"/>
-      <circle cx="238" cy="84" r="12" fill="#071525" stroke="#a5b4fc" stroke-width="2"/>
-      <text x="26" y="51" text-anchor="middle" class="micro" fill="#bae6fd">HQ</text>
-      <text x="138" y="51" text-anchor="middle" class="micro" fill="#bae6fd">AI</text>
-      <text x="238" y="15" text-anchor="middle" class="micro" fill="#c7d2fe">R</text>
-      <text x="238" y="88" text-anchor="middle" class="micro" fill="#c7d2fe">A</text>
-      <text x="26" y="80" text-anchor="middle" class="micro" fill="#64748b">INTENT</text>
-      <text x="138" y="80" text-anchor="middle" class="micro" fill="#64748b">CONTROL</text>
-      <text x="238" y="116" text-anchor="middle" class="micro" fill="#64748b">AUDIT</text>
+    <!-- Defense phases -->
+    <g transform="translate(22 64)">
+      <g transform="translate(0 0)">
+        <rect x="0" y="0" width="6" height="6" rx="1.5" fill="#22d3ee" class="tick"/>
+        <text x="14" y="6" class="micro" fill="#cbd5e1">IDENTITY &amp; CAPABILITY</text>
+        <text x="284" y="6" text-anchor="end" class="micro" fill="#22d3ee">BOUND</text>
+      </g>
+      <g transform="translate(0 26)">
+        <rect x="0" y="0" width="6" height="6" rx="1.5" fill="#f59e0b" class="tick"/>
+        <text x="14" y="6" class="micro" fill="#cbd5e1">FRAUD &amp; TELEMETRY</text>
+        <text x="284" y="6" text-anchor="end" class="micro" fill="#fbbf24">TRACED</text>
+      </g>
+      <g transform="translate(0 52)">
+        <rect x="0" y="0" width="6" height="6" rx="1.5" fill="#a78bfa" class="tick"/>
+        <text x="14" y="6" class="micro" fill="#cbd5e1">SANDBOX &amp; PRIVACY</text>
+        <text x="284" y="6" text-anchor="end" class="micro" fill="#a78bfa">NO-EGRESS</text>
+      </g>
+      <g transform="translate(0 78)">
+        <rect x="0" y="0" width="6" height="6" rx="1.5" fill="#34d399" class="tick"/>
+        <text x="14" y="6" class="micro" fill="#cbd5e1">RECOVERY &amp; EVALUATION</text>
+        <text x="284" y="6" text-anchor="end" class="micro" fill="#34d399">RESILIENT</text>
+      </g>
     </g>
 
-    <g transform="translate(20 190)">
-      <text class="micro" fill="#64748b">CONTROL COVERAGE</text>
-      <rect x="112" y="-7" width="112" height="6" rx="3" fill="#1e293b"/>
-      <rect x="112" y="-7" width="112" height="6" rx="3" fill="url(#neon)" class="meter"/>
-      <text x="238" y="0" class="metric" fill="#bae6fd">100%</text>
-      <text x="308" y="0" text-anchor="end" class="metric" fill="#86efac">EGRESS: OFF</text>
+    <!-- Control gauge -->
+    <g transform="translate(22 194)">
+      <circle cx="24" cy="14" r="14" fill="#0b1220" stroke="#1e293b" stroke-width="2"/>
+      <path d="M24 6 A8 8 0 0 1 38 18" fill="none" stroke="url(#emerald)" stroke-width="3" stroke-linecap="round" class="gauge"/>
+      <circle cx="24" cy="14" r="3" fill="#34d399"/>
+      <text x="52" y="10" class="micro" fill="#64748b">CONTROL COVERAGE</text>
+      <text x="52" y="22" class="metric" fill="#bae6fd">100%</text>
+      <text x="238" y="10" class="micro" fill="#64748b">RECONCILIATION</text>
+      <text x="306" y="10" text-anchor="end" class="metric" fill="#86efac">BALANCED</text>
+      <text x="238" y="22" class="micro" fill="#64748b">EXTERNAL EGRESS</text>
+      <text x="306" y="22" text-anchor="end" class="metric" fill="#86efac">DENIED</text>
     </g>
   </g>
 
   <!-- Bottom cinematic signal rail -->
-  <g transform="translate(430 358)">
+  <g transform="translate(430 362)">
     <path d="M0 0H912" stroke="#334155"/>
-    <path d="M0 0H912" stroke="url(#pinkNeon)" stroke-opacity=".45" class="dataSlow"/>
-    <text y="22" class="micro" fill="#64748b">VIRTUAL LEDGER  ·  EMPLOYEE LOOPS  ·  MAKER / CHECKER  ·  HARDENED BY EVIDENCE</text>
-    <text x="912" y="22" text-anchor="end" class="micro" fill="#22d3ee">STATUS: READY</text>
+    <path d="M0 0H912" stroke="url(#rose)" stroke-opacity=".45" class="dataSlow"/>
+    <text y="22" class="micro" fill="#64748b">VIRTUAL LEDGER  ·  EMPLOYEE LOOPS  ·  MAKER / CHECKER  ·  FRAUD TRACE  ·  HARDENED BY EVIDENCE</text>
+    <text x="912" y="22" text-anchor="end" class="micro" fill="#34d399">STATUS: READY</text>
   </g>
-  <rect class="beam" x="0" y="78" width="2" height="276" fill="#67e8f9" opacity=".78" filter="url(#glow)"/>
-  <rect class="beam2" x="0" y="78" width="1" height="276" fill="#818cf8" filter="url(#glow)"/>
+  <rect class="beam" x="0" y="78" width="2" height="280" fill="#67e8f9" opacity=".78" filter="url(#glow)"/>
+  <rect class="beam2" x="0" y="78" width="1" height="280" fill="#818cf8" filter="url(#glow)"/>
 </svg>

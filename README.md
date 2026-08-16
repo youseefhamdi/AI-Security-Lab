@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/youseefhamdi/AI-Security-Lab">
-  <img src="docs/assets/ai-security-lab-banner.svg?v=100-scenarios-50-gates" alt="Cinematic dark animated Zodiac Bank AI Security Operations banner with 100 scenarios, 50 hard gates, telemetry, and a Spartan emblem" width="100%" />
+  <img src="docs/assets/ai-security-lab-banner.svg?v=phases-1-4-hardened" alt="Upgraded dark Zodiac Bank AI Security Operations banner with the defense vault, fraud telemetry, no-egress sandbox, privacy, and resilient recovery controls" width="100%" />
 </a>
 
 [![Brand](https://img.shields.io/badge/Brand-ZODIAC%20BANK-0F172A?logo=target&logoColor=67E8F9)](#-zodiac-bank-brand)
@@ -70,11 +70,30 @@ The lab models a complete training environment: branches, employees, staff roles
 
 > Local-first synthetic banking range for AI security training: prompt injection, RAG and memory poisoning, MCP/A2A abuse, agentic workflows, fraud controls, and APT response.
 
+### At a glance
+
+| 🎯 Scenarios | 🚪 Hard gates | 🪜 Stages | 🏦 Branches / staff | 🛡️ Security phases |
+| --- | --- | --- | --- | --- |
+| **100** | **50** | **10** | **3 / 12** | **4** |
+
+| 💥 Attack surface | 🧠 System coverage | 🛰️ Telemetry | 🧱 Runtime profiles |
+| --- | --- | --- | --- |
+| Prompt injection · RAG/memory poisoning · MCP/A2A abuse · fraud · APT | Graph · RAG · memory · agents · loops | Fraud trace · event envelope · alert correlation | Core · Lite · Full |
+
+```mermaid
+flowchart LR
+  A[🎯 100 Scenarios] --> B[🚪 50 Hard Gates]
+  B --> C[🪜 10 Stages]
+  C --> D[🛡️ Phase 1-4 Hardening]
+  D --> E[🧨 APT Capstone]
+  E --> F[✅ Curriculum Complete]
+```
+
 ## ⚔️ ZODIAC BANK brand
 
 The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Spartan defense emblem, hard-gated progression, graph RAG, and APT-range training.
 
-The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic ledger streams, branch-network telemetry, cyan/indigo security rails, and a Spartan defense emblem. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
+The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a Spartan defense emblem. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 100-scenario and 50-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
@@ -90,6 +109,32 @@ Brand assets:
 All branding represents a synthetic training environment; it is not affiliated with a real bank.
 
 ## 🧭 Architecture
+
+The lab is split into a synthetic bank domain, protocol surfaces, and a control plane that is symmetric with the orchestrator:
+
+```mermaid
+flowchart TB
+  subgraph DOMAIN["🏦 Synthetic Bank Domain"]
+    B["Branches · Staff · Customers<br/>Accounts · Cases · Policies"]
+    OP["transfer · receive · withdraw<br/>virtual integer cents"]
+  end
+  subgraph MEM["🧠 Graph / RAG / Memory"]
+    G["Graph Context :5070"]
+    RAG["ChromaDB · Milvus<br/>LightRAG · Mem0"]
+  end
+  subgraph PROTO["🔌 Protocol Surfaces"]
+    A2A["A2A Router → Knowledge"]
+    MCP["MCP Server → Wrapper"]
+  end
+  subgraph CTRL["🛡️ Control & Visibility"]
+    ORCH["Orchestrator · Loop Engineering"]
+    DET["Detection Rules · SIEM"]
+    GATE["Training Gate · Challenge Range"]
+  end
+  DOMAIN --> MEM --> PROTO --> ORCH --> DET
+  ORCH --> GATE
+  GATE --> DET
+```
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -118,6 +163,12 @@ Start with **core**. Add protocols or the full stack only when you need them.
 | `core` | Inference provider, Training Gate, Challenge Surface, Graph Context, Aurora, Phoenix, Assistant | 8 GB RAM minimum; 10–12 GB recommended | `RUNTIME=1 ./scripts/start_all.sh` |
 | `lite` | Core + A2A Router, Knowledge Agent, MCP server, MCP wrapper | 10 GB minimum; 12–16 GB recommended | `RUNTIME=1 LAB_MODE=lite ./scripts/start_all.sh` |
 | `full` | Lite + Kong, storage, Mem0, LightRAG, extra MCP, ELK | 32 GB minimum; 48 GB recommended | `RUNTIME=1 LAB_MODE=full SEED_DATA=0 ./scripts/start_all.sh` |
+
+```mermaid
+flowchart LR
+  core["⚙️ Core<br/>Gate · Challenges · Graph<br/>Aurora · Phoenix · Assistant"] --> lite["🔌 Lite<br/>+ A2A Router · Knowledge<br/>+ MCP Server · Wrapper"]
+  lite --> full["🧱 Full<br/>+ Kong · ChromaDB · Milvus<br/>+ LightRAG · Mem0 · ELK"]
+```
 
 ### Core profile
 
@@ -740,6 +791,19 @@ curl -sS http://127.0.0.1:5002/v1/chat/completions \
 
 The lab now includes a hard-gated curriculum in `training-config/curriculum.json`, progressing in strict difficulty order from foundation and reconnaissance to an APT-simulation capstone. Only the first incomplete stage is unlocked. Every stage requires a hard flag; the Training Gate stores learner progress in SQLite, never returns plaintext flags through its curriculum API, and never writes flags into learner artifacts. Each unlocked lesson provides three short hints that escalate from direction to confirmation.
 
+```mermaid
+flowchart LR
+  A["👤 Enroll learner<br/>cohort + token"] --> B["🎯 Solve scenarios<br/>evidence + chained proof"]
+  B --> C{"🔐 Hard gate<br/>complete?"}
+  C -- "no" --> B
+  C -- "yes" --> D["🧩 Synthesize gate"]
+  D --> E["🏁 Hard flag issued"]
+  E --> F["📨 Submit to Training Gate"]
+  F --> G{"➡️ Next stage?"}
+  G -- "yes" --> B
+  G -- "no" --> H["✅ APT curriculum complete"]
+```
+
 Set private local secrets before the first run; strict mode rejects the built-in placeholders and changing the flag secret later invalidates generated flags:
 
 ```env
@@ -807,6 +871,23 @@ The lab now includes a realistic but non-financial virtual bank domain:
 - employee-loop workflows routed through teller, branch manager, payments, fraud, compliance, AML, and receipt-verifier workers;
 - graph/RAG/memory context attached to loop tasks as provenance-tagged evidence that cannot authorize settlement;
 - no real money, real accounts, payment rails, external egress, or irreversible side effects.
+
+```mermaid
+sequenceDiagram
+  participant L as Learner / Agent
+  participant O as Orchestrator
+  participant F as Fraud Engine
+  participant P as Approvals
+  participant M as Virtual Ledger
+  L->>O: plan operation (intent)
+  O->>F: assess risk + telemetry
+  F-->>O: allow / review / deny
+  O->>P: request maker/checker approvals
+  P-->>O: approvals recorded
+  O->>M: settle paired entries
+  M-->>O: immutable receipt
+  O-->>L: run status + receipt
+```
 
 Run the isolated receive + high-value transfer demonstration:
 
@@ -921,6 +1002,14 @@ The remaining upgrade phases are now executable, not documentation-only:
 - **Phase 3 — sandbox and privacy:** no-egress registered-handler sandbox, typed arguments, fixture-only paths, resource budgets, branch/purpose/role privacy checks, redaction, retention, and access audit hashes.
 - **Phase 4 — resilience and evaluation:** tamper-evident checkpoints, recovery verification, circuit breakers, kill switch, ledger reconciliation, held-out mutation transfer, and zero-model-call evaluation.
 
+```mermaid
+flowchart TB
+  P1["🔐 Phase 1<br/>Identity · Capability · Delegation"] --> P2["📡 Phase 2<br/>Fraud Intelligence · Telemetry"]
+  P2 --> P3["🧱 Phase 3<br/>No-Egress Sandbox · Privacy"]
+  P3 --> P4["🛡️ Phase 4<br/>Recovery · Resilience · Evaluation"]
+  P4 --> APT["🧨 APT Capstone<br/>bounded · local-only · no side effects"]
+```
+
 New recovery routes:
 
 ```text
@@ -942,6 +1031,17 @@ The lab now includes a dated, research-backed threat model rather than generic a
 - model, dependency, artifact, and agentic supply-chain integrity;
 - synthetic identity automation and model/API abuse pressure.
 
+```mermaid
+flowchart LR
+  T1["Prompt injection"] --> C1["Typed trust sections"]
+  T2["MCP tool poisoning"] --> C2["Pinned manifests"]
+  T3["RAG / memory poisoning"] --> C3["Provenance + tenant scope"]
+  T4["Identity abuse"] --> C4["Signed audience-bound tokens"]
+  T5["Fraud / mule networks"] --> C5["Risk scoring + review"]
+  T6["Adaptive evasion"] --> C6["Canonicalization + baselines"]
+  T7["Agentic supply chain"] --> C7["Digest pinning + review"]
+```
+
 Machine-readable sources and mappings:
 
 ```text
@@ -961,6 +1061,11 @@ The nine-phase campaign produces synthetic events, expected detection rules, tra
 ## 🧩 Hard scenario range
 
 Strict mode now uses a real multi-step range instead of one-request flag discovery:
+
+```mermaid
+flowchart LR
+  L00["L00<br/>Foundation"] --> L01["L01<br/>Recon"] --> L02["L02<br/>Prompt Injection"] --> L03["L03<br/>RAG"] --> L04["L04<br/>Agent Protocols"] --> L05["L05<br/>Memory"] --> L06["L06<br/>Identity"] --> L07["L07<br/>Supply Chain"] --> L08["L08<br/>Detection Evasion"] --> L09["L09<br/>APT Capstone"]
+```
 
 - **100 scenarios** across all 10 stages, organized into **50 hard gates** (including employee-loop and virtual-settlement paths);
 - **dynamic bank posture**: each accepted stage flag promotes a persistent learner profile with stricter controls, narrower synthetic data scope, changing branch visibility, smaller agent budgets, and a new active service surface;
