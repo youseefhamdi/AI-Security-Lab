@@ -53,7 +53,7 @@ services:
     volumes:
       - ./training-config:/app/config:ro
       - training_data:/var/lib/training
-    
+    healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5050/health', timeout=3)"]
       interval: 10s
       timeout: 5s
@@ -78,6 +78,9 @@ services:
       ZODIAC_RAG_DIR: /app/rag-docs
     volumes:
       - training_data:/var/lib/training
+      # Live-reload the trainer UI: the HTML is bind-mounted read-only so a
+      # git pull updates the interface without rebuilding the image.
+      - ./training-challenges/index.html:/app/index.html:ro
     mem_limit: 128m
 
   zodiac-context:
@@ -226,6 +229,8 @@ services:
       ZODIAC_AGENT_SIGNING_KEY: ${ZODIAC_AGENT_SIGNING_KEY:-zodiac-bank-agent-signing-key-change-me}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
+      # Live-reload the Aurora UI (bind-mounted, no rebuild needed).
+      - ./apps/aurora/index.html:/app/index.html:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -241,6 +246,9 @@ services:
     environment:
       OPENAI_BASE_URL: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
       MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
+    volumes:
+      # Live-reload the Phoenix UI (bind-mounted, no rebuild needed).
+      - ./apps/phoenix/index.html:/app/index.html:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     mem_limit: 256m
@@ -253,6 +261,9 @@ services:
     environment:
       OPENAI_BASE_URL: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
       MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
+    volumes:
+      # Live-reload the Assistant UI (bind-mounted, no rebuild needed).
+      - ./apps/assistant/index.html:/app/index.html:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     mem_limit: 256m
