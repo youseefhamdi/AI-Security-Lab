@@ -1,0 +1,52 @@
+name: UI typecheck (tsc --checkJs, no npm)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'training-challenges/index.html'
+      - 'apps/aurora/index.html'
+      - 'apps/phoenix/index.html'
+      - 'apps/assistant/index.html'
+      - 'scripts/check_ui_types.mjs'
+      - '.github/workflows/ui-typecheck.yml'
+  pull_request:
+    paths:
+      - 'training-challenges/index.html'
+      - 'apps/aurora/index.html'
+      - 'apps/phoenix/index.html'
+      - 'apps/assistant/index.html'
+      - 'scripts/check_ui_types.mjs'
+      - '.github/workflows/ui-typecheck.yml'
+  workflow_dispatch:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the TypeScript compiler (plain tarball — no npm)
+        run: |
+          curl -fsSL https://registry.npmjs.org/typescript/-/typescript-5.5.4.tgz -o /tmp/typescript.tgz
+          mkdir -p /tmp/typescript
+          tar -xzf /tmp/typescript.tgz -C /tmp/typescript
+          echo "TSC=/tmp/typescript/package/bin/tsc" >> "$GITHUB_ENV"
+          "$TSC" --version
+
+      - name: Type-check every inline UI script (tsc --checkJs)
+        run: node scripts/check_ui_types.mjs
+
+      - name: Syntax-check every inline UI script (node --check)
+        run: |
+          set -e
+          for f in training-challenges/index.html apps/aurora/index.html apps/phoenix/index.html apps/assistant/index.html; do
+            node -e "
+              const fs = require('fs');
+              const html = fs.readFileSync('$f', 'utf8');
+              const m = html.match(/<script>([\s\S]*?)<\/script>/);
+              if (m) fs.writeFileSync('/tmp/ui-check.js', m[1]);
+            "
+            node --check /tmp/ui-check.js
+            echo "OK $f"
+          done
