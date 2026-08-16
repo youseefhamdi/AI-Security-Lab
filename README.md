@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/youseefhamdi/Zodiac-AI-Security-Lab">
-  <img src="docs/assets/ai-security-lab-banner.svg" alt="Animated Zodiac Bank AI Security Lab banner with a Spartan emblem" width="100%" />
+  <img src="docs/assets/ai-security-lab-banner.svg" alt="Professional dark animated Zodiac Bank AI Security Operations banner with telemetry and a Spartan emblem" width="100%" />
 </a>
 
 [![Brand](https://img.shields.io/badge/Brand-ZODIAC%20BANK-0F172A?logo=target&logoColor=67E8F9)](#-zodiac-bank-brand)
@@ -21,6 +21,7 @@
 ## 📚 Contents
 
 - [What this project is](#-what-this-project-is)
+- [About Zodiac Bank](#-about-zodiac-bank-ai-security-lab)
 - [ZODIAC BANK brand](#-zodiac-bank-brand)
 - [Choose a runtime profile](#-choose-a-runtime-profile)
 - [Requirements](#-requirements)
@@ -49,11 +50,29 @@
 
 The project is intentionally unsafe by design inside its challenge surfaces. It includes debug leaks, exposed tool schemas, synthetic credentials, prompt-injection weaknesses, unauthenticated protocol exercises, and honeypot data. The surrounding progression, graph/context, and workflow controls are bounded and authenticated where configured. Run it only on a machine you control and keep all services bound to localhost.
 
+## 🏦 About Zodiac Bank AI Security Lab
+
+**Zodiac Bank AI Security Lab** is a local-first, research-backed security range for engineers, defenders, red-teamers, and instructors who need to test AI systems as complete socio-technical workflows—not just as chat interfaces. It combines realistic synthetic banking operations with a hard-gated curriculum that moves from reconnaissance and prompt injection to RAG and memory poisoning, agent identity abuse, MCP/A2A tool attacks, supply-chain compromise, detection evasion, and APT-level containment.
+
+The lab models a complete training environment: branches, employees, staff roles, customers, virtual accounts, transfers, deposits, withdrawals, receipts, approval checkpoints, graph relationships, RAG evidence, memory records, and bounded employee-loop workflows. A learner’s accepted flag dynamically promotes the bank’s defensive posture, narrows data scope, changes agent budgets and approval requirements, and unlocks the next security tier.
+
+### What makes it different
+
+- **Progressive by design:** 10 hard-gated stages and 51 multi-step scenarios require evidence discovery before advancement.
+- **System-level AI security:** prompt injection, retrieval poisoning, memory persistence, tool misuse, identity, orchestration, fraud, and APT response are tested as connected attack paths.
+- **Operationally realistic:** deterministic intent → authorization → virtual settlement boundaries, maker/checker controls, branch isolation, risk escalation, receipts, and audit evidence.
+- **Research-to-control mapping:** current agentic, financial-services, payment-fraud, and AI supply-chain risks become reproducible exercises and machine-checked controls.
+- **Safe by construction:** all records, balances, identities, and transactions are synthetic; state is local; external egress and real-money side effects are forbidden.
+
+### Repository About summary
+
+> Local-first synthetic banking range for AI security training: prompt injection, RAG and memory poisoning, MCP/A2A abuse, agentic workflows, fraud controls, and APT response.
+
 ## ⚔️ ZODIAC BANK brand
 
 The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Spartan defense emblem, hard-gated progression, graph RAG, and APT-range training.
 
-The hero is a self-contained animated SVG: neon gradient edge, scanning beam, pulsing telemetry nodes, orbiting emblem, floating attack-surface card, animated title glow, and a `prefers-reduced-motion` fallback. It communicates the lab identity without exposing credentials, model paths, or runtime secrets. The terminal startup banner is activated with:
+The hero is a self-contained professional dark animated SVG: a near-black operations-console palette, restrained cyan/indigo rails, scanning telemetry, flowing intent-to-audit signal paths, live control-coverage meter, and a Spartan defense emblem. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and is intentionally static-friendly so GitHub still shows the complete design if SVG motion is reduced. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
