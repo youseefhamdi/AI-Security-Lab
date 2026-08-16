@@ -421,12 +421,73 @@
     content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
     background: var(--grad); opacity: .8;
   }
+  .lab-banner {
+    position: relative; height: 190px; border-radius: 14px; overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .14); margin-bottom: 22px;
+    display: grid; place-items: center;
+  }
+  .lab-banner::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(120% 130% at 82% 0%, rgba(255, 255, 255, .22), transparent 55%),
+      linear-gradient(rgba(10, 10, 15, .25) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10, 10, 15, .25) 1px, transparent 1px);
+    background-size: auto, 26px 26px, 26px 26px;
+  }
+  .lab-banner::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(10, 10, 15, .55));
+  }
+  .lab-banner svg {
+    width: 92px; height: 92px; position: relative; z-index: 1;
+    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, .5));
+  }
+  .lab-banner .banner-code {
+    position: absolute; right: 18px; bottom: 12px; z-index: 1;
+    font: 800 26px var(--mono); letter-spacing: 3px; color: rgba(255, 255, 255, .95);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, .55);
+  }
+  .lab-banner .banner-chip {
+    position: absolute; left: 16px; top: 14px; z-index: 1;
+    display: inline-flex; align-items: center; gap: 7px;
+    font: 700 10.5px var(--mono); letter-spacing: 1.4px; text-transform: uppercase;
+    color: #fff; background: rgba(10, 10, 15, .5);
+    border: 1px solid rgba(255, 255, 255, .25); border-radius: 999px;
+    padding: 6px 12px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .lab-banner .banner-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
   .lab-head-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
   .lab-head-top .lab-code { font-size: 13px; padding: 5px 12px; }
   .lab-title {
     margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.01em; color: var(--text);
   }
   .lab-meta { font-size: 12.5px; color: var(--text-3); margin-top: 7px; font-family: var(--mono); }
+  .lab-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    margin-top: 18px;
+  }
+  .lab-stat {
+    background: var(--glass-2); border: 1px solid var(--border-soft); border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .lab-stat b { display: block; font: 800 19px var(--mono); color: var(--text); letter-spacing: .2px; }
+  .lab-stat b.accent { color: var(--cyan); }
+  .lab-stat span { display: block; margin-top: 3px; font: 600 9.5px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: var(--faint); }
+  .lab-progress {
+    margin-top: 16px; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden;
+  }
+  .lab-progress-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--cyan), #00a6ff);
+    box-shadow: 0 0 10px rgba(0, 212, 255, .5);
+    transition: width .5s cubic-bezier(.4, 0, .2, 1);
+  }
+  @media (max-width: 640px) {
+    .lab-stats { grid-template-columns: repeat(2, 1fr); }
+    .lab-banner { height: 150px; }
+    .lab-banner svg { width: 66px; height: 66px; }
+    .lab-banner .banner-code { font-size: 19px; }
+  }
   .lab-meta .ok { color: var(--success); font-weight: 600; }
   .lab-meta .accent { color: var(--cyan); font-weight: 600; }
   .lab-meta .muted { color: var(--faint); }
@@ -1544,22 +1605,45 @@ function renderLabScenarios() {
 function renderLab(stageId) {
   state.currentLab = stageId;
   const stage = state.range && state.range.stages.find((s) => s.stage_id === stageId);
+  const stageIdx = (state.range && state.range.stages.findIndex((s) => s.stage_id === stageId)) || 0;
   const stages = (state.curriculum && state.curriculum.stages) || [];
   const cur = stages.find((s) => s.id === stageId);
   const isCurrent = stageId === state.currentStageId;
   const isCompleted = cur && cur.status === "completed";
   const status = isCompleted ? "Completed" : isCurrent ? "In progress" : "Locked";
   const statusClass = isCompleted ? "ok" : isCurrent ? "accent" : "muted";
+  const code = stageId.split("-")[0];
+  const cover = stage ? coverFor(stageIdx, code) : { g1: "#0057c5", g2: "#00d4ff", glyph: "" };
+  const scTotal = stage ? stage.scenarios.length : 0;
+  const done = isCompleted ? scTotal : (state.scenarios || []).filter((s) => s.status === "complete").length;
+  const pct = scTotal ? Math.round((done / scTotal) * 100) : 0;
+  const band = stage ? stageDifficultyBand(stage) : "—";
+  const lo = stage ? String(minDifficulty(stage)).padStart(2, "0") : "—";
+  const hi = stage ? String(maxDifficulty(stage)).padStart(2, "0") : "—";
   const head = $("lab-head");
   if (head) {
     head.innerHTML = `
       <div class="lab-hero">
+        <div class="lab-banner" aria-hidden="true" style="background:linear-gradient(135deg, ${cover.g1}, ${cover.g2})">
+          <span class="banner-chip">${esc(code)} · ${status}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${cover.glyph}</svg>
+          <span class="banner-code">${esc(code)}</span>
+        </div>
         <div class="lab-head-top">
-          <span class="lab-code">${esc(stageId.split("-")[0])}</span>
+          <span class="lab-code">${esc(code)}</span>
           <span class="lab-status ${statusClass}">${status}</span>
         </div>
         <h1 class="lab-title">${esc(stageTitle(stageId))}</h1>
-        <div class="lab-meta">${esc(stageId)} · ${stage ? stage.scenarios.length : 0} scenarios · D${stage ? String(minDifficulty(stage)).padStart(2, "0") : "—"}–D${stage ? String(maxDifficulty(stage)).padStart(2, "0") : "—"} · <span class="${statusClass}">${status}</span></div>
+        <div class="lab-meta">${esc(stageId)} · ${scTotal} scenarios · D${lo}–D${hi} · <span class="${statusClass}">${status}</span></div>
+        <div class="lab-stats">
+          <div class="lab-stat"><b class="accent">${scTotal}</b><span>scenarios</span></div>
+          <div class="lab-stat"><b>D${lo}–D${hi}</b><span>difficulty</span></div>
+          <div class="lab-stat"><b>${esc(band)}</b><span>level band</span></div>
+          <div class="lab-stat"><b>${pct}%</b><span>complete</span></div>
+        </div>
+        <div class="lab-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Lab progress">
+          <div class="lab-progress-fill" style="width:${pct}%"></div>
+        </div>
       </div>`;
   }
   renderMission(stageId);
