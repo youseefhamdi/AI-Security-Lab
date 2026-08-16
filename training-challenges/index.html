@@ -3,194 +3,396 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Zodiac Bank · Trainer Range</title>
+<title>Zodiac Bank · AI Security Trainer</title>
 <style>
   :root {
-    --bg: #0b1020;
-    --panel: #111a33;
-    --panel-2: #16223f;
-    --line: #24355f;
-    --text: #dbe4f5;
-    --muted: #8fa3c8;
-    --accent: #67e8f9;
-    --gold: #fbbf24;
+    --bg: #04060f;
+    --bg-2: #070b18;
+    --panel: #0b1120;
+    --panel-2: #101a2e;
+    --panel-3: #16223f;
+    --line: #1c2942;
+    --line-2: #2a3a5f;
+    --text: #e7eef9;
+    --muted: #8fa0c0;
+    --faint: #5d6f91;
+    --accent: #22d3ee;
+    --accent-2: #818cf8;
     --ok: #34d399;
-    --warn: #fbbf24;
-    --bad: #f87171;
-    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --warn: #f5a623;
+    --danger: #f87171;
+    --mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --radius: 12px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .45);
   }
   * { box-sizing: border-box; }
+  html { color-scheme: dark; }
   body {
     margin: 0;
-    background: var(--bg);
+    background:
+      radial-gradient(1100px 500px at 12% -8%, rgba(14, 165, 233, .10), transparent 60%),
+      radial-gradient(900px 460px at 100% 0%, rgba(124, 58, 237, .10), transparent 55%),
+      var(--bg);
     color: var(--text);
-    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 15px/1.55 var(--sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
-  header {
-    border-bottom: 1px solid var(--line);
-    padding: 14px 22px;
+  ::selection { background: rgba(34, 211, 238, .28); }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     flex-wrap: wrap;
+    padding: 14px 22px;
+    background: rgba(4, 6, 15, .86);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
   }
-  header h1 {
-    margin: 0;
-    font-size: 20px;
-    letter-spacing: 2px;
-    color: var(--accent);
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .mark {
+    width: 40px; height: 40px; flex: 0 0 40px;
+    display: grid; place-items: center;
+    border-radius: 10px;
+    background: linear-gradient(140deg, rgba(34,211,238,.16), rgba(99,102,241,.16));
+    border: 1px solid var(--line-2);
+    box-shadow: 0 0 22px rgba(34, 211, 238, .18);
   }
-  header .sub { color: var(--muted); font-size: 13px; letter-spacing: 3px; }
+  .brand .mark svg { width: 22px; height: 22px; }
+  .brand h1 { margin: 0; font-size: 17px; letter-spacing: 3px; font-weight: 800; color: var(--text); }
+  .brand .sub { display: block; color: var(--accent); font: 600 10.5px var(--mono); letter-spacing: 2.5px; margin-top: 1px; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+
   .badge {
-    font-size: 11px;
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 600 11px var(--mono);
     letter-spacing: 1px;
-    padding: 3px 9px;
-    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border: 1px solid var(--line-2);
     border-radius: 999px;
     color: var(--muted);
+    background: var(--panel);
+    white-space: nowrap;
   }
-  .badge.ok { color: var(--ok); border-color: #1e4d3f; }
-  .badge.warn { color: var(--warn); border-color: #5b4a1e; }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .badge.ok { color: var(--ok); border-color: rgba(52, 211, 153, .4); }
+  .badge.warn { color: var(--warn); border-color: rgba(245, 166, 35, .4); }
+  .badge.accent { color: var(--accent); border-color: rgba(34, 211, 238, .4); }
+
+  /* ---------- Controls ---------- */
   .controls {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
-    align-items: end;
+    align-items: flex-end;
     padding: 14px 22px;
     border-bottom: 1px solid var(--line);
-    background: var(--panel);
+    background: var(--bg-2);
   }
-  .field { display: flex; flex-direction: column; gap: 4px; }
-  .field label { font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
-  input, textarea, select, button {
-    font: inherit;
-    color: var(--text);
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 150px; }
+  .field.grow { flex: 1 1 220px; }
+  .field label {
+    font: 600 10px var(--mono);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  input, textarea, select, button { font: inherit; color: var(--text); }
+  input, textarea, select {
     background: var(--panel-2);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 7px 10px;
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    padding: 9px 11px;
+    width: 100%;
+    transition: border-color .15s, box-shadow .15s;
   }
-  input:focus, textarea:focus, select:focus { outline: 1px solid var(--accent); }
-  input[type="password"] { font-family: var(--mono); }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, .16);
+  }
+  input::placeholder, textarea::placeholder { color: var(--faint); }
+  input[type="password"] { font-family: var(--mono); letter-spacing: 1px; }
+
   button {
     cursor: pointer;
-    border-color: #2f4a86;
-    color: #cfe7ff;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--line-2);
+    background: var(--panel-2);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: border-color .15s, background .15s, transform .05s, opacity .15s;
   }
-  button:hover { border-color: var(--accent); }
-  button.primary { background: #0e7490; border-color: #0e7490; color: #fff; }
-  button.danger { border-color: #7f1d1d; color: var(--bad); }
-  .wrap { display: grid; grid-template-columns: 340px 1fr; gap: 18px; padding: 18px 22px; align-items: start; }
-  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
-  .panel h2 {
+  button:hover:not(:disabled) { border-color: var(--accent); background: var(--panel-3); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary {
+    background: linear-gradient(180deg, #0e7490, #0b5f76);
+    border-color: #0e7490;
+    color: #fff;
+  }
+  button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #0d85a6, #0c6c86); }
+  button.danger { border-color: rgba(248, 113, 113, .5); color: var(--danger); }
+  button.danger:hover:not(:disabled) { background: rgba(248, 113, 113, .1); border-color: var(--danger); }
+  button.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+  button.ghost:hover:not(:disabled) { color: var(--text); background: var(--panel-2); }
+
+  /* ---------- Layout ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 18px;
+    padding: 18px 22px;
+    align-items: start;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1080px) { .layout { grid-template-columns: 1fr; } }
+
+  .sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 82px; }
+  @media (max-width: 1080px) { .sidebar { position: static; } }
+
+  .content { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+  .panel {
+    background: linear-gradient(180deg, var(--panel), rgba(11, 17, 32, .86));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .panel > h2 {
+    display: flex; align-items: center; gap: 8px;
     margin: 0 0 12px;
-    font-size: 13px;
+    font: 700 11px var(--mono);
     letter-spacing: 2px;
     text-transform: uppercase;
     color: var(--accent);
   }
-  .stage { margin-bottom: 14px; }
+  .panel > h2 .count { margin-left: auto; color: var(--faint); font-weight: 600; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1240px) { .detail-grid { grid-template-columns: 1fr; } }
+
+  /* ---------- Range map ---------- */
+  .stage { border-radius: 9px; overflow: hidden; margin-bottom: 6px; border: 1px solid transparent; }
+  .stage.current { border-color: rgba(34, 211, 238, .28); background: rgba(34, 211, 238, .04); }
   .stage-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    padding: 6px 8px;
-    border-radius: 6px;
-    border: 1px solid transparent;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; padding: 9px 10px; border-radius: 8px;
   }
   .stage-head:hover { background: var(--panel-2); }
-  .stage-head .name { font-weight: 600; font-size: 14px; }
-  .stage-head .meta { color: var(--muted); font-size: 12px; }
+  .stage-head .chevron { transition: transform .18s; color: var(--faint); flex: 0 0 auto; }
+  .stage.open .stage-head .chevron { transform: rotate(90deg); }
+  .stage-head .name { font-weight: 700; font-size: 13.5px; }
+  .stage-head .meta { margin-left: auto; color: var(--faint); font: 600 11px var(--mono); white-space: nowrap; }
+  .stage-body { padding: 2px 0 6px; }
   .scenario-item {
-    padding: 6px 8px 6px 18px;
-    border-left: 2px solid var(--line);
-    margin-left: 8px;
-    cursor: pointer;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-size: 13px;
+    display: flex; align-items: center; gap: 9px;
+    padding: 7px 10px 7px 26px;
+    cursor: pointer; border-left: 2px solid var(--line);
+    font-size: 13px; color: var(--muted);
+    transition: background .12s, border-color .12s, color .12s;
   }
-  .scenario-item:hover { background: var(--panel-2); }
-  .scenario-item.active { border-left-color: var(--accent); background: var(--panel-2); }
-  .scenario-item .diff { color: var(--gold); font-family: var(--mono); font-size: 12px; }
-  .scenario-item .state { margin-left: auto; font-size: 11px; letter-spacing: 1px; }
-  .state.not-started { color: var(--muted); }
+  .scenario-item:hover { background: var(--panel-2); color: var(--text); }
+  .scenario-item.active { border-left-color: var(--accent); background: var(--panel-3); color: var(--text); }
+  .scenario-item .diff { color: var(--warn); font: 700 11px var(--mono); flex: 0 0 auto; }
+  .scenario-item .title { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .state {
+    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px;
+    font: 600 10px var(--mono); letter-spacing: .5px; text-transform: uppercase;
+  }
+  .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 7px currentColor; }
+  .state.not-started { color: var(--faint); }
   .state.active { color: var(--warn); }
   .state.complete { color: var(--ok); }
-  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 1100px) { .detail-grid { grid-template-columns: 1fr; } }
-  .step-box { margin-top: 10px; padding: 12px; background: var(--panel-2); border-radius: 8px; }
-  .step-box .event { font-family: var(--mono); color: var(--accent); }
-  .step-box .obs { color: var(--text); margin-top: 6px; }
-  .keys { margin-top: 8px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
-  textarea { width: 100%; min-height: 64px; resize: vertical; font-family: var(--mono); font-size: 13px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
-  .hint { font-size: 12px; color: var(--muted); }
-  .hint code { color: var(--accent); }
-  .ev-row { display: grid; grid-template-columns: 160px 1fr 40px; gap: 6px; margin-top: 6px; }
-  .ev-row input:first-child { font-family: var(--mono); }
-  .statusbar {
-    padding: 10px 22px;
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 12px;
-    display: flex;
-    gap: 18px;
-    flex-wrap: wrap;
+  .state.locked { color: var(--faint); }
+  .state.unlocked { color: var(--accent); }
+
+  /* ---------- Progression ---------- */
+  .progress-bar { height: 8px; border-radius: 999px; background: var(--panel-3); overflow: hidden; }
+  .progress-bar > span {
+    display: block; height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: 999px;
+    transition: width .4s ease;
   }
-  #toast {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    max-width: 420px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--line);
-    background: var(--panel-2);
-    display: none;
-    font-size: 13px;
-    white-space: pre-wrap;
-    font-family: var(--mono);
+  .kv { display: flex; justify-content: space-between; font: 600 12px var(--mono); color: var(--muted); margin: 10px 0 6px; }
+  .kv b { color: var(--text); font-weight: 700; }
+  .gate-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0; font-size: 12.5px;
+    border-bottom: 1px solid var(--line);
   }
-  #toast.error { border-color: var(--bad); color: var(--bad); }
-  #toast.ok { border-color: var(--ok); color: var(--ok); }
-  .token-line { font-family: var(--mono); font-size: 12px; word-break: break-all; color: var(--accent); }
-  .muted { color: var(--muted); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+  .gate-row:last-child { border-bottom: 0; }
+  .gate-row .rank { color: var(--accent-2); font: 700 11px var(--mono); flex: 0 0 auto; }
+  .gate-row .gtitle { flex: 1 1 auto; color: var(--text); }
+
+  /* ---------- Chips ---------- */
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 7px; }
   .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid var(--line-2);
+    border-radius: 7px;
+    padding: 5px 9px;
+    font: 600 11.5px var(--mono);
+    background: var(--panel-2);
+    color: var(--muted);
+  }
+  .chip.checked { border-color: rgba(52, 211, 153, .5); color: var(--ok); background: rgba(52, 211, 153, .07); }
+
+  /* ---------- Scenario detail ---------- */
+  .scenario-head { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .scenario-title { margin: 4px 0 6px; font-size: 18px; font-weight: 700; letter-spacing: .2px; }
+  .objective { color: var(--muted); margin: 0 0 12px; font-size: 14px; }
+  details {
     border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 5px 8px;
-    font-size: 12px;
-    font-family: var(--mono);
+    border-radius: 9px;
+    padding: 10px 13px;
+    margin-top: 9px;
     background: var(--panel-2);
   }
-  .chip.checked { border-color: var(--ok); color: var(--ok); }
+  details summary {
+    cursor: pointer; color: var(--accent); font-weight: 600; font-size: 13px;
+    list-style: none; display: flex; align-items: center; gap: 7px;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "▸"; color: var(--faint); transition: transform .15s; }
+  details[open] summary::before { transform: rotate(90deg); }
+  details ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  details li { margin: 3px 0; }
+  .step-box {
+    margin-top: 12px; padding: 13px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+  }
+  .step-box .event { font: 700 13px var(--mono); color: var(--accent); }
+  .step-box .obs { color: var(--text); margin-top: 7px; font-size: 14px; }
+  .keys { margin-top: 9px; font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
+  .keys code {
+    background: var(--panel-3); color: var(--accent);
+    border-radius: 5px; padding: 1px 6px; margin: 0 3px;
+  }
+  .row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .hint { font-size: 12.5px; color: var(--muted); }
+  .hint code { color: var(--accent); }
+
+  /* Evidence form */
+  .ev-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px; margin-top: 8px; align-items: center; }
+  .ev-row input[readonly] { color: var(--muted); }
   .candidate-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .candidate-chip {
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 12px;
-    font-family: var(--mono);
-    background: var(--panel-2);
+    border: 1px solid var(--line-2);
+    border-radius: 7px;
+    padding: 5px 10px;
+    font: 600 12px var(--mono);
+    background: var(--panel-3);
+    color: var(--text);
     cursor: pointer;
+    transition: border-color .12s, background .12s;
   }
-  .candidate-chip.selected { border-color: var(--ok); color: var(--ok); background: #0c2a22; }
-  details { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
-  details summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+  .candidate-chip:hover { border-color: var(--accent); }
+  .candidate-chip.selected {
+    border-color: var(--ok);
+    color: var(--ok);
+    background: rgba(52, 211, 153, .12);
+    box-shadow: 0 0 0 2px rgba(52, 211, 153, .18);
+  }
+
+  textarea { width: 100%; min-height: 72px; resize: vertical; font: 13px var(--mono); }
+  .token-line {
+    font: 700 13px var(--mono);
+    color: var(--accent);
+    word-break: break-all;
+    background: var(--panel-3);
+    border: 1px dashed var(--line-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 8px 0;
+  }
+  .muted { color: var(--muted); }
+
+  /* Mission */
+  .mission-text { color: var(--text); font-size: 14px; margin: 0 0 10px; }
+  .hint-line { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .hint-line:last-child { border-bottom: 0; }
+  .hint-level {
+    flex: 0 0 auto; align-self: flex-start;
+    min-width: 56px; text-align: center;
+    font: 700 10.5px var(--mono); letter-spacing: .5px;
+    border-radius: 6px; padding: 3px 7px;
+    color: var(--warn); background: rgba(245, 166, 35, .1);
+    border: 1px solid rgba(245, 166, 35, .3);
+  }
+
+  /* ---------- Status bar ---------- */
+  .statusbar {
+    display: flex; gap: 10px 24px; flex-wrap: wrap;
+    padding: 11px 22px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-2);
+    color: var(--muted);
+    font: 600 11.5px var(--mono);
+    letter-spacing: .3px;
+  }
+  .statusbar b { color: var(--text); font-weight: 700; }
+  .statusbar .ok-text { color: var(--ok); }
+  .statusbar .err-text { color: var(--danger); }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed; right: 18px; bottom: 18px; z-index: 60;
+    max-width: 440px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--line-2);
+    background: var(--panel-2);
+    box-shadow: var(--shadow);
+    display: none;
+    font: 600 13px var(--mono);
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  #toast.error { border-color: rgba(248, 113, 113, .55); color: var(--danger); }
+  #toast.ok { border-color: rgba(52, 211, 153, .55); color: var(--ok); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>ZODIAC&nbsp;BANK</h1>
-  <span class="sub">TRAINER RANGE</span>
-  <span class="badge" id="mode-badge">LOADING…</span>
-  <span class="badge" id="scope-badge">SCOPE: LOCALHOST-ONLY</span>
-  <span class="badge warn">SYNTHETIC DATA — NO SIDE EFFECTS</span>
+<header class="topbar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#22d3ee"/>
+        <path d="M8.5 15.5l2.2-4.6 2.2 2.3 2.6-5.2" stroke="#818cf8"/>
+      </svg>
+    </span>
+    <div>
+      <h1>ZODIAC&nbsp;BANK</h1>
+      <span class="sub">AI SECURITY TRAINER</span>
+    </div>
+  </div>
+  <div class="badges">
+    <span class="badge accent" id="mode-badge"><span class="dot"></span>LOADING…</span>
+    <span class="badge" id="scope-badge"><span class="dot"></span>SCOPE: LOCALHOST-ONLY</span>
+    <span class="badge warn"><span class="dot"></span>SYNTHETIC — NO SIDE EFFECTS</span>
+  </div>
 </header>
 
 <section class="controls">
@@ -198,7 +400,7 @@
     <label for="learner-id">Learner ID</label>
     <input id="learner-id" placeholder="analyst-01" autocomplete="off" spellcheck="false" />
   </div>
-  <div class="field">
+  <div class="field grow">
     <label for="learner-token">Learner token (private)</label>
     <input id="learner-token" type="password" placeholder="token from cohort-add" autocomplete="off" />
   </div>
@@ -206,37 +408,59 @@
     <label for="gate-url">Training Gate URL</label>
     <input id="gate-url" value="http://127.0.0.1:5050" autocomplete="off" spellcheck="false" />
   </div>
-  <button id="load-btn" class="primary">Load range</button>
+  <button id="load-btn" class="primary" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+    Load range
+  </button>
 </section>
 
-<div class="wrap">
-  <aside class="panel" id="range-panel">
-    <h2>Range map · 10 stages · 100 scenarios · 50 hard gates</h2>
-    <div id="range-list"><p class="muted">Enter a learner ID and token, then press <em>Load range</em>.</p></div>
+<div class="layout">
+  <aside class="sidebar">
+    <section class="panel" id="progress-panel">
+      <h2>Progression</h2>
+      <div id="progress-body"><p class="muted">Load a range to see learner progression.</p></div>
+    </section>
+
+    <section class="panel" id="range-panel">
+      <h2>Range map <span class="count" id="range-count">10 stages · 100 scenarios</span></h2>
+      <div id="range-list"><p class="muted">Enter a learner ID and token, then press <em>Load range</em>.</p></div>
+    </section>
+
+    <section class="panel" id="posture-panel">
+      <h2>Bank posture</h2>
+      <div id="posture-body"><p class="muted">Dynamic bank profile appears after load.</p></div>
+    </section>
   </aside>
 
-  <main class="detail-grid">
-    <section class="panel" id="scenario-panel">
-      <h2>Scenario</h2>
-      <div id="scenario-detail"><p class="muted">Select a scenario in the range map. Only scenarios in the learner's current stage can be started and advanced.</p></div>
+  <main class="content">
+    <section class="panel" id="mission-panel">
+      <h2>Stage mission &amp; hints</h2>
+      <div id="mission-body"><p class="muted">The current stage mission and safe hints appear after the gate connects.</p></div>
     </section>
 
-    <section class="panel" id="synthesis-panel">
-      <h2>Hard-gate synthesis &amp; flag</h2>
-      <div id="synthesis-detail"><p class="muted">Complete every required scenario in the current stage to unlock synthesis.</p></div>
-    </section>
+    <div class="detail-grid">
+      <section class="panel" id="scenario-panel">
+        <h2>Scenario</h2>
+        <div id="scenario-detail"><p class="muted">Select a scenario in the range map. Only scenarios in the learner's current stage can be started and advanced.</p></div>
+      </section>
+
+      <section class="panel" id="synthesis-panel">
+        <h2>Hard-gate synthesis &amp; flag</h2>
+        <div id="synthesis-detail"><p class="muted">Complete every required scenario in the current stage to unlock synthesis.</p></div>
+      </section>
+    </div>
   </main>
 </div>
 
-<div class="statusbar">
+<footer class="statusbar">
   <span id="status-mode">mode: —</span>
   <span id="status-profile">bank posture: —</span>
   <span id="status-stage">current stage: —</span>
   <span id="status-gate">gate: —</span>
   <span id="status-range">range: —</span>
-</div>
+</footer>
 
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 "use strict";
@@ -248,9 +472,12 @@ const state = {
   gateUrl: "http://127.0.0.1:5050",
   range: null,
   currentStageId: null,
-  scenarios: [],          // current stage scenario list from /api/scenarios
+  scenarios: [],      // current stage scenario list from /api/scenarios
   selected: null,
-  synthesis: null,        // currently unlocked hard-gate requirement
+  synthesis: null,    // currently unlocked hard-gate requirement
+  gates: [],          // current stage hard gates (from /api/gates)
+  gateMeta: null,
+  curriculum: null,   // gate /api/curriculum (stage status + hints)
 };
 
 function toast(message, kind) {
@@ -289,9 +516,7 @@ async function gateApi(path, options) {
 function saveSettings() {
   try {
     localStorage.setItem("zb-trainer", JSON.stringify({
-      learner: state.learner,
-      token: state.token,
-      gateUrl: state.gateUrl,
+      learner: state.learner, token: state.token, gateUrl: state.gateUrl,
     }));
   } catch (_) { /* storage may be unavailable; settings still work in memory */ }
 }
@@ -311,6 +536,8 @@ function esc(value) {
   }[ch]));
 }
 
+/* ---------- Load ---------- */
+
 async function loadAll() {
   const learnerInput = $("learner-id").value.trim();
   const tokenInput = $("learner-token").value.trim();
@@ -327,52 +554,32 @@ async function loadAll() {
     const range = await api(`/api/range?learner_id=${encodeURIComponent(state.learner)}`);
     state.range = range;
     state.currentStageId = range.current_stage_id;
-    renderBankProfile(range.bank_profile);
-    $("status-range").textContent = `range: ${range.stages.reduce((n, s) => n + s.scenarios.length, 0)} scenarios`;
+    renderPosture(range.bank_profile);
+    $("status-range").innerHTML = `range: <b>${range.stages.reduce((n, s) => n + s.scenarios.length, 0)}</b> scenarios`;
     renderRange();
     await refreshStage();
-    $("status-mode").textContent = `mode: trainer · learner ${esc(state.learner)}`;
+    $("status-mode").innerHTML = `mode: trainer · learner <b>${esc(state.learner)}</b>`;
   } catch (error) {
     toast("load failed: " + error.message, "error");
     return;
   }
   try {
     const curriculum = await gateApi(`/api/curriculum?learner_id=${encodeURIComponent(state.learner)}`);
-    renderGateStatus(curriculum);
-    $("status-gate").textContent = "gate: connected";
+    state.curriculum = curriculum;
+    renderPosture(curriculum.bank_profile);
+    renderProgression();
+    renderMission();
+    $("status-gate").innerHTML = `gate: <span class="ok-text">connected</span>`;
   } catch (error) {
-    $("status-gate").textContent = "gate: unreachable (" + error.message + ")";
+    $("status-gate").innerHTML = `gate: <span class="err-text">unreachable</span> (${esc(error.message)})`;
+    renderProgression();
+    renderMission();
   }
 }
 
-function renderRange() {
-  const list = $("range-list");
-  if (!state.range) { list.innerHTML = '<p class="muted">No range loaded.</p>'; return; }
-  list.innerHTML = state.range.stages.map((stage) => {
-    const isCurrent = stage.stage_id === state.currentStageId;
-    const scenarios = stage.scenarios
-      .map((sc) => {
-        const run = findRun(sc.scenario_id);
-        const status = run ? run.status : "not-started";
-        const cls = state.selected && state.selected.scenario_id === sc.scenario_id ? "active" : "";
-        return `<div class="scenario-item ${cls}" data-scenario="${esc(sc.scenario_id)}">
-          <span class="diff">D${String(sc.difficulty).padStart(2, "0")}</span>
-          <span>${esc(sc.title)}</span>
-          <span class="state ${status}">${status}</span>
-        </div>`;
-      })
-      .join("");
-    return `<div class="stage">
-      <div class="stage-head">
-        <span class="name">${esc(stage.stage_id)}</span>
-        <span class="meta">${scenarios.length} scenarios${isCurrent ? " · current" : ""}</span>
-      </div>
-      ${scenarios}
-    </div>`;
-  }).join("");
-  list.querySelectorAll(".scenario-item").forEach((item) => {
-    item.addEventListener("click", () => selectScenario(item.dataset.scenario));
-  });
+function stageForScenario(scenarioId) {
+  if (!state.range) return null;
+  return state.range.stages.find((s) => s.scenarios.some((sc) => sc.scenario_id === scenarioId)) || null;
 }
 
 function findRun(scenarioId) {
@@ -380,12 +587,53 @@ function findRun(scenarioId) {
   return state.scenarios.find((s) => s.scenario_id === scenarioId) || null;
 }
 
+/* ---------- Range map ---------- */
+
+function renderRange() {
+  const list = $("range-list");
+  if (!state.range) { list.innerHTML = '<p class="muted">No range loaded.</p>'; return; }
+  list.innerHTML = state.range.stages.map((stage) => {
+    const isCurrent = stage.stage_id === state.currentStageId;
+    const scenarios = stage.scenarios.map((sc) => {
+      const run = findRun(sc.scenario_id);
+      const status = run ? run.status : "not-started";
+      const cls = state.selected && state.selected.scenario_id === sc.scenario_id ? "active" : "";
+      return `<div class="scenario-item ${cls}" data-scenario="${esc(sc.scenario_id)}" role="button" tabindex="0">
+        <span class="diff">D${String(sc.difficulty).padStart(2, "0")}</span>
+        <span class="title">${esc(sc.title)}</span>
+        <span class="state ${status}">${status}</span>
+      </div>`;
+    }).join("");
+    return `<div class="stage ${isCurrent ? "current open" : ""}">
+      <div class="stage-head" data-stage="${esc(stage.stage_id)}" role="button" tabindex="0" aria-expanded="true">
+        <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        <span class="name">${esc(stage.stage_id)}</span>
+        <span class="meta">${stage.scenarios.length} scenarios${isCurrent ? " · current" : ""}</span>
+      </div>
+      <div class="stage-body">${scenarios}</div>
+    </div>`;
+  }).join("");
+  list.querySelectorAll(".stage-head").forEach((head) => {
+    const activate = () => head.parentElement.classList.toggle("open");
+    head.addEventListener("click", activate);
+    head.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); } });
+  });
+  list.querySelectorAll(".scenario-item").forEach((item) => {
+    const select = () => selectScenario(item.dataset.scenario);
+    item.addEventListener("click", select);
+    item.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(); } });
+  });
+}
+
+/* ---------- Stage / gates / synthesis ---------- */
+
 async function refreshStage() {
   const data = await api(`/api/scenarios?learner_id=${encodeURIComponent(state.learner)}`);
   if (data.status === "complete") {
     state.currentStageId = null;
     state.scenarios = [];
     state.synthesis = null;
+    state.gates = [];
     renderRange();
     renderScenario();
     renderSynthesis();
@@ -395,36 +643,85 @@ async function refreshStage() {
   state.currentStageId = data.stage_id;
   state.scenarios = data.scenarios;
   const gates = await api(`/api/gates?learner_id=${encodeURIComponent(state.learner)}`);
-  state.synthesis = (gates.gates || []).find((gate) => gate.status === "unlocked") || null;
+  state.gates = gates.gates || [];
+  state.gateMeta = gates;
+  state.synthesis = state.gates.find((gate) => gate.status === "unlocked") || null;
   renderRange();
   renderScenario();
   renderSynthesis();
-  $("status-stage").textContent = `current stage: ${esc(data.stage_id)}`;
+  renderProgression();
+  $("status-stage").innerHTML = `current stage: <b>${esc(data.stage_id)}</b>`;
 }
 
-function renderBankProfile(profile) {
+function renderPosture(profile) {
   if (!profile) return;
   const domains = (profile.data_domains || []).join(", ");
   const controls = (profile.controls || []).join(", ");
-  $("status-profile").textContent = `bank posture: L${profile.level} · ${profile.security_tier} · ${profile.operating_mode}`;
-  const existing = document.querySelector("#bank-posture");
-  if (existing) existing.remove();
-  const panel = $("scenario-panel");
-  const posture = document.createElement("details");
-  posture.id = "bank-posture";
-  posture.open = true;
-  posture.innerHTML = `<summary>Dynamic bank posture · ${esc(profile.label)}</summary>
-    <div class="hint" style="margin-top:8px">Only this profile's synthetic data and controls are active after the last accepted flag.</div>
-    <div class="grid" style="margin-top:8px">
+  $("status-profile").innerHTML = `bank posture: <b>L${esc(profile.level)}</b> · ${esc(profile.security_tier)} · ${esc(profile.operating_mode)}`;
+  $("posture-body").innerHTML = `
+    <div class="hint" style="margin-bottom:8px"><b style="color:var(--text)">${esc(profile.label)}</b> — only this profile's synthetic data and controls are active after the last accepted flag.</div>
+    <div class="chip-grid">
       <span class="chip">security: ${esc(profile.security_tier)}</span>
       <span class="chip">mode: ${esc(profile.operating_mode)}</span>
       <span class="chip">staff: ${esc(profile.staff_access)}</span>
       <span class="chip">customer: ${esc(profile.customer_access)}</span>
     </div>
-    <div class="hint" style="margin-top:8px">data domains: ${esc(domains)}</div>
+    <div class="hint" style="margin-top:9px">data domains: ${esc(domains)}</div>
     <div class="hint">controls: ${esc(controls)}</div>`;
-  panel.insertBefore(posture, panel.firstChild.nextSibling);
 }
+
+function renderProgression() {
+  const body = $("progress-body");
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  const completed = stages.filter((s) => s.status === "completed").length;
+  const pct = stages.length ? Math.round((completed / stages.length) * 100) : 0;
+  const meta = state.gateMeta || {};
+  let gatesHtml = '<p class="muted">No hard-gate data yet.</p>';
+  if (state.gates.length) {
+    gatesHtml = state.gates.map((g) => `
+      <div class="gate-row">
+        <span class="rank">G${String(g.rank).padStart(2, "0")}</span>
+        <span class="gtitle">${esc(g.title)}</span>
+        <span class="state ${g.status}">${g.status}</span>
+      </div>`).join("");
+  }
+  body.innerHTML = `
+    <div class="kv"><span>Stage progress</span><b>${completed} / ${stages.length || 10}</b></div>
+    <div class="progress-bar"><span style="width:${pct}%"></span></div>
+    <div class="kv" style="margin-top:12px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 50)}</b></div>
+    ${meta.current_gate_id ? `<div class="kv"><span>Current gate</span><b style="color:var(--accent)">${esc(meta.current_gate_id)}</b></div>` : ""}
+    <div style="margin-top:12px">${gatesHtml}</div>`;
+}
+
+function renderMission() {
+  const body = $("mission-body");
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  const stage = stages.find((s) => s.status === "unlocked") || stages.find((s) => s.status === "completed") || null;
+  if (!stage) {
+    body.innerHTML = '<p class="muted">Connect the gate to load the current mission and safe hints.</p>';
+    return;
+  }
+  const hints = (stage.hints || []).map((h) => `
+    <div class="hint-line">
+      <span class="hint-level">HINT ${h.level}</span>
+      <span>${esc(h.text)}</span>
+    </div>`).join("");
+  const services = (stage.target_services || []).map((s) => `<span class="chip">${esc(s)}</span>`).join("");
+  const skills = (stage.skills || []).map((s) => `<span class="chip">${esc(s)}</span>`).join("");
+  body.innerHTML = `
+    <div class="scenario-head">
+      <span class="badge accent">${esc(stage.id)}</span>
+      <span class="badge">${esc(stage.status)}</span>
+      ${stage.attempts != null ? `<span class="badge warn">${stage.attempts} attempts</span>` : ""}
+    </div>
+    <p class="mission-text">${esc(stage.mission || stage.title || "")}</p>
+    ${services ? `<div class="chip-grid" style="margin-bottom:9px">${services}</div>` : ""}
+    ${skills ? `<div class="chip-grid" style="margin-bottom:9px">${skills}</div>` : ""}
+    <div class="hint" style="margin-bottom:6px">Safe progressive hints (reveal only what you need):</div>
+    ${hints || '<p class="muted">No hints available for this stage.</p>'}`;
+}
+
+/* ---------- Scenario detail ---------- */
 
 function renderScenario() {
   const detail = $("scenario-detail");
@@ -435,30 +732,30 @@ function renderScenario() {
   const progress = run ? run.progress : `0/${sc.step_count}`;
   const clueList = (sc.clues || []).map((c) => `<li>${esc(c)}</li>`).join("");
   detail.innerHTML = `
-    <div class="row">
+    <div class="scenario-head">
       <span class="badge">${esc(sc.scenario_id)}</span>
-      <span class="badge">D${sc.difficulty}</span>
+      <span class="badge">D${esc(sc.difficulty)}</span>
       <span class="badge">${esc(sc.branch)}</span>
-      <span class="badge ${status === "complete" ? "ok" : ""}">${status} · ${progress}</span>
+      <span class="badge ${status === "complete" ? "ok" : status === "active" ? "warn" : ""}">${status} · ${esc(progress)}</span>
     </div>
-    <h3 style="margin:10px 0 4px">${esc(sc.title)}</h3>
-    <p class="muted" style="margin:0 0 10px">${esc(sc.objective)}</p>
+    <h3 class="scenario-title">${esc(sc.title)}</h3>
+    <p class="objective">${esc(sc.objective)}</p>
     <details>
       <summary>Objective clues (progressive)</summary>
       <ul>${clueList}</ul>
     </details>
     <details>
       <summary>Required detection rules</summary>
-      <div class="grid">${sc.detection_rule_ids.map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
+      <div class="chip-grid" style="margin-top:9px">${(sc.detection_rule_ids || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
     </details>
     <details>
       <summary>Required controls</summary>
-      <div class="grid">${sc.required_controls.map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
+      <div class="chip-grid" style="margin-top:9px">${(sc.required_controls || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
     </details>
     <div class="row">
-      <button id="start-btn" ${status === "active" || status === "complete" ? "disabled" : ""}>Start scenario</button>
-      <button id="hint-btn">Next-step hint</button>
-      <button id="reset-btn" class="danger" style="display:${status === "active" ? "" : "none"}">Reset run</button>
+      <button id="start-btn" class="primary" type="button" ${status === "active" || status === "complete" ? "disabled" : ""}>Start scenario</button>
+      <button id="hint-btn" type="button">Next-step hint</button>
+      <button id="reset-btn" class="danger" type="button" style="display:${status === "active" ? "inline-flex" : "none"}">Reset run</button>
     </div>
     <div id="hint-box"></div>
     <div id="event-box"></div>`;
@@ -469,48 +766,18 @@ function renderScenario() {
   if (status === "active") showHint();
 }
 
-function renderGateStatus(curriculum) {
-  renderBankProfile(curriculum.bank_profile);
-  const stages = curriculum.stages || [];
-  const byId = {};
-  if (state.range) state.range.stages.forEach((s) => { byId[s.stage_id] = s; });
-  const html = stages.map((stage) => {
-    const rangeStage = byId[stage.stage_id] || { scenarios: [] };
-    return `<div class="stage">
-      <div class="stage-head">
-        <span class="name">${esc(stage.stage_id)}</span>
-        <span class="meta">${esc(stage.status)}</span>
-      </div>
-      <div class="scenario-item"><span class="hint">attempts: ${stage.attempts} · hints: ${stage.hints_available}</span></div>
-      <div class="scenario-item"><span class="hint">${esc(stage.mission || "")}</span></div>
-    </div>`;
-  }).join("");
-  const panel = $("synthesis-panel");
-  const existing = panel.querySelector("#gate-curriculum");
-  if (existing) existing.remove();
-  const gateSection = document.createElement("div");
-  gateSection.innerHTML = `<details id="gate-curriculum"><summary>Gate progression (status &amp; missions)</summary>${html}</details>`;
-  panel.appendChild(gateSection);
-}
-
 async function selectScenario(scenarioId) {
-  const sc = state.range.stages
-    .flatMap((s) => s.scenarios)
-    .find((s) => s.scenario_id === scenarioId);
+  if (!state.range) return;
+  const stage = stageForScenario(scenarioId);
+  const sc = stage && stage.scenarios.find((s) => s.scenario_id === scenarioId);
   if (!sc) return;
-  const run = findRun(scenarioId);
-  if (run && run.stage_id !== state.currentStageId) {
+  if (stage.stage_id !== state.currentStageId) {
     toast("Only the current stage's scenarios can be opened.", "error");
     return;
   }
-  state.selected = Object.assign({}, sc, { clues: runClues(scenarioId) });
+  state.selected = sc;
   renderRange();
   renderScenario();
-}
-
-function runClues(scenarioId) {
-  const sc = state.range.stages.flatMap((s) => s.scenarios).find((s) => s.scenario_id === scenarioId);
-  return sc ? sc.clues : [];
 }
 
 async function startScenario() {
@@ -520,7 +787,7 @@ async function startScenario() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ learner_id: state.learner }),
     });
-    toast(result.message || "scenario started");
+    toast(result.message || "scenario started", "ok");
     await refreshStage();
   } catch (error) {
     toast("start failed: " + error.message, "error");
@@ -537,11 +804,11 @@ async function showHint() {
     }
     box.innerHTML = `
       <div class="step-box">
-        <div><span class="event">event: ${esc(hint.event)}</span></div>
+        <div class="event">event: ${esc(hint.event)}</div>
         <div class="obs">observation: ${esc(hint.observation)}</div>
-        <div class="keys">required evidence keys: ${hint.required_evidence_keys.map((k) => `<code>${esc(k)}</code>`).join(" ") || "none"}</div>
+        <div class="keys">required evidence keys: ${(hint.required_evidence_keys || []).map((k) => `<code>${esc(k)}</code>`).join(" ") || "none"}</div>
       </div>
-      <div class="row"><button id="fill-btn">Build evidence form</button></div>`;
+      <div class="row"><button id="fill-btn" class="primary" type="button">Build evidence form</button></div>`;
     $("fill-btn").addEventListener("click", () => buildEvidenceForm(hint));
   } catch (error) {
     box.innerHTML = `<div class="step-box"><span class="hint">hint unavailable: ${esc(error.message)}</span></div>`;
@@ -557,26 +824,25 @@ function buildEvidenceForm(hint) {
       const proof = info.correct || "";
       return `
         <div class="ev-row">
-          <input value="${esc(key)}" readonly />
-          <input id="proof-value" value="${esc(proof)}" readonly />
-          <span class="hint">chained from previous step</span>
+          <input value="${esc(key)}" readonly aria-label="evidence key" />
+          <input id="proof-value" value="${esc(proof)}" readonly aria-label="chained proof" />
         </div>`;
     }
-    const chips = info.candidates.map((candidate) =>
+    const chips = (info.candidates || []).map((candidate) =>
       `<button type="button" class="candidate-chip" data-key="${esc(key)}" data-value="${esc(candidate)}">${esc(candidate)}</button>`
     ).join("");
     return `
-      <div class="ev-row" style="grid-template-columns:160px 1fr">
-        <input value="${esc(key)}" readonly />
+      <div class="ev-row">
+        <input value="${esc(key)}" readonly aria-label="evidence key" />
         <div class="candidate-row" data-key="${esc(key)}">${chips}<span class="hint" style="margin-left:6px">select one</span></div>
       </div>`;
   }).join("");
   box.innerHTML = `
     <div class="step-box">
-      <div class="row"><span class="event">${esc(hint.event)}</span></div>
+      <div class="event">${esc(hint.event)}</div>
       ${rows || '<p class="muted">No evidence keys required for this step.</p>'}
       <div class="row">
-        <button id="submit-event" class="primary">Submit evidence event</button>
+        <button id="submit-event" class="primary" type="button">Submit evidence event</button>
       </div>
     </div>`;
   box.querySelectorAll(".candidate-chip").forEach((chip) => {
@@ -602,7 +868,7 @@ async function submitEvent(hint) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ learner_id: state.learner, event: hint.event, evidence }),
     });
-    toast(result.message || "event accepted");
+    toast(result.message || "event accepted", "ok");
     $("event-box").innerHTML = "";
     $("hint-box").innerHTML = "";
     await refreshStage();
@@ -623,12 +889,14 @@ async function resetRun() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ learner_id: state.learner }),
     });
-    toast("run reset");
+    toast("run reset", "ok");
     await refreshStage();
   } catch (error) {
     toast("reset failed: " + error.message, "error");
   }
 }
+
+/* ---------- Synthesis ---------- */
 
 function renderSynthesis() {
   const panel = $("synthesis-detail");
@@ -642,30 +910,31 @@ function renderSynthesis() {
   const scenarioChips = req.scenario_ids
     .map((id) => `<span class="chip ${completeMap[id] ? "checked" : ""}">${esc(id)}${completeMap[id] ? " ✓" : ""}</span>`)
     .join("");
-  const detectionChips = req.detection_rule_ids.map((id) => `<span class="chip">${esc(id)}</span>`).join("");
-  const controlChips = req.required_controls.map((id) => `<span class="chip">${esc(id)}</span>`).join("");
+  const detectionChips = (req.detection_rule_ids || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("");
+  const controlChips = (req.required_controls || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("");
   const concepts = (req.concepts || []).map((c) => `<span class="chip">${esc(c)}</span>`).join("");
   panel.innerHTML = `
-    <div class="hint">Required scenarios (in order):</div>
-    <div class="grid" style="margin:8px 0">${scenarioChips}</div>
-    <div class="hint">Detection coverage:</div>
-    <div class="grid" style="margin:8px 0">${detectionChips}</div>
-    <div class="hint">Required controls:</div>
-    <div class="grid" style="margin:8px 0">${controlChips}</div>
-    <div class="hint">Concepts that must appear in the summary:</div>
-    <div class="grid" style="margin:8px 0">${concepts}</div>
-    <div class="row"><span class="badge ${allComplete ? "ok" : ""}">${allComplete ? "Gate scenarios complete — synthesis unlocked" : "Pending: " + missingTokens.join(", ")}</span></div>
+    <div class="scenario-head"><span class="badge accent">${esc(req.gate_id)}</span><span class="badge">${esc(req.title || "")}</span></div>
+    <div class="hint" style="margin-bottom:6px">Required scenarios (in order):</div>
+    <div class="chip-grid" style="margin:6px 0 12px">${scenarioChips}</div>
+    <div class="hint" style="margin-bottom:6px">Detection coverage:</div>
+    <div class="chip-grid" style="margin:6px 0 12px">${detectionChips}</div>
+    <div class="hint" style="margin-bottom:6px">Required controls:</div>
+    <div class="chip-grid" style="margin:6px 0 12px">${controlChips}</div>
+    <div class="hint" style="margin-bottom:6px">Concepts that must appear in the summary:</div>
+    <div class="chip-grid" style="margin:6px 0 12px">${concepts}</div>
+    <div class="row" style="margin:0 0 6px"><span class="badge ${allComplete ? "ok" : "warn"}">${allComplete ? "Gate scenarios complete — synthesis unlocked" : "Pending: " + missingTokens.join(", ")}</span></div>
     ${allComplete ? `
-      <div class="field" style="margin-top:10px">
+      <div class="field" style="margin-top:12px">
         <label for="syn-summary">Incident summary (must contain all concepts above)</label>
         <textarea id="syn-summary" placeholder="Describe the incident, evidence chain, and controls…"></textarea>
       </div>
-      <div class="field" style="margin-top:10px">
+      <div class="field" style="margin-top:12px">
         <label for="syn-timeline">Timeline (one evidence event per line, at least ${req.scenario_ids.length} entries)</label>
-        <textarea id="syn-timeline" placeholder="T1 …\nT2 …"></textarea>
+        <textarea id="syn-timeline" placeholder="T1 …&#10;T2 …"></textarea>
       </div>
       <div class="row">
-        <button id="syn-btn" class="primary">Run hard-gate synthesis</button>
+        <button id="syn-btn" class="primary" type="button">Run hard-gate synthesis</button>
       </div>
       <div id="syn-result"></div>` : ""}`;
   const btn = $("syn-btn");
@@ -682,7 +951,7 @@ async function runSynthesis() {
   const body = {
     learner_id: state.learner,
     scenario_ids: req.scenario_ids,
-    evidence_tokens: req.scenario_ids.map((id) => byId[id].evidence_token || ""),
+    evidence_tokens: req.scenario_ids.map((id) => (byId[id] && byId[id].completion_token) || ""),
     detection_rule_ids: req.detection_rule_ids,
     controls: req.required_controls,
     timeline,
@@ -697,12 +966,12 @@ async function runSynthesis() {
     const flag = result.hard_flag;
     $("syn-result").innerHTML = `
       <div class="step-box">
-        <div class="badge ok" style="margin-bottom:8px">Synthesis accepted</div>
+        <div class="badge ok" style="margin-bottom:9px">Synthesis accepted</div>
         <div class="hint">Hard-gate flag (submit to unlock the next gate):</div>
         <div class="token-line">${esc(flag)}</div>
         <div class="row">
-          <button id="copy-flag">Copy</button>
-          <button id="submit-gate" class="primary">Submit to gate</button>
+          <button id="copy-flag" type="button">Copy</button>
+          <button id="submit-gate" class="primary" type="button">Submit to gate</button>
         </div>
       </div>`;
     $("copy-flag").addEventListener("click", () => {
@@ -716,7 +985,7 @@ async function runSynthesis() {
 
 async function submitFlagToGate(flag) {
   try {
-    const result = await gateApi("/api/flags/submit", {
+    const result = await gateApi("/api/gates/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ learner_id: state.learner, gate_id: state.synthesis.gate_id, flag }),
@@ -730,6 +999,8 @@ async function submitFlagToGate(flag) {
   }
 }
 
+/* ---------- Init ---------- */
+
 $("load-btn").addEventListener("click", loadAll);
 loadSettings();
 $("learner-id").value = state.learner;
@@ -739,11 +1010,13 @@ $("gate-url").value = state.gateUrl;
 fetch("/health")
   .then((r) => r.json())
   .then((health) => {
-    $("mode-badge").textContent = `MODE: ${health.mode || "unknown"}`;
-    $("status-mode").textContent = `mode: ${health.mode || "unknown"}`;
+    const mode = health.mode || "unknown";
+    $("mode-badge").innerHTML = `<span class="dot"></span>MODE: ${esc(mode).toUpperCase()}`;
+    $("status-mode").innerHTML = `mode: <b>${esc(mode)}</b>`;
   })
   .catch(() => {
-    $("mode-badge").textContent = "MODE: OFFLINE";
+    $("mode-badge").innerHTML = `<span class="dot"></span>MODE: OFFLINE`;
+    $("status-mode").textContent = "mode: offline";
   });
 </script>
 </body>

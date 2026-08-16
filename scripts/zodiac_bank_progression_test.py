@@ -83,6 +83,10 @@ class _App:
     def middleware(self, kind: str) -> Any:
         return lambda fn: fn
 
+    def add_middleware(self, middleware_class: Any, **kwargs: Any) -> None:
+        # CORS middleware is a no-op in the offline harness.
+        return None
+
 
 def install_fastapi_stub() -> None:
     fastapi = ModuleType("fastapi")
@@ -93,8 +97,15 @@ def install_fastapi_stub() -> None:
     fastapi.Depends = _Depends
     responses = _Responses("fastapi.responses")
     fastapi.responses = responses
+    middleware = ModuleType("fastapi.middleware")
+    cors = ModuleType("fastapi.middleware.cors")
+    cors.CORSMiddleware = type("CORSMiddleware", (), {})
+    middleware.cors = cors
+    fastapi.middleware = middleware
     sys.modules["fastapi"] = fastapi
     sys.modules["fastapi.responses"] = responses
+    sys.modules["fastapi.middleware"] = middleware
+    sys.modules["fastapi.middleware.cors"] = cors
 
 
 TMP = Path(tempfile.mkdtemp(prefix="zodiac-bank-gates-"))

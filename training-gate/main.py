@@ -27,6 +27,7 @@ from zodiac_bank_profiles import load_profiles, profile_by_id, profile_for_stage
 from zodiac_scenario_engine import load_scenario_pack, validate_scenarios  # noqa: E402
 
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 APP_TITLE = "Zodiac Bank AI Security Training Gate"
@@ -108,6 +109,16 @@ LEARNER_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 COHORT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 
 app = FastAPI(title=APP_TITLE, version="1.0")
+
+# The browser trainer UI (training-challenges on 5060) reads this gate on 5050
+# cross-origin. Allow only localhost origins; the learner-token header still
+# gates every request, and the service binds to 127.0.0.1 only.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"https?://(127\.0\.0\.1|localhost|\[::1\])(:\d+)?",
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.middleware("http")

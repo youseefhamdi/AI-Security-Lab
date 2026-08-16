@@ -331,6 +331,7 @@ def scenario_view(scenario: dict[str, Any], run: sqlite3.Row | None = None) -> d
         "status": run["status"] if run else "not-started",
         "progress": f"{run['step_index']}/{len(scenario['steps'])}" if run else f"0/{len(scenario['steps'])}",
         "attempts": int(run["attempts"]) if run else 0,
+        "completion_token": str(run["completion_token"]) if run and run["status"] == "complete" and run["completion_token"] else None,
         "max_attempts": MAX_ATTEMPTS_PER_STEP,
     }
 
