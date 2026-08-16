@@ -146,9 +146,12 @@
   .login-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
   .login-brand .mark {
     width: 48px; height: 48px; flex: 0 0 48px; display: grid; place-items: center;
-    border-radius: 14px; background: var(--grad-soft); border: 1px solid rgba(0, 212, 255, .3);
+    border-radius: 50%;
   }
-  .login-brand .mark svg { width: 25px; height: 25px; }
+  .login-brand .mark img {
+    width: 48px; height: 48px; border-radius: 50%;
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, .5));
+  }
   .login-brand h1 {
     margin: 0; font-family: var(--display); font-size: 19px; font-weight: 700;
     letter-spacing: 1.5px; color: var(--text);
@@ -182,9 +185,12 @@
   .app-brand { display: flex; align-items: center; gap: 12px; }
   .app-brand .mark {
     width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center;
-    border-radius: 11px; background: var(--grad-soft); border: 1px solid rgba(0, 212, 255, .3);
+    border-radius: 50%;
   }
-  .app-brand .mark svg { width: 20px; height: 20px; }
+  .app-brand .mark img {
+    width: 36px; height: 36px; border-radius: 50%;
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, .5));
+  }
   .app-brand .name {
     font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: 1.6px; color: var(--text);
   }
@@ -234,7 +240,20 @@
   .panel > h2::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 2px; background: var(--cyan); margin-right: 8px; vertical-align: 1px; box-shadow: 0 0 8px rgba(0, 212, 255, .7); }
 
   /* ---------- Dashboard hero (CWL home style) ---------- */
-  .hero { margin-bottom: 26px; }
+  .hero {
+    position: relative; margin-bottom: 26px; overflow: hidden;
+    border-radius: var(--radius); padding: 34px 34px 30px;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: .4; z-index: 0; pointer-events: none;
+  }
+  .hero-overlay {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(180deg, rgba(10, 10, 15, .78), rgba(10, 10, 15, .42) 45%, rgba(10, 10, 15, .9));
+  }
+  .hero > *:not(.hero-bg):not(.hero-overlay) { position: relative; z-index: 2; }
+  @media (max-width: 640px) { .hero { padding: 24px 20px; } }
   .hero-eyebrow {
     margin: 0 0 6px; font: 600 11px var(--mono); letter-spacing: 2.2px; text-transform: uppercase;
     color: var(--cyan);
@@ -711,10 +730,7 @@
     <div class="login-card">
       <div class="login-brand">
         <span class="mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
-            <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#00d4ff"/>
-            <path d="M8.5 15.5l2.2-4.6 2.2 2.3 2.6-5.2" stroke="#ff5252"/>
-          </svg>
+          <img src="../docs/assets/spartan-emblem.svg" alt="" width="48" height="48" />
         </span>
         <div>
           <h1>ZODIAC</h1>
@@ -757,9 +773,7 @@
   <header class="app-header">
     <div class="app-brand">
       <span class="mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
-          <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#00d4ff"/>
-        </svg>
+        <img src="../docs/assets/zodiac-spartan-logo.svg" alt="" width="36" height="36" />
       </span>
       <div>
         <span class="name">ZODIAC</span>
@@ -781,6 +795,8 @@
   <section id="view-dashboard" class="view">
     <div class="page">
       <div class="hero">
+        <img class="hero-bg" src="../docs/assets/ai-security-lab-banner.svg" alt="" aria-hidden="true" />
+        <span class="hero-overlay" aria-hidden="true"></span>
         <p class="hero-eyebrow" id="dash-sub">Your synthetic bank security range</p>
         <h1 class="hero-title" id="dash-greeting">Welcome back</h1>
         <p class="hero-tag">Train precisely. <b>Defend</b> relentlessly.</p>

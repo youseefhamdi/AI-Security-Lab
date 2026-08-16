@@ -79,8 +79,10 @@ services:
     volumes:
       - training_data:/var/lib/training
       # Live-reload the trainer UI: the HTML is bind-mounted read-only so a
-      # git pull updates the interface without rebuilding the image.
+      # git pull updates the interface without rebuilding the image. The same
+      # applies to the cinematic brand assets served under /docs/assets.
       - ./training-challenges/index.html:/app/index.html:ro
+      - ./docs/assets:/app/docs/assets:ro
     mem_limit: 128m
 
   zodiac-context:

@@ -120,6 +120,25 @@ app = FastAPI(title="Zodiac Bank Hard Challenge Range", version="2.1")
 
 TRAINER_UI = Path(__file__).resolve().parent / "index.html"
 
+ASSETS_DIR = Path(__file__).resolve().parent / "docs" / "assets"
+if not ASSETS_DIR.is_dir():
+    # The trainer UI references ../docs/assets/... relative to the page URL,
+    # which the browser resolves to /docs/assets/... The assets live in the
+    # repo docs/ folder; mount them read-only when present so the cinematic
+    # banner and spartan emblems render without being copied into the image.
+    repo_assets = Path(__file__).resolve().parent.parent / "docs" / "assets"
+    if repo_assets.is_dir():
+        ASSETS_DIR = repo_assets
+if ASSETS_DIR.is_dir():
+    try:
+        from fastapi.staticfiles import StaticFiles
+
+        app.mount("/docs/assets", StaticFiles(directory=str(ASSETS_DIR)), name="docs-assets")
+    except ImportError:
+        # The offline evaluation harness stubs FastAPI without staticfiles;
+        # the mount only matters when the real service runs in the container.
+        pass
+
 
 @app.middleware("http")
 async def security_headers(request: Any, call_next: Any) -> Any:
