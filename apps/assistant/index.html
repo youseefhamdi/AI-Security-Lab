@@ -228,12 +228,20 @@
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
+// @ts-check
 "use strict";
-const $ = (id) => document.getElementById(id);
+
+/**
+ * @typedef {HTMLElement & { value?: string }} TrainerElement
+ */
+
+/** @param {string} id @returns {TrainerElement} */
+const $ = (id) => /** @type {TrainerElement} */ (document.getElementById(id));
 const messagesEl = $("messages");
 const form = $("chat-form");
 const queryEl = $("query");
-let history = [];
+/** @type {{role: string, content: string}[]} */
+let chatHistory = [];
 let busy = false;
 
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -256,9 +264,13 @@ function md(raw) {
   return html;
 }
 
+/** @type {{t?: number}} */
+const toastTimer = {};
+
+/** @param {string} message @param {string} [kind] */
 function toast(message, kind) {
   const box = $("toast"); box.textContent = message; box.className = kind || ""; box.style.display = "block";
-  clearTimeout(toast._t); toast._t = setTimeout(() => { box.style.display = "none"; }, 6000);
+  clearTimeout(toastTimer.t); toastTimer.t = setTimeout(() => { box.style.display = "none"; }, 6000);
 }
 
 const AVATAR_ASSISTANT = `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l6 6-6 6"/><path d="M13 18h7"/></svg>`;
@@ -290,14 +302,14 @@ async function send() {
   if (!q || busy) return;
   busy = true;
   queryEl.value = "";
-  history.push({ role: "user", content: q });
+  chatHistory.push({ role: "user", content: q });
   addMsg("user", `<div class="body">${esc(q).replace(/\n/g, "<br>")}</div>`);
   const view = addAssistantStream();
 
   try {
     const res = await fetch("/v1/chat/completions", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: history, model: "bonsai-27b", stream: false }),
+      body: JSON.stringify({ messages: chatHistory, model: "bonsai-27b", stream: false }),
     });
     const data = await res.json().catch(() => ({}));
     if (data.error) {
@@ -306,7 +318,7 @@ async function send() {
     }
     const choice = (data.choices || [{}])[0];
     const content = (choice.message && choice.message.content) || "";
-    history.push({ role: "assistant", content });
+    chatHistory.push({ role: "assistant", content });
     const usage = data.usage || {};
     view.body.innerHTML = md(content) || '<em style="color:var(--muted)">(empty response)</em>';
     view.meta.innerHTML =
@@ -326,7 +338,7 @@ form.addEventListener("submit", (e) => { e.preventDefault(); send(); });
 queryEl.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
 queryEl.addEventListener("input", () => { queryEl.style.height = "auto"; queryEl.style.height = Math.min(queryEl.scrollHeight, 150) + "px"; });
 $("reset-btn").addEventListener("click", () => {
-  history = [];
+  chatHistory = [];
   messagesEl.innerHTML = `<div class="msg assistant"><div class="avatar" aria-hidden="true">${AVATAR_ASSISTANT}</div><div class="bubble"><div class="body">Conversation reset. Send a message to exercise <code>POST /v1/chat/completions</code>.</div></div></div>`;
   $("status-tokens").innerHTML = "last usage: —";
 });

@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Goldman:wght@400;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="preload" as="image" href="../docs/assets/ai-security-lab-banner.svg" fetchpriority="high" />
 <style>
   /* ============================================================
      Zodiac Bank · AI Security Lab
@@ -795,7 +796,7 @@
   <section id="view-dashboard" class="view">
     <div class="page">
       <div class="hero">
-        <img class="hero-bg" src="../docs/assets/ai-security-lab-banner.svg" alt="" aria-hidden="true" />
+        <img class="hero-bg" src="../docs/assets/ai-security-lab-banner.svg" alt="" aria-hidden="true" fetchpriority="high" decoding="async" />
         <span class="hero-overlay" aria-hidden="true"></span>
         <p class="hero-eyebrow" id="dash-sub">Your synthetic bank security range</p>
         <h1 class="hero-title" id="dash-greeting">Welcome back</h1>
@@ -930,9 +931,139 @@
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
+// @ts-check
 "use strict";
 
-const $ = (id) => document.getElementById(id);
+/**
+ * Single-file trainer UI. Vanilla JS with JSDoc types so the app stays
+ * dependency-free and fast: no framework, no bundler, no build step.
+ * `npm run typecheck` extracts this script and validates it with the real
+ * TypeScript compiler (tsc --checkJs).
+ */
+
+/**
+ * The DOM element shapes the trainer reads or writes. `$` is typed as an
+ * HTMLElement widened with the form/anchor members the render code touches
+ * so common property access stays checked without a cast at every call site.
+ * @typedef {HTMLElement & { value?: string, type?: string, href?: string, dataset?: DOMStringMap }} TrainerElement
+ */
+
+/**
+ * Get an element by id. The trainer markup guarantees every id it queries
+ * exists, so the helper is typed as non-nullable to keep the render code
+ * readable while still catching typos in the id strings.
+ * @param {string} id
+ * @returns {TrainerElement}
+ */
+const $ = (id) => /** @type {TrainerElement} */ (document.getElementById(id));
+
+/**
+ * Query all elements matching a selector, typed as HTMLElements.
+ * @param {string} selector
+ * @returns {NodeListOf<HTMLElement>}
+ */
+const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(selector));
+
+/**
+ * @typedef {Object} ScenarioSummary
+ * @property {string} scenario_id
+ * @property {number} difficulty
+ * @property {string} branch
+ * @property {string} title
+ * @property {string} objective
+ * @property {string[]} clues
+ * @property {number} step_count
+ * @property {string[]} detection_rule_ids
+ * @property {string[]} required_controls
+ */
+
+/**
+ * @typedef {Object} RangeStage
+ * @property {string} stage_id
+ * @property {string[]} hard_gate_ids
+ * @property {number} hard_gate_count
+ * @property {ScenarioSummary[]} scenarios
+ */
+
+/**
+ * @typedef {Object} RangeResponse
+ * @property {string} learner_id
+ * @property {string|null} current_stage_id
+ * @property {Object|null} bank_profile
+ * @property {RangeStage[]} stages
+ */
+
+/**
+ * @typedef {Object} ScenarioRun
+ * @property {string} scenario_id
+ * @property {string} stage_id
+ * @property {number} difficulty
+ * @property {string} branch
+ * @property {string} title
+ * @property {string} objective
+ * @property {string[]} clues
+ * @property {number} step_count
+ * @property {string[]} detection_rule_ids
+ * @property {string[]} required_controls
+ * @property {string} status
+ * @property {string} progress
+ * @property {number} attempts
+ * @property {string|null} completion_token
+ * @property {number} max_attempts
+ */
+
+/**
+ * @typedef {Object} HardGate
+ * @property {string} gate_id
+ * @property {string} stage_id
+ * @property {number} rank
+ * @property {string} title
+ * @property {string[]} scenario_ids
+ * @property {string[]} detection_rule_ids
+ * @property {string[]} required_controls
+ * @property {string[]} concepts
+ * @property {string} status
+ * @property {string} flag_format
+ */
+
+/**
+ * @typedef {Object} CurriculumStage
+ * @property {string} id
+ * @property {string} status
+ * @property {string} [mission]
+ * @property {string} [title]
+ * @property {{level: number, text: string}[]} [hints]
+ * @property {string[]} [target_services]
+ * @property {string[]} [skills]
+ */
+
+/**
+ * @typedef {Object} GateMeta
+ * @property {string|null} current_gate_id
+ * @property {number} [completed_gate_count]
+ * @property {number} [total_hard_gates]
+ */
+
+/** @typedef {{ status: string, difficulty: string, q: string }} LabFilters */
+
+/**
+ * @typedef {Object} AppState
+ * @property {string} learner
+ * @property {string} token
+ * @property {string} gateUrl
+ * @property {RangeResponse|null} range
+ * @property {string|null} currentStageId
+ * @property {ScenarioRun[]} scenarios
+ * @property {ScenarioSummary|null} selected
+ * @property {HardGate|null} synthesis
+ * @property {HardGate[]} gates
+ * @property {GateMeta|null} gateMeta
+ * @property {{stages: CurriculumStage[], bank_profile?: Object}|null} curriculum
+ * @property {string|null} currentLab
+ * @property {LabFilters} labFilters
+ */
+
+/** @type {AppState} */
 const state = {
   learner: "",
   token: "",
@@ -949,15 +1080,30 @@ const state = {
   labFilters: { status: "all", difficulty: "all", q: "" },
 };
 
+/** @type {Record<string, string>} */
+const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+/** @type {{[key: string]: number}} */
+let toastTimer = {};
+
+/**
+ * @param {string} message
+ * @param {string} [kind]
+ */
 function toast(message, kind) {
   const box = $("toast");
   box.textContent = message;
   box.className = kind || "";
   box.style.display = "block";
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => { box.style.display = "none"; }, 6000);
+  clearTimeout(toastTimer.t);
+  toastTimer.t = setTimeout(() => { box.style.display = "none"; }, 6000);
 }
 
+/**
+ * @param {string} path
+ * @param {RequestInit} [options]
+ * @returns {Promise<any>}
+ */
 async function api(path, options) {
   const headers = Object.assign({ "X-Training-Learner-Token": state.token }, (options && options.headers) || {});
   const response = await fetch(path, Object.assign({}, options, { headers }));
@@ -970,6 +1116,11 @@ async function api(path, options) {
   return body;
 }
 
+/**
+ * @param {string} path
+ * @param {RequestInit} [options]
+ * @returns {Promise<any>}
+ */
 async function gateApi(path, options) {
   const headers = Object.assign({ "X-Training-Learner-Token": state.token }, (options && options.headers) || {});
   const response = await fetch(state.gateUrl + path, Object.assign({}, options, { headers }));
@@ -999,14 +1150,22 @@ function loadSettings() {
   } catch (_) { /* ignore */ }
 }
 
+/**
+ * Escape a value for safe interpolation into HTML. Uses a hoisted lookup
+ * table instead of rebuilding it on every call.
+ * @param {unknown} value
+ * @returns {string}
+ */
 function esc(value) {
-  return String(value).replace(/[&<>"']/g, (ch) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  }[ch]));
+  return String(value).replace(/[&<>"']/g, (ch) => ESC_MAP[ch] || ch);
 }
 
 /* ---------- Load ---------- */
 
+/**
+ * Load the range map and curriculum, then refresh the active stage.
+ * @returns {Promise<void>}
+ */
 async function loadAll() {
   const learnerInput = $("learner-id").value.trim();
   const tokenInput = $("learner-token").value.trim();
@@ -1046,11 +1205,19 @@ async function loadAll() {
   }
 }
 
+/**
+ * @param {string} scenarioId
+ * @returns {RangeStage|null}
+ */
 function stageForScenario(scenarioId) {
   if (!state.range) return null;
   return state.range.stages.find((s) => s.scenarios.some((sc) => sc.scenario_id === scenarioId)) || null;
 }
 
+/**
+ * @param {string} scenarioId
+ * @returns {ScenarioRun|null}
+ */
 function findRun(scenarioId) {
   if (!state.scenarios) return null;
   return state.scenarios.find((s) => s.scenario_id === scenarioId) || null;
@@ -1158,7 +1325,7 @@ function renderLabFilters() {
       ${chip("difficulty", "professional", "Professional", diff.professional)}
       ${chip("difficulty", "advanced", "Advanced", diff.advanced)}
     </div>`;
-  box.querySelectorAll(".filter-chip").forEach((btn) => {
+  $$(".filter-chip").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.labFilters[btn.dataset.group] = btn.dataset.value;
       renderRange();
@@ -1214,6 +1381,7 @@ function renderRange() {
     if (search) search.value = "";
     renderRange();
   });
+
 }
 
 /* ---------- Stage / gates / synthesis ---------- */
@@ -1271,7 +1439,7 @@ function renderProgression() {
   const stages = (state.curriculum && state.curriculum.stages) || [];
   const completed = stages.filter((s) => s.status === "completed").length;
   const pct = stages.length ? Math.round((completed / stages.length) * 100) : 0;
-  const meta = state.gateMeta || {};
+  const meta = state.gateMeta || /** @type {GateMeta} */ ({});
   let gatesHtml = '<p class="muted">No hard-gate data yet.</p>';
   if (state.gates.length) {
     gatesHtml = state.gates.map((g) => `
@@ -1441,10 +1609,10 @@ function buildEvidenceForm(hint) {
         <button id="submit-event" class="btn btn-primary" type="button">Submit evidence event</button>
       </div>
     </div>`;
-  box.querySelectorAll(".candidate-chip").forEach((chip) => {
+  $$(".candidate-chip").forEach((chip) => {
     chip.addEventListener("click", () => {
       const key = chip.dataset.key;
-      box.querySelectorAll(`.candidate-chip[data-key="${CSS.escape(key)}"]`).forEach((c) => c.classList.remove("selected"));
+      $$(`.candidate-chip[data-key="${CSS.escape(key)}"]`).forEach((c) => c.classList.remove("selected"));
       chip.classList.add("selected");
     });
   });
@@ -1453,7 +1621,7 @@ function buildEvidenceForm(hint) {
 
 async function submitEvent(hint) {
   const evidence = {};
-  document.querySelectorAll("#event-box .candidate-chip.selected").forEach((chip) => {
+  $$("#event-box .candidate-chip.selected").forEach((chip) => {
     evidence[chip.dataset.key] = chip.dataset.value;
   });
   const proof = $("proof-value");
@@ -1613,7 +1781,7 @@ function renderLabScenarios() {
       <span class="state ${status}">${status}</span>
     </button>`;
   }).join("");
-  box.querySelectorAll(".scenario-row").forEach((row) => {
+  $$(".scenario-row").forEach((row) => {
     row.addEventListener("click", () => selectScenario(row.dataset.scenario));
   });
 }
@@ -1782,7 +1950,7 @@ function renderActivity() {
 function renderDashboard() {
   const stages = (state.curriculum && state.curriculum.stages) || [];
   const completed = stages.filter((s) => s.status === "completed").length;
-  const meta = state.gateMeta || {};
+  const meta = state.gateMeta || /** @type {GateMeta} */ ({});
   const profile = (state.range && state.range.bank_profile) || (state.curriculum && state.curriculum.bank_profile) || null;
   const greeting = $("dash-greeting");
   const sub = $("dash-sub");
@@ -1857,7 +2025,7 @@ function router() {
     if (el) el.classList.toggle("hidden", k !== path);
   });
 
-  document.querySelectorAll(".app-nav a").forEach((a) => {
+  $$(".app-nav a").forEach((a) => {
     a.classList.toggle("active", a.dataset.nav === path);
   });
 
@@ -1949,10 +2117,16 @@ $("login-btn").addEventListener("click", login);
 $("logout-btn").addEventListener("click", logout);
 $("password-toggle").addEventListener("click", togglePassword);
 
+// Debounced lab search: only re-render the grid after the learner pauses
+// typing (120ms), instead of rebuilding all cards on every keystroke.
 const labSearch = $("lab-search");
+let labSearchTimer = 0;
 if (labSearch) labSearch.addEventListener("input", () => {
-  state.labFilters.q = labSearch.value.trim().toLowerCase();
-  renderRange();
+  window.clearTimeout(labSearchTimer);
+  labSearchTimer = window.setTimeout(() => {
+    state.labFilters.q = labSearch.value.trim().toLowerCase();
+    renderRange();
+  }, 120);
 });
 
 fetch("/health")

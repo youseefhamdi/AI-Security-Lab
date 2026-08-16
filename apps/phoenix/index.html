@@ -213,8 +213,15 @@
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
+// @ts-check
 "use strict";
-const $ = (id) => document.getElementById(id);
+
+/**
+ * @typedef {HTMLElement & { value?: string, disabled?: boolean }} TrainerElement
+ */
+
+/** @param {string} id @returns {TrainerElement} */
+const $ = (id) => /** @type {TrainerElement} */ (document.getElementById(id));
 let busy = false;
 
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -238,9 +245,13 @@ function md(raw) {
   return html;
 }
 
+/** @type {{t?: number}} */
+const toastTimer = {};
+
+/** @param {string} message @param {string} [kind] */
 function toast(message, kind) {
   const box = $("toast"); box.textContent = message; box.className = kind || ""; box.style.display = "block";
-  clearTimeout(toast._t); toast._t = setTimeout(() => { box.style.display = "none"; }, 6000);
+  clearTimeout(toastTimer.t); toastTimer.t = setTimeout(() => { box.style.display = "none"; }, 6000);
 }
 
 async function runReview() {

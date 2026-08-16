@@ -375,9 +375,17 @@
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
+// @ts-check
 "use strict";
 
-const $ = (id) => document.getElementById(id);
+/**
+ * @typedef {HTMLElement & { value?: string, dataset?: DOMStringMap }} TrainerElement
+ */
+
+/** @param {string} id @returns {TrainerElement} */
+const $ = (id) => /** @type {TrainerElement} */ (document.getElementById(id));
+/** @param {string} selector @returns {NodeListOf<HTMLElement>} */
+const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(selector));
 const messagesEl = $("messages");
 const form = $("chat-form");
 const queryEl = $("query");
@@ -421,7 +429,7 @@ function md(raw) {
 }
 
 function decorateCodeBlocks(root) {
-  root.querySelectorAll(".codeblock").forEach((block) => {
+  $$(".codeblock").forEach((block) => {
     if (block.dataset.decorated) return;
     block.dataset.decorated = "1";
     const code = block.querySelector("code");
@@ -502,12 +510,12 @@ function renderHistory() {
       </div>
       <button class="si-del" type="button" data-del="${esc(s.id)}" title="Delete conversation">×</button>
     </div>`).join("");
-  list.querySelectorAll(".session-item").forEach((item) => {
+  $$(".session-item").forEach((item) => {
     const open = () => openSession(item.dataset.id);
-    item.addEventListener("click", (e) => { if (e.target.closest(".si-del")) return; open(); });
+    item.addEventListener("click", (e) => { if (/** @type {Element} */ (e.target).closest(".si-del")) return; open(); });
     item.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
   });
-  list.querySelectorAll(".si-del").forEach((btn) => {
+  $$(".si-del").forEach((btn) => {
     btn.addEventListener("click", (e) => { e.stopPropagation(); deleteSession(btn.dataset.del); });
   });
 }
@@ -582,7 +590,7 @@ function showWelcome() {
         <button class="prompt" type="button" data-q="How do I reset my online banking password?">Reset my password</button>
       </div>
     </div>`;
-  messagesEl.querySelectorAll(".prompt").forEach((b) => {
+  $$(".prompt").forEach((b) => {
     b.addEventListener("click", () => { queryEl.value = b.dataset.q; submit(b.dataset.q); });
   });
 }
@@ -615,9 +623,10 @@ async function submit(query) {
       `<span>retrieval: ${esc((meta && meta.retrieval_backend) || "—")}</span>` +
       `<span>context: ${esc((meta && meta.context_engineering && meta.context_engineering.mode) || "—")}</span>` +
       `<button class="ghost" type="button" data-copy="${esc(acc)}">Copy</button>`;
-    const copy = view.meta.querySelector("[data-copy]");
+    const copy = /** @type {HTMLElement|null} */ (view.meta.querySelector("[data-copy]"));
     if (copy) copy.addEventListener("click", (e) => {
-      navigator.clipboard.writeText(e.target.dataset.copy).then(() => { e.target.textContent = "Copied"; setTimeout(() => (e.target.textContent = "Copy"), 1200); });
+      const target = /** @type {TrainerElement} */ (e.target);
+      navigator.clipboard.writeText(target.dataset.copy).then(() => { target.textContent = "Copied"; setTimeout(() => (target.textContent = "Copy"), 1200); });
     });
     if (acc) { currentMessages.push({ role: "assistant", content: acc }); saveCurrentSession(); renderHistory(); }
     scrollBottom();
@@ -702,7 +711,7 @@ $("new-session").addEventListener("click", newSession);
 $("sidebar-toggle").addEventListener("click", () => setSidebar(!sbOpen));
 $("sidebar-close").addEventListener("click", () => setSidebar(false));
 $("backdrop").addEventListener("click", () => setSidebar(false));
-$("customer-id").addEventListener("input", (e) => { customerId = e.target.value.trim(); });
+$("customer-id").addEventListener("input", (e) => { customerId = /** @type {TrainerElement} */ (e.target).value.trim(); });
 
 form.addEventListener("submit", (e) => { e.preventDefault(); submit(); });
 queryEl.addEventListener("keydown", (e) => {
