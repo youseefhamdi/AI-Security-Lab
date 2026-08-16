@@ -11,11 +11,15 @@ A learner must:
 1. Read the current lesson and confirm the authorized scope.
 2. Exercise only the listed local target services.
 3. Preserve request/response evidence and explain the impact.
-4. Find the current stage's hard flag through the intended vulnerable lab surface.
-5. Submit the flag to `/api/flags/submit`.
-6. Receive the next unlocked stage.
+4. In strict mode, complete the current stage's multi-step scenarios and hard-gate
+   synthesis at `http://127.0.0.1:5060`, then submit the returned gate flag to
+   `/api/gates/submit`. In development mode, find the stage's hard flag through
+   the intended vulnerable lab surface and submit it to `/api/flags/submit`.
+5. Receive the next unlocked stage (a stage auto-completes after its fifth gate).
 
 The curriculum endpoint intentionally returns stage metadata and flag format, but never the plaintext hard flag. Only the first incomplete stage is unlocked; later stages remain locked even if a learner knows their flag. Each unlocked lesson exposes three safe hints in escalating order. Invalid attempts are hashed for audit and bounded per stage. Progress is stored in a local SQLite database inside the `training_data` volume. The learner artifact is only an opaque current-stage pointer and never contains a flag.
+
+Flag submission is normalized (case- and whitespace-insensitive) and auditable: a malformed flag returns `422` with a format hint, a wrong-but-well-formed flag returns `401` with the attempts remaining, and accepted responses include `submission_id`, `attempts_used`, and `attempts_remaining`. An optional cooldown (`TRAINING_FLAG_COOLDOWN_SECONDS`, default `0`) throttles repeated failed attempts. `/health` pings the progress database and reports `degraded` when it is unreachable.
 
 ## Levels
 
@@ -233,7 +237,7 @@ export TRAINING_FLAG_SECRET='<same secret as .env>'
 RUNTIME=1 ./scripts/flag_pipeline_check.sh
 ```
 
-The live check enrolls a dedicated `flag-pipeline-check` learner, solves every scenario through the challenge API, re-derives each expected flag from `TRAINING_FLAG_SECRET` and compares it to the synthesis-issued flag before submitting it to the gate, and verifies the exact next stage unlocks through L09. Live negative paths are exercised too (locked-stage flag 403, invalid flag 401, wrong evidence 409, idempotent re-submission). It requires the services to be running and both `TRAINING_ADMIN_KEY` and `TRAINING_FLAG_SECRET` to match the running services; the check cohort is reset at the start of each run so it is safe to re-run.
+The live check enrolls a dedicated `flag-pipeline-check` learner, solves every scenario through the challenge API, re-derives each expected flag from `TRAINING_FLAG_SECRET` and compares it to the synthesis-issued flag before submitting it to the gate, and verifies the exact next stage unlocks through L09. Live negative paths are exercised too (locked-stage flag 403, malformed flag 422, invalid flag 401, wrong evidence 409, idempotent re-submission). It requires the services to be running and both `TRAINING_ADMIN_KEY` and `TRAINING_FLAG_SECRET` to match the running services; the check cohort is reset at the start of each run so it is safe to re-run.
 
 ## Security boundary
 

@@ -108,6 +108,10 @@ http_call POST "${GATE_URL}/api/flags/submit" "${LEARNER_AUTH}" "{\"learner_id\"
 [[ "${RESP_CODE}" == "403" ]] || fail "locked-stage flag was not rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
 log "NEG  locked-stage flag rejected (403)"
 
+http_call POST "${GATE_URL}/api/flags/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"stage_id\":\"L00-foundation\",\"flag\":\"not-a-zodiac-flag\"}"
+[[ "${RESP_CODE}" == "422" ]] || fail "malformed flag was not rejected with 422 (HTTP ${RESP_CODE}): ${RESP_BODY}"
+log "NEG  malformed flag rejected (422)"
+
 http_call POST "${GATE_URL}/api/flags/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"stage_id\":\"L00-foundation\",\"flag\":\"ZODIAC-BANK-L00-FOUNDATION-NOT-A-FLAG\"}"
 [[ "${RESP_CODE}" == "401" ]] || fail "invalid flag was not rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
 log "NEG  invalid flag rejected (401)"

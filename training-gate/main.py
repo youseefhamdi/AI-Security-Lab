@@ -43,9 +43,55 @@ DEFAULT_FLAG_SECRET = "zodiac-bank-change-this-training-secret"
 FLAG_SECRET_VALUE = os.environ.get("TRAINING_FLAG_SECRET", DEFAULT_FLAG_SECRET)
 FLAG_SECRET = FLAG_SECRET_VALUE.encode("utf-8")
 MAX_SUBMISSIONS_PER_STAGE = int(os.environ.get("TRAINING_MAX_SUBMISSIONS", "20"))
+FLAG_COOLDOWN_SECONDS = int(os.environ.get("TRAINING_FLAG_COOLDOWN_SECONDS", "0"))
 ADMIN_KEY = os.environ.get("TRAINING_ADMIN_KEY", "")
 SECURITY_MODE = os.environ.get("TRAINING_SECURITY_MODE", "development")
 FLAG_HEX_LENGTH = 32
+
+
+def normalize_flag(value: str) -> str:
+    """Canonicalize a submitted flag: trim, collapse whitespace, and uppercase.
+
+    Flags are uppercase hex; accepting lowercase or stray whitespace prevents
+    copy/paste friction from failing an otherwise correct submission.
+    """
+    return " ".join(str(value).split()).upper()
+
+
+def flag_format_error(flag: str, *, expected_prefix: str) -> str | None:
+    """Return a human-readable format error, or None when the flag is well-formed."""
+    if not flag.startswith(expected_prefix):
+        return f"flag format: expected prefix '{expected_prefix}'"
+    body = flag[len(expected_prefix):]
+    if not body or not re.fullmatch(r"[A-Z0-9-]{4,96}", body):
+        return "flag format: expected an uppercase alphanumeric body after the prefix"
+    return None
+
+
+def failed_attempt_cooldown(db: sqlite3.Connection, *, table: str, id_column: str, learner_id: str, item_id: str) -> int:
+    """Return remaining cooldown seconds after the most recent failed attempt.
+
+    Cooldown is disabled unless TRAINING_FLAG_COOLDOWN_SECONDS is positive, and
+    the table/id_column pair is one of the two known submission tables.
+    """
+    if FLAG_COOLDOWN_SECONDS <= 0:
+        return 0
+    if table not in {"submissions", "gate_submissions"} or id_column not in {"stage_id", "gate_id"}:
+        return 0
+    row = db.execute(
+        f"SELECT submitted_at FROM {table} WHERE learner_id=? AND {id_column}=? AND accepted=0 ORDER BY submission_id DESC LIMIT 1",
+        (learner_id, item_id),
+    ).fetchone()
+    if row is None:
+        return 0
+    try:
+        last = datetime.fromisoformat(str(row["submitted_at"]))
+    except ValueError:
+        return 0
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=timezone.utc)
+    elapsed = (datetime.now(timezone.utc) - last).total_seconds()
+    return max(0, int(FLAG_COOLDOWN_SECONDS - elapsed))
 
 
 def validate_security_config() -> None:
@@ -406,14 +452,24 @@ class CohortMemberRequest(BaseModel):
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    database_ok = True
+    try:
+        db = connection()
+        try:
+            db.execute("SELECT 1").fetchone()
+        finally:
+            db.close()
+    except Exception:  # noqa: BLE001 - surface a degraded state, never crash the probe
+        database_ok = False
     return {
-        "status": "healthy",
+        "status": "healthy" if database_ok else "degraded",
         "service": "training-gate",
         "lab": CURRICULUM["title"],
         "stages": len(STAGES),
         "scenarios": len(SCENARIO_PACK.get("scenarios", [])),
         "hard_gates": len(GATES),
         "flags": "hmac-backed-stage-and-gate",
+        "database": "ok" if database_ok else "unavailable",
     }
 
 
@@ -525,15 +581,24 @@ def submit_gate(submission: GateSubmission, x_training_learner_token: str = Head
         if attempts >= MAX_SUBMISSIONS_PER_STAGE:
             db.rollback()
             raise HTTPException(status_code=429, detail="hard-gate submission limit reached")
-        submitted_flag = submission.flag.strip()
+        submitted_flag = normalize_flag(submission.flag)
+        format_error = flag_format_error(submitted_flag, expected_prefix="ZODIAC-BANK-GATE-")
+        if format_error:
+            db.rollback()
+            raise HTTPException(status_code=422, detail=format_error)
+        cooldown = failed_attempt_cooldown(db, table="gate_submissions", id_column="gate_id", learner_id=learner_id, item_id=gate["gate_id"])
+        if cooldown > 0:
+            db.rollback()
+            raise HTTPException(status_code=429, detail=f"submission cooldown active; retry in {cooldown}s")
         accepted = hmac.compare_digest(submitted_flag, gate_flag_for(gate["gate_id"]))
-        db.execute(
+        cursor = db.execute(
             "INSERT INTO gate_submissions(learner_id, gate_id, flag_digest, accepted, reason, submitted_at) VALUES (?, ?, ?, ?, ?, ?)",
             (learner_id, gate["gate_id"], digest_flag(submitted_flag), int(accepted), "accepted" if accepted else "invalid flag", utc_now()),
         )
+        submission_id = int(cursor.lastrowid)
         if not accepted:
             db.commit()
-            raise HTTPException(status_code=401, detail="invalid hard-gate flag")
+            raise HTTPException(status_code=401, detail=f"invalid hard-gate flag ({MAX_SUBMISSIONS_PER_STAGE - attempts} attempts remaining)")
         promoted_gates = completed_gate_ids | {gate["gate_id"]}
         stage_gate_ids = {item["gate_id"] for item in GATES_BY_STAGE[gate["stage_id"]]}
         stage_completed_now = stage_gate_ids.issubset(promoted_gates)
@@ -555,6 +620,9 @@ def submit_gate(submission: GateSubmission, x_training_learner_token: str = Head
             "stage_id": gate["stage_id"],
             "status": "stage_completed" if stage_completed_now else "completed",
             "stage_completed": stage_completed_now,
+            "submission_id": submission_id,
+            "attempts_used": attempts + 1,
+            "attempts_remaining": max(0, MAX_SUBMISSIONS_PER_STAGE - attempts - 1),
             "next_gate_id": next_gate["gate_id"] if next_gate else None,
             "next_stage_id": next_stage["id"] if next_stage else None,
             "hard_gate_count": len(promoted_gates),
@@ -750,13 +818,23 @@ def submit_flag(submission: FlagSubmission, x_training_learner_token: str = Head
             db.rollback()
             raise HTTPException(status_code=429, detail="submission limit reached for this stage")
 
-        submitted_flag = submission.flag.strip()
+        submitted_flag = normalize_flag(submission.flag)
+        format_error = flag_format_error(submitted_flag, expected_prefix="ZODIAC-BANK-")
+        if format_error:
+            db.rollback()
+            raise HTTPException(status_code=422, detail=format_error)
+        cooldown = failed_attempt_cooldown(db, table="submissions", id_column="stage_id", learner_id=learner_id, item_id=stage["id"])
+        if cooldown > 0:
+            db.rollback()
+            raise HTTPException(status_code=429, detail=f"submission cooldown active; retry in {cooldown}s")
+
         accepted = hmac.compare_digest(submitted_flag, flag_for(stage["id"]))
         reason = "accepted" if accepted else "invalid flag"
-        db.execute(
+        cursor = db.execute(
             "INSERT INTO submissions(learner_id, stage_id, flag_digest, accepted, reason, submitted_at) VALUES (?, ?, ?, ?, ?, ?)",
             (learner_id, stage["id"], digest_flag(submitted_flag), int(accepted), reason, utc_now()),
         )
+        submission_id = int(cursor.lastrowid)
         if accepted:
             promoted_completed = completed | {stage["id"]}
             db.execute(
@@ -768,13 +846,16 @@ def submit_flag(submission: FlagSubmission, x_training_learner_token: str = Head
         if accepted:
             sync_active_artifact(learner_id, promoted_completed)
         if not accepted:
-            raise HTTPException(status_code=401, detail="invalid hard flag")
+            raise HTTPException(status_code=401, detail=f"invalid hard flag ({MAX_SUBMISSIONS_PER_STAGE - attempts} attempts remaining)")
 
         next_stage = next((candidate for candidate in CURRICULUM["stages"] if candidate["id"] not in completed and stage_status(candidate, completed | {stage["id"]}) == "unlocked"), None)
         return {
             "accepted": True,
             "stage_id": stage["id"],
             "status": "completed",
+            "submission_id": submission_id,
+            "attempts_used": attempts + 1,
+            "attempts_remaining": max(0, MAX_SUBMISSIONS_PER_STAGE - attempts - 1),
             "next_stage_id": next_stage["id"] if next_stage else None,
             "bank_profile": promoted_profile,
             "message": "hard flag accepted; bank security profile promoted and next stage unlocked" if next_stage else "hard flag accepted; curriculum complete and bank moved to review-only profile",

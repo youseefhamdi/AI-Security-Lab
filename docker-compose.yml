@@ -47,6 +47,7 @@ services:
       TRAINING_ADMIN_KEY: ${TRAINING_ADMIN_KEY:-zodiac-bank-admin-change-me}
       TRAINING_SECURITY_MODE: ${TRAINING_SECURITY_MODE:-strict}
       TRAINING_MAX_SUBMISSIONS: ${TRAINING_MAX_SUBMISSIONS:-20}
+      TRAINING_FLAG_COOLDOWN_SECONDS: ${TRAINING_FLAG_COOLDOWN_SECONDS:-0}
       TRAINING_ARTIFACT_DIR: /var/lib/training/learners
       TRAINING_BANK_PROFILES: /app/config/bank-profiles.json
     volumes:

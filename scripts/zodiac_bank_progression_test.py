@@ -242,7 +242,9 @@ def run_progression() -> dict[str, Any]:
     }
     expect_http(lambda: CHALLENGE.synthesize_gate(second_gate["gate_id"], locked_synthesis, negative_token), 403, "locked gate synthesis")
     expect_http(lambda: CHALLENGE.synthesize_stage(STAGE_IDS[0], {"learner_id": negative_learner}, negative_token), 410, "retired stage synthesis")
-    expect_http(lambda: GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag="invalid"), x_training_learner_token=negative_token), 401, "invalid gate flag")
+    expect_http(lambda: GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag="invalid"), x_training_learner_token=negative_token), 422, "malformed gate flag")
+    wrong_gate_flag = f"ZODIAC-BANK-GATE-{first_gate['gate_id'].upper()}-NOT-A-FLAG"
+    expect_http(lambda: GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag=wrong_gate_flag), x_training_learner_token=negative_token), 401, "invalid gate flag")
     scenario_id = first_gate["scenario_ids"][0]
     CHALLENGE.start_scenario(scenario_id, {"learner_id": negative_learner}, negative_token)
     hint = CHALLENGE.scenario_hint(scenario_id, learner_id=negative_learner, x_training_learner_token=negative_token)
@@ -250,15 +252,20 @@ def run_progression() -> dict[str, Any]:
     first_key = next(iter(wrong))
     wrong[first_key] = "GET" if wrong[first_key] != "GET" else "POST"
     expect_http(lambda: CHALLENGE.scenario_event(scenario_id, {"learner_id": negative_learner, "event": hint["event"], "evidence": wrong}, negative_token), 409, "wrong evidence")
-    negatives = {"locked_gate_rejected": True, "locked_gate_synthesis_rejected": True, "retired_stage_synthesis_rejected": True, "invalid_gate_rejected": True, "wrong_evidence_rejected": True}
+    negatives = {"locked_gate_rejected": True, "locked_gate_synthesis_rejected": True, "retired_stage_synthesis_rejected": True, "malformed_gate_rejected": True, "invalid_gate_rejected": True, "wrong_evidence_rejected": True}
 
-    # Complete the first gate and ensure re-submission is idempotent.
+    # Complete the first gate and ensure re-submission is idempotent. The first
+    # submission uses a lowercased flag to prove case/whitespace normalization.
     tokens = [solve_scenario(negative_learner, negative_token, sid) for sid in first_gate["scenario_ids"]]
     synthesis = synthesize_gate(negative_learner, negative_token, first_gate, tokens)
-    first_result = GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag=synthesis["hard_flag"]), x_training_learner_token=negative_token)
+    normalized_submission = GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag=f"  {synthesis['hard_flag'].lower()}  "), x_training_learner_token=negative_token)
+    assert normalized_submission["accepted"] is True
+    assert isinstance(normalized_submission.get("attempts_remaining"), int)
+    assert isinstance(normalized_submission.get("submission_id"), int)
     second_result = GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag=synthesis["hard_flag"]), x_training_learner_token=negative_token)
-    assert first_result["accepted"] and second_result["status"] == "completed"
+    assert normalized_submission["accepted"] and second_result["status"] == "completed"
     negatives["gate_resubmission_idempotent"] = True
+    negatives["flag_normalization"] = True
 
     return {"passed": True, "stages_completed": len(stages), "total_scenarios": scenario_count, "hard_gates_completed": gate_count, "stages": stages, "negatives": negatives}
 

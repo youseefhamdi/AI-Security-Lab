@@ -361,7 +361,10 @@ def check_flag_pipeline() -> dict[str, Any]:
     compose = COMPOSE_PATH.read_text(encoding="utf-8")
     assert compose.count("TRAINING_FLAG_SECRET: ${TRAINING_FLAG_SECRET:-") >= 2, "flag secret not wired to both services"
     assert "ZODIAC-BANK-" in gate_src and "ZODIAC-BANK-" in challenge_src
-    return {"flag_formula_identical": True, "services_wired_to_same_secret": True}
+    assert "def normalize_flag" in gate_src and "def flag_format_error" in gate_src, "flag normalization and format validation missing"
+    assert "attempts_remaining" in gate_src and "submission_id" in gate_src, "submission feedback fields missing"
+    assert "failed_attempt_cooldown" in gate_src and "FLAG_COOLDOWN_SECONDS" in gate_src, "cooldown control missing"
+    return {"flag_formula_identical": True, "services_wired_to_same_secret": True, "flag_normalization": True, "format_validation": True, "attempt_feedback": True, "cooldown_control": True}
 
 
 def check_ai_threat_model() -> dict[str, Any]:

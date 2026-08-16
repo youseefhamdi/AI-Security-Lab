@@ -756,7 +756,7 @@ export TRAINING_FLAG_SECRET='<same secret as .env>'
 RUNTIME=1 ./scripts/flag_pipeline_check.sh
 ```
 
-The check enrolls a dedicated `flag-pipeline-check` learner, solves every required scenario through the live challenge API (using the per-run candidate pools), synthesizes each stage, confirms the issued flag matches the locally re-derived HMAC, submits it to the Training Gate, and asserts the exact next stage unlocks through L09 and curriculum completion. It also exercises live negative paths: locked-stage flag (403), invalid flag (401), wrong scenario evidence (409), and idempotent re-submission. Both `TRAINING_ADMIN_KEY` and `TRAINING_FLAG_SECRET` must match the running services; the cohort is reset automatically at the start of each run.
+The check enrolls a dedicated `flag-pipeline-check` learner, solves every required scenario through the live challenge API (using the per-run candidate pools), synthesizes each stage, confirms the issued flag matches the locally re-derived HMAC, submits it to the Training Gate, and asserts the exact next stage unlocks through L09 and curriculum completion. It also exercises live negative paths: locked-stage flag (403), malformed flag (422), invalid flag (401), wrong scenario evidence (409), and idempotent re-submission. Both `TRAINING_ADMIN_KEY` and `TRAINING_FLAG_SECRET` must match the running services; the cohort is reset automatically at the start of each run.
 
 ### Run the inference smoke test
 
@@ -852,7 +852,17 @@ curl --fail http://127.0.0.1:5050/api/flags/submit \\
   -d '{"learner_id":"analyst-01","stage_id":"L00-foundation","flag":"ZODIAC-BANK-..."}'
 ```
 
-Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. In strict mode, legacy challenge routes do not issue flags: complete the required multi-step scenarios at `http://127.0.0.1:5060`, synthesize the evidence, then submit the returned flag to the gate. Invalid submissions are hashed for audit, limited to a bounded number of attempts, and do not reveal the expected flag. All targets, identities, accounts, and evidence are synthetic and must remain localhost-bound.
+Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. In strict mode, legacy challenge routes do not issue flags: complete the required multi-step scenarios at `http://127.0.0.1:5060`, synthesize the evidence, then submit the returned gate flag to `/api/gates/submit` (each stage auto-completes after its fifth and final gate).
+
+Flag submission is forgiving and auditable:
+
+- Flags are **case- and whitespace-normalized** (`zodiac-bank-...` and `  ZODIAC-BANK-...  ` are both accepted).
+- A **malformed** flag (wrong prefix) returns `422` with a format hint; a **well-formed but wrong** flag returns `401` with the attempts remaining.
+- Accepted responses include `submission_id`, `attempts_used`, and `attempts_remaining`.
+- An optional cooldown (`TRAINING_FLAG_COOLDOWN_SECONDS`, default `0`) throttles repeated failed attempts per stage or gate.
+- `/health` now pings the progress database and reports `degraded` when it is unreachable.
+
+Invalid submissions are hashed for audit, limited to a bounded number of attempts, and do not reveal the expected flag. All targets, identities, accounts, and evidence are synthetic and must remain localhost-bound.
 
 Inspect the learner's current dynamic bank posture after enrollment or after every promotion:
 
