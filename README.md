@@ -11,8 +11,9 @@
 [![Security Lab](https://img.shields.io/badge/Purpose-AI%20Security%20Training-EF4444)](#-security-boundary)
 [![Curriculum](https://img.shields.io/badge/Curriculum-10%20Hard--Gated%20Stages-F97316)](#-zodiac-bank-progression)
 [![Data](https://img.shields.io/badge/Data-Synthetic%20%26%20Local--Only-22C55E)](#-security-boundary)
+[![License](https://img.shields.io/badge/License-Apache%202.0-D22128?logo=apache&logoColor=white)](LICENSE)
 
-> **Zodiac Bank AI Security Lab** — an isolated synthetic banking environment for model fingerprinting, prompt injection, RAG and memory poisoning, MCP/A2A abuse, AI-assisted APT simulation, agentic supply-chain risk, and SIEM detection.
+> **Zodiac Bank AI Security Lab** — a hands-on, step-by-step AI security training lab that takes students from absolute scratch to advanced, APT-level skills through a synthetic banking environment covering prompt injection, RAG and memory poisoning, MCP/A2A abuse, agentic supply-chain risk, and SIEM detection.
 
 </div>
 
@@ -35,7 +36,7 @@
 - [Graph and context engineering](#-graph-and-context-engineering)
 - [Phase 1 agent identity and capability security](#-phase-1-agent-identity-and-capability-security)
 - [Phases 2–4 security controls](#-phases-24-security-controls)
-- [AI threat research and APT range](#-ai-threat-research-and-apt-range)
+- [AI threat curriculum and APT range](#-ai-threat-curriculum-and-apt-range)
 - [Hard scenario range](#-hard-scenario-range)
 - [Security audit status](#-security-audit-status)
 - [Automatic provider detection](#-automatic-provider-detection)
@@ -45,16 +46,19 @@
 - [VPS build-only policy](#-vps-build-only-policy)
 - [Security boundary](#-security-boundary)
 - [Authoritative upstreams](#-authoritative-upstreams)
+- [License](#-license)
 
 ## ✨ What this project is
 
-**Zodiac Bank AI Security Lab** is a local-first training environment based on OffSec AI-300 Module 2 concepts. It combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, progression gates, and detection tooling into one reproducible lab.
+**Zodiac Bank AI Security Lab** is a local-first, hands-on **training lab** for AI security — built for students, instructors, and defenders who want to learn the full attacker→defender path from the very beginning up to advanced, APT-level techniques. It is a learning environment, not a research project: every concept is taught as a progressive, gated lesson with a flag to earn and a next stage to unlock.
+
+It is based on OffSec AI-300 Module 2 concepts and combines vulnerable AI applications, agent protocols, retrieval systems, memory services, an API gateway, progression gates, and detection tooling into one reproducible lab. Learners start with reconnaissance and simple prompt injection, then advance through RAG and memory poisoning, agent identity abuse, MCP/A2A tool attacks, supply-chain compromise, detection evasion, and APT-level containment.
 
 The project is intentionally unsafe by design inside its challenge surfaces. It includes debug leaks, exposed tool schemas, synthetic credentials, prompt-injection weaknesses, unauthenticated protocol exercises, and honeypot data. The surrounding progression, graph/context, and workflow controls are bounded and authenticated where configured. Run it only on a machine you control and keep all services bound to localhost.
 
 ## 🏦 About Zodiac Bank AI Security Lab
 
-**Zodiac Bank AI Security Lab** is a local-first, research-backed security range for engineers, defenders, red-teamers, and instructors who need to test AI systems as complete socio-technical workflows—not just as chat interfaces. It combines realistic synthetic banking operations with a hard-gated curriculum that moves from reconnaissance and prompt injection to RAG and memory poisoning, agent identity abuse, MCP/A2A tool attacks, supply-chain compromise, detection evasion, and APT-level containment.
+**Zodiac Bank AI Security Lab** is a local-first, hands-on training lab that takes AI security students from absolute scratch to advanced APT-level defense. It teaches complete socio-technical workflows — not just chat interfaces — by combining realistic synthetic banking operations with a hard-gated curriculum that moves from reconnaissance and prompt injection to RAG and memory poisoning, agent identity abuse, MCP/A2A tool attacks, supply-chain compromise, detection evasion, and APT-level containment.
 
 The lab models a complete training environment: branches, employees, staff roles, customers, virtual accounts, transfers, deposits, withdrawals, receipts, approval checkpoints, graph relationships, RAG evidence, memory records, and bounded employee-loop workflows. A learner’s accepted flag dynamically promotes the bank’s defensive posture, narrows data scope, changes agent budgets and approval requirements, and unlocks the next security tier.
 
@@ -63,12 +67,12 @@ The lab models a complete training environment: branches, employees, staff roles
 - **Progressive by design:** 10 hard-gated stages, 50 sequential hard gates, and 100 multi-step scenarios require evidence discovery before advancement.
 - **System-level AI security:** prompt injection, retrieval poisoning, memory persistence, tool misuse, identity, orchestration, fraud, and APT response are tested as connected attack paths.
 - **Operationally realistic:** deterministic intent → authorization → virtual settlement boundaries, maker/checker controls, branch isolation, risk escalation, receipts, and audit evidence.
-- **Research-to-control mapping:** current agentic, financial-services, payment-fraud, and AI supply-chain risks become reproducible exercises and machine-checked controls.
+- **Threat-to-control mapping:** current agentic, financial-services, payment-fraud, and AI supply-chain risks become reproducible, gated exercises and machine-checked controls that students learn to bypass and then defend.
 - **Safe by construction:** all records, balances, identities, and transactions are synthetic; state is local; external egress and real-money side effects are forbidden.
 
 ### Repository About summary
 
-> Local-first synthetic banking range for AI security training: prompt injection, RAG and memory poisoning, MCP/A2A abuse, agentic workflows, fraud controls, and APT response.
+> Local-first synthetic banking training lab for AI security, from scratch to advanced: prompt injection, RAG and memory poisoning, MCP/A2A abuse, agentic workflows, fraud controls, and APT response.
 
 ### At a glance
 
@@ -181,7 +185,7 @@ Starts the progression and context-control plane plus three application containe
 - Zodiac Bank hard-flag Training Gate and unique Challenge Surface
 - Zodiac Bank Graph Context service with bounded graph traversal and context packets
 - Dependency-free local Markdown retrieval
-- Offline security evaluation and research-backed AI/APT threat-model validation before service startup
+- Offline security evaluation and research-informed AI/APT threat-model validation before service startup
 
 ### Lite profile
 
@@ -895,7 +899,7 @@ Run the isolated receive + high-value transfer demonstration:
 python3 scripts/zodiac_bank_orchestrator.py --demo
 ```
 
-The domain model is in [`bank-data/financial-operations.json`](bank-data/financial-operations.json), the in-memory engine is `scripts/zodiac_bank_simulator.py`, and the research/architecture plan is [`docs/ai-bank-security-architecture-2026.md`](docs/ai-bank-security-architecture-2026.md).
+The domain model is in [`bank-data/financial-operations.json`](bank-data/financial-operations.json), the in-memory engine is `scripts/zodiac_bank_simulator.py`, and the training/architecture plan is [`docs/ai-bank-security-architecture-2026.md`](docs/ai-bank-security-architecture-2026.md).
 
 After the learner reaches the protected-assistant profile, the same domain is available through authenticated challenge APIs:
 
@@ -1019,9 +1023,9 @@ POST /api/bank/checkpoints/{checkpoint_id}/recover
 
 Details: [`docs/phases-2-4-security-controls.md`](docs/phases-2-4-security-controls.md).
 
-## 🛰️ AI threat research and APT range
+## 🛰️ AI threat curriculum and APT range
 
-The lab now includes a dated, research-backed threat model rather than generic attack labels:
+The lab now includes a dated, research-informed threat curriculum rather than generic attack labels. It exists to teach students, not to publish research:
 
 - agentic attack-chain orchestration with bounded human checkpoints;
 - MCP tool poisoning, tool shadowing, schema drift, and rug-pull detection;
@@ -1056,7 +1060,7 @@ python3 scripts/zodiac_bank_threats.py --validate-only
 python3 scripts/zodiac_bank_threats.py --format json --output logs/ai-apt-campaign.json
 ```
 
-The nine-phase campaign produces synthetic events, expected detection rules, training-stage mappings, and containment checkpoints. It never scans, exploits, executes commands, contacts models, or touches external systems. The research synthesis, citations, limitations, and refresh policy are in [`docs/ai-threat-research-2026.md`](docs/ai-threat-research-2026.md). Community Reddit/X material is marked as a lead only and is corroborated before it influences a control.
+The nine-phase campaign produces synthetic events, expected detection rules, training-stage mappings, and containment checkpoints. It never scans, exploits, executes commands, contacts models, or touches external systems. The curriculum sources, citations, limitations, and refresh policy are in [`docs/ai-threat-research-2026.md`](docs/ai-threat-research-2026.md). Community Reddit/X material is marked as a lead only and is corroborated before it influences a lesson.
 
 ## 🧩 Hard scenario range
 
@@ -1190,7 +1194,7 @@ RUNTIME=1 python3 scripts/zodiac_bank_workflows.py \\
 # Noisy versus stealthy detection practice
 RUNTIME=1 ./exercises/evasion_practice.sh
 
-# Research-backed synthetic AI/APT campaign packet
+# Research-informed synthetic AI/APT campaign packet
 python3 scripts/zodiac_bank_threats.py --campaign ai-apt-campaign --format json --output logs/ai-apt-campaign.json
 
 # Validate the hard multi-step scenario range and flag pipeline
@@ -1425,9 +1429,9 @@ The VPS is for building and static verification only:
 
 The official `mem0/mem0-api-server` image is optional and authenticated by default. Its stock REST image does not bundle every provider needed for a fully local Bonsai-plus-embeddings deployment. The core and lite modes do not start Mem0. Full mode requires a locally customized Mem0 image and a compatible embedding provider for LightRAG/Mem0.
 
-## 📡 Research and security references
+## 📡 Curriculum and security references
 
-The research snapshot is recorded in [`docs/ai-threat-research-2026.md`](docs/ai-threat-research-2026.md), including dates and URLs for Anthropic, Google Threat Intelligence Group, CISA, OWASP, Invariant Labs, MITRE ATLAS/ATT&CK, NIST, and clearly labeled Reddit/X community signals. Re-run `python3 scripts/zodiac_bank_threats.py --validate-only` after refreshing the model. The lab does not claim that synthetic scenarios reproduce any named actor or vendor incident.
+The curriculum source snapshot is recorded in [`docs/ai-threat-research-2026.md`](docs/ai-threat-research-2026.md), including dates and URLs for Anthropic, Google Threat Intelligence Group, CISA, OWASP, Invariant Labs, MITRE ATLAS/ATT&CK, NIST, and clearly labeled Reddit/X community signals. Re-run `python3 scripts/zodiac_bank_threats.py --validate-only` after refreshing the model. The lab does not claim that synthetic scenarios reproduce any named actor or vendor incident.
 
 ## 🔗 Authoritative upstreams
 
@@ -1453,8 +1457,28 @@ Strict mode intentionally withholds stage flags from legacy one-request routes; 
 
 <div align="center">
 
-### ZODIAC BANK // Built for controlled AI security research
+### ZODIAC BANK // Built for hands-on AI security training
 
-`Recon → Exploit → Detect → Harden`
+`Learn → Recon → Exploit → Detect → Harden`
 
 </div>
+
+## 📜 License
+
+This project is licensed under the **Apache License, Version 2.0**. See [`LICENSE`](LICENSE) for the full text.
+
+```text
+Copyright 2026 Youssef H. Zaafan
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
