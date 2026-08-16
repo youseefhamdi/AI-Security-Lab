@@ -3,49 +3,59 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Zodiac Bank · AI Security Lab</title>
+<title>Zodiac Bank · AI Security Challenges</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2300d4ff' stroke-width='2' stroke-linejoin='round' d='M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Goldman:wght@400;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="preload" as="image" href="../docs/assets/ai-security-lab-banner.svg" fetchpriority="high" />
 <style>
   /* ============================================================
-     Zodiac Bank · AI Security Lab
-     Design language: CyberWarfare Labs (cyberwarfare.live) —
-     near-black #0a0a0f, frosted-glass surfaces, signature
-     blue-to-red CTA gradient #00a6ff → #ff0000, cyan highlights,
-     Goldman display type over Inter.
+     ZODIAC BANK · AI SECURITY CHALLENGES
+     Design language: CyberWarfare Live (infinity.cyberwarfare.live)
+     near-black #0a0a0f, surface #0f0f1a, cards #1a1a2e, cyan/purple
+     accents, Space Grotesk display type over Inter body.
      ============================================================ */
   :root {
     --bg: #0a0a0f;
     --bg-2: #0d0d14;
+    --surface: #0f0f1a;
+    --card: #1a1a2e;
+    --card-2: #22223a;
     --glass: rgba(255, 255, 255, .045);
     --glass-2: rgba(255, 255, 255, .075);
     --glass-3: rgba(255, 255, 255, .11);
     --border: rgba(255, 255, 255, .1);
     --border-soft: rgba(255, 255, 255, .06);
     --text: #ffffff;
-    --text-2: #e5e7eb;
-    --text-3: #9ca3af;
-    --faint: #6b7280;
-    --blue: #0057c5;
+    --text-2: #e2e2ea;
+    --text-3: #b3b3c2;
+    --muted: #888899;
+    --faint: #66667a;
     --cyan: #00d4ff;
-    --cyan-2: #00a6ff;
-    --red: #ff0000;
-    --grad: linear-gradient(92deg, #00a6ff 0%, #ff2b2b 60%, #ff0000 100%);
-    --grad-soft: linear-gradient(92deg, rgba(0, 166, 255, .16), rgba(255, 0, 0, .12));
-    --success: #34d399;
-    --success-soft: rgba(52, 211, 153, .12);
+    --cyan-2: #0099cc;
+    --purple: #7c3aed;
+    --purple-2: #a855f7;
+    --red: #ff3366;
+    --red-2: #ff6b35;
+    --green: #00ff88;
+    --green-2: #00cc6a;
+    --yellow: #fbbf24;
+    --grad: linear-gradient(92deg, #00d4ff 0%, #7c3aed 100%);
+    --grad-purple: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+    --grad-danger: linear-gradient(135deg, #ff3366 0%, #ff6b35 100%);
+    --grad-success: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+    --success: #00e07c;
+    --success-soft: rgba(0, 224, 124, .12);
     --warn: #f5a524;
     --warn-soft: rgba(245, 165, 36, .12);
     --danger: #ff5252;
     --danger-soft: rgba(255, 82, 82, .12);
-    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    --mono: "Fira Code", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
     --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --display: "Goldman", "Inter", sans-serif;
-    --radius: 16px;
-    --radius-sm: 10px;
+    --display: "Space Grotesk", "Inter", sans-serif;
+    --radius: 14px;
+    --radius-sm: 9px;
     --shadow: 0 18px 50px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .04);
   }
   * { box-sizing: border-box; }
@@ -58,40 +68,48 @@
   ::selection { background: rgba(0, 212, 255, .3); color: #fff; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; color: inherit; }
+  h1, h2, h3, h4 { font-family: var(--display); }
   .hidden { display: none !important; }
-  .muted { color: var(--text-3); }
+  .muted { color: var(--muted); }
   .num { font-variant-numeric: tabular-nums; }
+  .view { animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-  /* ---------- Scrollbar ---------- */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: #26262e; border-radius: 8px; border: 2px solid var(--bg); }
   ::-webkit-scrollbar-thumb:hover { background: #33333d; }
 
-  /* ---------- Buttons (CWL: gradient CTA / glass secondary) ---------- */
+  /* ---------- Buttons ---------- */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     border: 1px solid var(--border); background: var(--glass-2); color: var(--text);
-    border-radius: 12px; padding: 9px 18px; font-weight: 600; font-size: 13.5px;
+    border-radius: 11px; padding: 9px 18px; font-weight: 600; font-size: 13.5px;
     letter-spacing: .2px; cursor: pointer;
-    transition: background .15s, border-color .15s, filter .15s, transform .05s, opacity .15s;
+    transition: background .15s, border-color .15s, filter .15s, transform .05s, opacity .15s, box-shadow .15s;
   }
-  .btn:hover:not(:disabled) { background: var(--glass-3); border-color: rgba(255, 255, 255, .18); }
+  .btn:hover:not(:disabled) { background: var(--glass-3); border-color: rgba(255, 255, 255, .2); }
   .btn:active:not(:disabled) { transform: translateY(1px); }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
   .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
   .btn-primary {
     background: var(--grad); border-color: transparent; color: #ffffff; font-weight: 700;
-    box-shadow: 0 6px 22px rgba(255, 0, 0, .22), 0 6px 22px rgba(0, 166, 255, .18);
+    box-shadow: 0 8px 26px rgba(0, 212, 255, .25), 0 8px 26px rgba(124, 58, 237, .25);
   }
-  .btn-primary:hover:not(:disabled) { filter: brightness(1.12); background: var(--grad); border-color: transparent; }
-  .btn-secondary { background: var(--glass-2); border-color: var(--border); color: var(--text); }
-  .btn-secondary:hover:not(:disabled) { background: var(--glass-3); border-color: rgba(255, 255, 255, .2); }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.12); transform: scale(1.02); }
+  .btn-purple {
+    background: var(--grad-purple); border-color: transparent; color: #fff; font-weight: 700;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, .35);
+  }
+  .btn-purple:hover:not(:disabled) { filter: brightness(1.12); transform: scale(1.02); }
   .btn-danger { background: transparent; border-color: rgba(255, 82, 82, .45); color: var(--danger); }
   .btn-danger:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); }
-  .btn-ghost { background: transparent; border-color: transparent; color: var(--text-3); }
+  .btn-ghost { background: transparent; border-color: transparent; color: var(--muted); }
   .btn-ghost:hover:not(:disabled) { background: var(--glass-2); color: var(--text); }
+  .btn-secondary { background: var(--glass-2); border-color: var(--border); color: var(--text); }
+  .btn-secondary:hover:not(:disabled) { background: var(--glass-3); border-color: rgba(255, 255, 255, .22); }
   .btn-block { width: 100%; }
+  .btn-sm { padding: 6px 12px; font-size: 12.5px; border-radius: 9px; }
   .spinner {
     width: 15px; height: 15px; border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, .35); border-top-color: #ffffff;
@@ -99,20 +117,20 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ---------- Inputs (glass) ---------- */
+  /* ---------- Inputs ---------- */
   .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 12.5px; font-weight: 600; color: var(--text-3); letter-spacing: .2px; }
+  .field label { font-size: 12.5px; font-weight: 600; color: var(--muted); letter-spacing: .2px; }
   input, textarea, select {
     font: inherit; color: var(--text);
     background: rgba(0, 0, 0, .3); border: 1px solid var(--border);
-    border-radius: 12px; padding: 10px 13px; width: 100%;
+    border-radius: 11px; padding: 10px 13px; width: 100%;
     transition: border-color .15s, box-shadow .15s, background .15s;
   }
   input::placeholder, textarea::placeholder { color: var(--faint); }
   input:hover:not(:focus), textarea:hover:not(:focus) { border-color: rgba(255, 255, 255, .18); }
   input:focus, textarea:focus, select:focus {
     outline: none; border-color: var(--cyan);
-    box-shadow: 0 0 0 3px rgba(0, 212, 255, .14);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, .2);
   }
   input[type="password"] { font-family: var(--mono); letter-spacing: 1px; }
   textarea { min-height: 76px; resize: vertical; font: 13px var(--mono); line-height: 1.55; }
@@ -126,15 +144,35 @@
   }
   .reveal:hover, .reveal.on { color: var(--text); background: var(--glass-3); }
 
+  /* ---------- Badges / chips / pills ---------- */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 600 11px var(--mono); letter-spacing: .5px;
+    padding: 4px 11px; border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text-3); background: var(--glass-2);
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pill.ok { color: var(--green); border-color: rgba(0, 255, 136, .4); background: var(--success-soft); }
+  .pill.warn { color: var(--yellow); border-color: rgba(251, 191, 36, .4); background: var(--warn-soft); }
+  .pill.accent { color: var(--cyan); border-color: rgba(0, 212, 255, .4); background: rgba(0, 212, 255, .08); }
+  .pill.danger { color: #ff8fa3; border-color: rgba(255, 51, 102, .45); background: rgba(255, 51, 102, .1); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px;
+    font: 500 11.5px var(--mono); background: var(--glass-2); color: var(--text-3);
+  }
+  .chip.checked { border-color: rgba(0, 255, 136, .45); color: var(--green); background: var(--success-soft); }
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+
   /* ============================================================
-     LOGIN (CWL Infinity sign-in style: frosted glass card)
+     LOGIN
      ============================================================ */
   .login-wrap {
     min-height: 100vh; display: grid; place-items: center; padding: 32px 20px;
     background:
-      radial-gradient(760px 480px at 18% -8%, rgba(0, 87, 197, .28), transparent 62%),
-      radial-gradient(700px 460px at 92% 108%, rgba(255, 0, 0, .16), transparent 60%),
-      radial-gradient(520px 380px at 70% 20%, rgba(0, 212, 255, .1), transparent 60%),
+      radial-gradient(760px 480px at 18% -8%, rgba(124, 58, 237, .3), transparent 62%),
+      radial-gradient(700px 460px at 92% 108%, rgba(0, 212, 255, .16), transparent 60%),
+      radial-gradient(520px 380px at 70% 20%, rgba(255, 51, 102, .1), transparent 60%),
       var(--bg);
   }
   .login-card {
@@ -151,7 +189,7 @@
   }
   .login-brand .mark img {
     width: 48px; height: 48px; border-radius: 50%;
-    filter: drop-shadow(0 0 8px rgba(0, 212, 255, .5));
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, .55));
   }
   .login-brand h1 {
     margin: 0; font-family: var(--display); font-size: 19px; font-weight: 700;
@@ -159,14 +197,14 @@
     background: linear-gradient(90deg, #ffffff, #9ca3af);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
-  .login-brand .sub { display: block; margin-top: 2px; font-size: 11px; color: var(--faint); letter-spacing: 2.4px; text-transform: uppercase; font-family: var(--mono); }
-  .login-card > h2 { margin: 0 0 4px; font-size: 23px; font-weight: 800; letter-spacing: -.01em; color: var(--text); }
-  .login-sub { margin: 0 0 24px; color: var(--text-3); font-size: 14px; }
+  .login-brand .sub { display: block; margin-top: 2px; font-size: 10.5px; color: var(--faint); letter-spacing: 2.4px; text-transform: uppercase; font-family: var(--mono); }
+  .login-card > h2 { margin: 0 0 4px; font-size: 23px; font-weight: 700; letter-spacing: -.01em; color: var(--text); }
+  .login-sub { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
   .login-card .field { margin-bottom: 16px; }
   .login-error {
     margin: 4px 0 14px; padding: 10px 12px; font-size: 13px;
     border: 1px solid rgba(255, 82, 82, .4); background: var(--danger-soft);
-    color: #ffb3b3; border-radius: 12px;
+    color: #ffb3b3; border-radius: 11px;
   }
   .login-foot {
     margin: 20px 0 0; text-align: center; font-size: 12px; color: var(--faint);
@@ -174,12 +212,12 @@
   }
 
   /* ============================================================
-     APP SHELL (glass top navbar)
+     APP SHELL
      ============================================================ */
   .app-header {
     position: sticky; top: 0; z-index: 40;
     display: flex; align-items: center; gap: 20px;
-    padding: 12px 28px; background: rgba(10, 10, 15, .72);
+    padding: 11px 28px; background: rgba(10, 10, 15, .78);
     backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
     border-bottom: 1px solid var(--border-soft);
   }
@@ -190,16 +228,18 @@
   }
   .app-brand .mark img {
     width: 36px; height: 36px; border-radius: 50%;
-    filter: drop-shadow(0 0 8px rgba(0, 212, 255, .5));
+    filter: drop-shadow(0 0 9px rgba(0, 212, 255, .55));
   }
   .app-brand .name {
     font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: 1.6px; color: var(--text);
+    background: linear-gradient(90deg, #ffffff, #9ca3af);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
   .app-brand .sub { display: block; font-size: 9.5px; color: var(--faint); letter-spacing: 2px; text-transform: uppercase; font-family: var(--mono); }
   .app-nav { display: flex; gap: 4px; margin-left: 12px; }
   .app-nav a {
     position: relative; padding: 8px 15px; border-radius: 10px;
-    font-size: 14px; font-weight: 600; color: var(--text-3);
+    font-size: 14px; font-weight: 600; color: var(--muted);
     transition: color .14s, background .14s;
   }
   .app-nav a:hover { color: var(--text); background: var(--glass-2); }
@@ -210,21 +250,18 @@
     border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 600;
     background: var(--glass); color: var(--text-2);
   }
-  .user-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px rgba(52, 211, 153, .8); }
+  .user-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(0, 255, 136, .8); }
   .mode-pill {
     font: 500 10.5px var(--mono); letter-spacing: .8px; color: var(--cyan);
     padding: 5px 11px; border: 1px solid rgba(0, 212, 255, .35); border-radius: 999px; text-transform: uppercase;
     background: rgba(0, 212, 255, .08);
   }
 
-  /* ---------- Page scaffolding ---------- */
-  .page { max-width: 1200px; margin: 0 auto; padding: 34px 28px 64px; }
-  .page-head { margin-bottom: 26px; }
-  .page-head h1 {
-    margin: 0 0 4px; font-size: 27px; font-weight: 800; letter-spacing: -.01em; color: var(--text);
-  }
-  .page-head p { margin: 0; color: var(--text-3); font-size: 14px; }
-  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-3); margin-bottom: 18px; }
+  .page { max-width: 1280px; margin: 0 auto; padding: 30px 28px 64px; }
+  .page-head { margin-bottom: 24px; }
+  .page-head h1 { margin: 0 0 4px; font-size: 27px; font-weight: 700; letter-spacing: -.01em; color: var(--text); }
+  .page-head p { margin: 0; color: var(--muted); font-size: 14px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); margin-bottom: 18px; }
   .back-link:hover { color: var(--cyan); }
 
   .panel {
@@ -240,9 +277,11 @@
   }
   .panel > h2::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 2px; background: var(--cyan); margin-right: 8px; vertical-align: 1px; box-shadow: 0 0 8px rgba(0, 212, 255, .7); }
 
-  /* ---------- Dashboard hero (CWL home style) ---------- */
+  /* ============================================================
+     DASHBOARD (Overview)
+     ============================================================ */
   .hero {
-    position: relative; margin-bottom: 26px; overflow: hidden;
+    position: relative; margin-bottom: 24px; overflow: hidden;
     border-radius: var(--radius); padding: 34px 34px 30px;
   }
   .hero-bg {
@@ -254,15 +293,11 @@
     background: linear-gradient(180deg, rgba(10, 10, 15, .78), rgba(10, 10, 15, .42) 45%, rgba(10, 10, 15, .9));
   }
   .hero > *:not(.hero-bg):not(.hero-overlay) { position: relative; z-index: 2; }
-  @media (max-width: 640px) { .hero { padding: 24px 20px; } }
   .hero-eyebrow {
     margin: 0 0 6px; font: 600 11px var(--mono); letter-spacing: 2.2px; text-transform: uppercase;
     color: var(--cyan);
   }
-  .hero-title {
-    margin: 0; font-size: 38px; font-weight: 800; letter-spacing: -.02em;
-    color: var(--text); line-height: 1.12;
-  }
+  .hero-title { margin: 0; font-size: 38px; font-weight: 700; letter-spacing: -.02em; color: var(--text); line-height: 1.12; }
   .hero-tag {
     margin: 12px 0 20px; font-family: var(--display); font-size: 25px; font-weight: 400;
     letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-2);
@@ -273,16 +308,14 @@
   }
   .hero-cta { display: flex; gap: 10px; flex-wrap: wrap; }
 
-  /* feature cards (CWL: image cover + title + description) */
-  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-  @media (max-width: 820px) { .feature-grid { grid-template-columns: 1fr; } }
+  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 22px; }
   .feature-card {
-    background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    background: var(--card);
     border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px 16px 18px;
     transition: border-color .15s, transform .15s, box-shadow .15s;
   }
-  .feature-card:hover { border-color: rgba(255, 255, 255, .22); transform: translateY(-2px); box-shadow: var(--shadow); }
+  .feature-card:hover { border-color: rgba(0, 212, 255, .35); transform: translateY(-3px); box-shadow: 0 14px 34px rgba(0, 0, 0, .45), 0 0 0 1px rgba(0, 212, 255, .08); }
   .feature-cover {
     position: relative; display: grid; place-items: center; height: 66px;
     border-radius: 12px; margin-bottom: 13px; overflow: hidden;
@@ -296,40 +329,39 @@
     background-size: auto, 20px 20px, 20px 20px;
   }
   .feature-cover svg { width: 32px; height: 32px; position: relative; z-index: 1; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .45)); }
-  .feature-card h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
-  .feature-card p { margin: 0; font-size: 13px; color: var(--text-3); }
+  .feature-card h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
+  .feature-card p { margin: 0; font-size: 13px; color: var(--muted); }
 
-  /* ---------- Dashboard ---------- */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-  @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
   .stat {
     position: relative; overflow: hidden;
-    background: var(--glass);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    background: var(--card);
     border: 1px solid var(--border); border-radius: var(--radius);
     padding: 18px 18px 16px; transition: border-color .15s, transform .15s;
   }
-  .stat::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: var(--grad); opacity: .55;
-  }
-  .stat:hover { border-color: rgba(255, 255, 255, .2); transform: translateY(-1px); }
-  .stat b { display: block; font-size: 28px; font-weight: 800; letter-spacing: -.02em; color: var(--text); font-variant-numeric: tabular-nums; }
+  .stat::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--grad); opacity: .55; }
+  .stat:hover { border-color: rgba(0, 212, 255, .3); transform: translateY(-1px); }
+  .stat b { display: block; font-size: 28px; font-weight: 700; letter-spacing: -.02em; color: var(--text); font-variant-numeric: tabular-nums; }
   .stat span { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; font-family: var(--mono); }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
 
-  .prog-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-3); margin: 0 0 6px; }
+  .prog-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--muted); margin: 0 0 6px; }
   .prog-row b { color: var(--text); font-weight: 700; }
   .prog-row b.accent { color: var(--cyan); }
   .progress-bar { height: 7px; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden; }
   .progress-bar > span {
     display: block; height: 100%;
-    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
     border-radius: 999px; transition: width .5s cubic-bezier(.4, 0, .2, 1);
     box-shadow: 0 0 12px rgba(0, 212, 255, .45);
   }
   .gate-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--border-soft); }
+  .state { font: 600 10px var(--mono); letter-spacing: .5px; text-transform: uppercase; }
+  .state.not-started { color: var(--faint); }
+  .state.active { color: var(--yellow); }
+  .state.complete { color: var(--green); }
+  .state.locked { color: var(--faint); }
+  .state.unlocked { color: var(--cyan); }
   .gate-row:last-child { border-bottom: 0; }
   .gate-row .rank { flex: 0 0 auto; color: var(--cyan); font: 600 11px var(--mono); background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .25); border-radius: 6px; padding: 1px 7px; }
   .gate-row .gtitle { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -337,318 +369,22 @@
   .continue-card {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
     margin-top: 8px; padding: 18px; border: 1px solid var(--border);
-    border-radius: var(--radius); background: var(--glass-2);
+    border-radius: var(--radius); background: var(--card);
     border-left: 3px solid var(--cyan);
   }
   .continue-card .label { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; font-family: var(--mono); }
   .continue-card .title { font-size: 16px; font-weight: 700; margin-top: 2px; color: var(--text); }
 
-  /* ---------- Activity feed ---------- */
-  .act-row {
-    display: flex; align-items: baseline; gap: 10px;
-    padding: 8px 0; border-bottom: 1px solid var(--border-soft); font-size: 13px;
-  }
+  .act-row { display: flex; align-items: baseline; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-soft); font-size: 13px; }
   .act-row:last-child { border-bottom: 0; }
   .act-dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; align-self: center; }
-  .act-dot.ok { background: var(--success); box-shadow: 0 0 8px rgba(52, 211, 153, .7); }
+  .act-dot.ok { background: var(--green); box-shadow: 0 0 8px rgba(0, 255, 136, .7); }
   .act-dot.accent { background: var(--cyan); box-shadow: 0 0 8px rgba(0, 212, 255, .7); }
-  .act-dot.warn { background: var(--warn); box-shadow: 0 0 8px rgba(245, 165, 36, .7); }
+  .act-dot.warn { background: var(--yellow); box-shadow: 0 0 8px rgba(251, 191, 36, .7); }
   .act-dot.muted { background: var(--faint); }
   .act-t { color: var(--text-2); font-weight: 600; white-space: nowrap; }
   .act-d { color: var(--faint); font: 500 12px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* ============================================================
-     LABS — CWL challenge-grid style
-     ============================================================ */
-  .lab-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px; }
-  .lab-search-row { flex: 1 1 240px; min-width: 200px; }
-  .filter-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .filter-label {
-    font: 600 10px var(--mono); letter-spacing: 1.2px; text-transform: uppercase;
-    color: var(--faint); margin-right: 2px;
-  }
-  .filter-chip {
-    border: 1px solid var(--border); background: var(--glass); color: var(--text-3);
-    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer;
-    transition: background .13s, color .13s, border-color .13s;
-  }
-  .filter-chip:hover { background: var(--glass-2); color: var(--text); }
-  .filter-chip.active {
-    background: rgba(0, 212, 255, .1); border-color: rgba(0, 212, 255, .45);
-    color: var(--cyan);
-  }
-  .filter-chip .cnt { font: 500 10.5px var(--mono); opacity: .8; }
-  .results-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    margin: 0 0 12px; font-size: 13px; color: var(--text-3);
-  }
-  .results-count { font-weight: 600; color: var(--text-2); }
-  .facet-clear {
-    background: none; border: none; cursor: pointer; font-size: 12.5px; font-weight: 600;
-    color: var(--cyan); padding: 2px 0;
-  }
-  .facet-clear:hover { text-decoration: underline; }
-
-  .labs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 1080px) { .labs-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 640px) { .labs-grid { grid-template-columns: 1fr; } }
-  .lab-card {
-    position: relative; overflow: hidden;
-    display: flex; flex-direction: column; gap: 10px;
-    background: var(--glass);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 20px 20px 18px;
-    transition: border-color .15s, transform .15s, box-shadow .15s;
-  }
-  .lab-card::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: var(--grad); opacity: 0; transition: opacity .2s;
-  }
-  .lab-card:hover { border-color: rgba(255, 255, 255, .22); transform: translateY(-3px); box-shadow: var(--shadow); }
-  .lab-card:hover::before { opacity: .8; }
-  .lab-card-top { display: flex; align-items: center; gap: 9px; }
-  .lab-code {
-    font: 700 12px var(--mono); letter-spacing: .5px; color: var(--cyan);
-    background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .25);
-    border-radius: 8px; padding: 3px 10px;
-  }
-  .lab-status { margin-left: auto; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; font-family: var(--mono); }
-  .lab-status.ok { color: var(--success); }
-  .lab-status.accent { color: var(--cyan); }
-  .lab-status.muted { color: var(--faint); }
-  .lab-card-title { margin: 2px 0 0; font-size: 17px; font-weight: 700; letter-spacing: -.01em; color: var(--text); }
-  .lab-card-sub { margin: 0; font-size: 13px; color: var(--text-3); }
-  .lab-card-foot {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    margin-top: auto; font: 500 11.5px var(--mono); color: var(--faint);
-    border-top: 1px solid var(--border-soft); padding-top: 12px;
-  }
-  .lab-arrow { color: var(--text-2); font-weight: 700; transition: color .15s, transform .15s; }
-  .lab-card:hover .lab-arrow { color: var(--cyan); transform: translateX(3px); }
-
-  /* ============================================================
-     LAB DETAIL — CWL course style
-     ============================================================ */
-  .lab-hero {
-    position: relative; overflow: hidden;
-    background: var(--glass);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 26px 28px; margin-bottom: 18px;
-  }
-  .lab-hero::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: var(--grad); opacity: .8;
-  }
-  .lab-banner {
-    position: relative; height: 190px; border-radius: 14px; overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, .14); margin-bottom: 22px;
-    display: grid; place-items: center;
-  }
-  .lab-banner::after {
-    content: ""; position: absolute; inset: 0;
-    background:
-      radial-gradient(120% 130% at 82% 0%, rgba(255, 255, 255, .22), transparent 55%),
-      linear-gradient(rgba(10, 10, 15, .25) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(10, 10, 15, .25) 1px, transparent 1px);
-    background-size: auto, 26px 26px, 26px 26px;
-  }
-  .lab-banner::before {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(180deg, transparent 55%, rgba(10, 10, 15, .55));
-  }
-  .lab-banner svg {
-    width: 92px; height: 92px; position: relative; z-index: 1;
-    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, .5));
-  }
-  .lab-banner .banner-code {
-    position: absolute; right: 18px; bottom: 12px; z-index: 1;
-    font: 800 26px var(--mono); letter-spacing: 3px; color: rgba(255, 255, 255, .95);
-    text-shadow: 0 2px 6px rgba(0, 0, 0, .55);
-  }
-  .lab-banner .banner-chip {
-    position: absolute; left: 16px; top: 14px; z-index: 1;
-    display: inline-flex; align-items: center; gap: 7px;
-    font: 700 10.5px var(--mono); letter-spacing: 1.4px; text-transform: uppercase;
-    color: #fff; background: rgba(10, 10, 15, .5);
-    border: 1px solid rgba(255, 255, 255, .25); border-radius: 999px;
-    padding: 6px 12px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  }
-  .lab-banner .banner-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
-  .lab-head-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .lab-head-top .lab-code { font-size: 13px; padding: 5px 12px; }
-  .lab-title {
-    margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.01em; color: var(--text);
-  }
-  .lab-meta { font-size: 12.5px; color: var(--text-3); margin-top: 7px; font-family: var(--mono); }
-  .lab-stats {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-    margin-top: 18px;
-  }
-  .lab-stat {
-    background: var(--glass-2); border: 1px solid var(--border-soft); border-radius: 12px;
-    padding: 12px 14px;
-  }
-  .lab-stat b { display: block; font: 800 19px var(--mono); color: var(--text); letter-spacing: .2px; }
-  .lab-stat b.accent { color: var(--cyan); }
-  .lab-stat span { display: block; margin-top: 3px; font: 600 9.5px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: var(--faint); }
-  .lab-progress {
-    margin-top: 16px; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden;
-  }
-  .lab-progress-fill {
-    height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, var(--cyan), #00a6ff);
-    box-shadow: 0 0 10px rgba(0, 212, 255, .5);
-    transition: width .5s cubic-bezier(.4, 0, .2, 1);
-  }
-  @media (max-width: 640px) {
-    .lab-stats { grid-template-columns: repeat(2, 1fr); }
-    .lab-banner { height: 150px; }
-    .lab-banner svg { width: 66px; height: 66px; }
-    .lab-banner .banner-code { font-size: 19px; }
-  }
-  .lab-meta .ok { color: var(--success); font-weight: 600; }
-  .lab-meta .accent { color: var(--cyan); font-weight: 600; }
-  .lab-meta .muted { color: var(--faint); }
-  .lab-layout { display: grid; grid-template-columns: 272px minmax(0, 1fr) 272px; gap: 16px; align-items: start; }
-  @media (max-width: 1080px) { .lab-layout { grid-template-columns: 1fr; } }
-  .lab-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-  .lab-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-
-  /* curriculum / scenario list */
-  .scenario-list { display: flex; flex-direction: column; }
-  .scenario-row {
-    display: flex; align-items: center; gap: 11px; text-align: left;
-    padding: 11px 12px; border-radius: var(--radius-sm); border: 1px solid transparent;
-    border-bottom: 1px solid var(--border-soft);
-    background: transparent; cursor: pointer; width: 100%;
-    transition: background .13s, border-color .13s;
-  }
-  .scenario-row:last-child { border-bottom: 1px solid transparent; }
-  .scenario-row:hover { background: var(--glass-2); }
-  .scenario-row.active { background: rgba(0, 212, 255, .07); border-color: rgba(0, 212, 255, .35); }
-  .sc-diff { flex: 0 0 auto; font: 700 11px var(--mono); color: var(--cyan); background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .25); border-radius: 6px; padding: 2px 8px; }
-  .sc-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: 600; color: var(--text-2); }
-  .scenario-row.active .sc-title { color: var(--text); }
-
-  /* status states (shared) */
-  .state {
-    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px;
-    font: 600 10px var(--mono); letter-spacing: .5px; text-transform: uppercase;
-  }
-  .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-  .state.not-started { color: var(--faint); }
-  .state.active { color: var(--warn); }
-  .state.complete { color: var(--success); }
-  .state.locked { color: var(--faint); }
-  .state.unlocked { color: var(--cyan); }
-
-  /* scenario detail */
-  .scenario-head { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
-  .scenario-title { margin: 4px 0 8px; font-size: 19px; font-weight: 700; letter-spacing: -.01em; color: var(--text); }
-  .objective { color: var(--text-3); margin: 0 0 14px; font-size: 14px; }
-  details { border: 1px solid var(--border); border-radius: 12px; padding: 11px 14px; margin-top: 10px; background: rgba(0, 0, 0, .25); }
-  details summary { cursor: pointer; color: var(--text); font-weight: 600; font-size: 13px; list-style: none; display: flex; align-items: center; gap: 8px; }
-  details summary::-webkit-details-marker { display: none; }
-  details summary::before { content: "▸"; color: var(--faint); transition: transform .15s; }
-  details[open] summary::before { transform: rotate(90deg); color: var(--cyan); }
-  details ul { margin: 9px 0 0; padding-left: 18px; color: var(--text-3); font-size: 13px; }
-  details li { margin: 4px 0; }
-
-  .row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
-  .step-box {
-    margin-top: 13px; padding: 14px; background: rgba(0, 0, 0, .35);
-    border: 1px solid var(--border); border-radius: 12px; border-left: 3px solid var(--cyan);
-    font-family: var(--mono);
-  }
-  .step-box .event { font: 600 12.5px var(--mono); color: var(--cyan); }
-  .step-box .obs { color: var(--text); margin-top: 8px; font-size: 13.5px; font-family: var(--sans); }
-  .keys { margin-top: 10px; font-size: 12px; color: var(--text-3); font-family: var(--mono); }
-  .keys code { background: rgba(0, 212, 255, .1); color: var(--cyan); border: 1px solid rgba(0, 212, 255, .2); border-radius: 5px; padding: 1px 7px; margin: 0 3px; }
-  .hint { font-size: 13px; color: var(--text-3); }
-  .hint code { color: var(--cyan); }
-
-  /* evidence form */
-  .ev-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px; margin-top: 9px; align-items: center; }
-  @media (max-width: 480px) { .ev-row { grid-template-columns: 1fr; } }
-  .ev-row input { font: 12px var(--mono); }
-  .candidate-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .candidate-chip {
-    border: 1px solid var(--border); border-radius: 9px; padding: 7px 13px;
-    font: 600 12px var(--mono); background: var(--glass-2); color: var(--text); cursor: pointer;
-    transition: border-color .13s, background .13s, color .13s, transform .05s;
-  }
-  .candidate-chip:hover { border-color: rgba(0, 212, 255, .5); }
-  .candidate-chip.selected {
-    border-color: var(--cyan); color: #04141a; background: var(--cyan); font-weight: 700;
-  }
-
-  /* chips + badges */
-  .chip-grid { display: flex; flex-wrap: wrap; gap: 7px; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 5px;
-    border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px;
-    font: 500 11.5px var(--mono); background: var(--glass-2); color: var(--text-3);
-  }
-  .chip.checked { border-color: rgba(52, 211, 153, .45); color: var(--success); background: var(--success-soft); }
-  .badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    font: 600 11px var(--mono); letter-spacing: .5px;
-    padding: 4px 11px; border: 1px solid var(--border); border-radius: 999px;
-    color: var(--text-3); background: var(--glass-2);
-  }
-  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-  .badge.ok { color: var(--success); border-color: rgba(52, 211, 153, .4); background: var(--success-soft); }
-  .badge.warn { color: var(--warn); border-color: rgba(245, 165, 36, .4); background: var(--warn-soft); }
-  .badge.accent { color: var(--cyan); border-color: rgba(0, 212, 255, .4); background: rgba(0, 212, 255, .08); }
-
-  .token-line {
-    font: 600 13px var(--mono); color: var(--cyan); word-break: break-all;
-    background: rgba(0, 0, 0, .35); border: 1px dashed rgba(0, 212, 255, .45); border-radius: 12px;
-    padding: 12px 14px; margin: 9px 0;
-  }
-  .kv { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--faint); margin: 8px 0 4px; }
-  .kv b { color: var(--text); font-weight: 600; }
-  .ok-text { color: var(--success); }
-  .err-text { color: var(--danger); }
-
-  /* mission */
-  .mission-text { color: var(--text-2); font-size: 14px; margin: 0 0 12px; }
-  .hint-label { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 1.4px; font-weight: 600; font-family: var(--mono); margin: 14px 0 4px; }
-  .hint-line { display: flex; gap: 11px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); font-size: 13px; color: var(--text-3); }
-  .hint-line:last-child { border-bottom: 0; }
-  .hint-level {
-    flex: 0 0 auto; align-self: flex-start; min-width: 54px; text-align: center;
-    font: 700 10.5px var(--mono); letter-spacing: .5px; border-radius: 7px; padding: 3px 8px;
-    color: var(--warn); background: var(--warn-soft); border: 1px solid rgba(245, 165, 36, .3);
-  }
-
-  /* ---------- Lab cover art (CWL-style thumbnails) ---------- */
-  .lab-cover {
-    position: relative; height: 88px; border-radius: 12px;
-    display: grid; place-items: center; overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, .12);
-  }
-  .lab-cover::after {
-    content: ""; position: absolute; inset: 0;
-    background:
-      radial-gradient(120% 130% at 82% 0%, rgba(255, 255, 255, .2), transparent 55%),
-      linear-gradient(rgba(10, 10, 15, .22) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(10, 10, 15, .22) 1px, transparent 1px);
-    background-size: auto, 22px 22px, 22px 22px;
-  }
-  .lab-cover svg {
-    width: 46px; height: 46px; position: relative; z-index: 1;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .45));
-  }
-  .lab-cover .cover-code {
-    position: absolute; right: 9px; bottom: 7px; z-index: 1;
-    font: 700 11px var(--mono); letter-spacing: 1.2px; color: rgba(255, 255, 255, .9);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-  }
-
-  /* ---------- Next badge (motivation) ---------- */
   .badge-card { display: flex; align-items: center; gap: 16px; }
   .badge-ring { width: 68px; height: 68px; flex: 0 0 68px; transform: rotate(-90deg); }
   .badge-ring .ring-bg { fill: none; stroke: rgba(255, 255, 255, .09); stroke-width: 6; }
@@ -656,9 +392,8 @@
   .badge-ring .ring-pct { transform: rotate(90deg); transform-origin: 36px 36px; fill: var(--text); font: 700 11px var(--mono); }
   .badge-card .label { font: 600 10.5px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: var(--faint); }
   .badge-card .title { font-size: 17px; font-weight: 700; color: var(--text); margin-top: 2px; }
-  .badge-card .sub { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+  .badge-card .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
 
-  /* ---------- Virtual ledger (synthetic transactions) ---------- */
   .ledger { display: flex; flex-direction: column; }
   .ledger-head, .ledger-row {
     display: grid; grid-template-columns: 122px minmax(0, 1fr) 100px 78px; gap: 8px; align-items: center;
@@ -673,29 +408,469 @@
   }
   .ledger-row:last-of-type { border-bottom: 0; }
   .ledger-row:hover { background: var(--glass-2); }
-  .l-acct { color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .l-acct { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .l-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .l-amt { text-align: right; font-weight: 600; white-space: nowrap; }
-  .l-amt.pos { color: var(--success); }
+  .l-amt.pos { color: var(--green); }
   .l-amt.neg { color: var(--danger); }
   .l-status { text-align: right; font: 600 9.5px var(--mono); text-transform: uppercase; letter-spacing: .5px; }
-  .l-status.posted { color: var(--success); }
-  .l-status.pending { color: var(--warn); }
+  .l-status.posted { color: var(--green); }
+  .l-status.pending { color: var(--yellow); }
   .l-status.flagged { color: var(--danger); }
   .ledger-note { margin: 10px 0 0; font: 500 10.5px var(--mono); color: var(--faint); text-align: center; }
 
-  /* ---------- Footer (terminal status line) ---------- */
+  .kv { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--faint); margin: 8px 0 4px; }
+  .kv b { color: var(--text); font-weight: 600; }
+  .hint { font-size: 13px; color: var(--muted); }
+  .hint code { color: var(--cyan); }
+  .ok-text { color: var(--green); }
+  .err-text { color: var(--danger); }
+  .token-line {
+    font: 600 13px var(--mono); color: var(--cyan); word-break: break-all;
+    background: rgba(0, 0, 0, .35); border: 1px dashed rgba(0, 212, 255, .45); border-radius: 11px;
+    padding: 12px 14px; margin: 9px 0;
+  }
+  .row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+  .step-box {
+    margin-top: 13px; padding: 14px; background: rgba(0, 0, 0, .35);
+    border: 1px solid var(--border); border-radius: 11px; border-left: 3px solid var(--cyan);
+  }
+  .step-box .event { font: 600 12.5px var(--mono); color: var(--cyan); }
+  .step-box .obs { color: var(--text); margin-top: 8px; font-size: 13.5px; font-family: var(--sans); }
+  .keys { margin-top: 10px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+  .keys code { background: rgba(0, 212, 255, .1); color: var(--cyan); border: 1px solid rgba(0, 212, 255, .2); border-radius: 5px; padding: 1px 7px; margin: 0 3px; }
+
+  /* ============================================================
+     CHALLENGES — hero (PAGE 1)
+     ============================================================ */
+  .challenge-hero {
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(900px 420px at 82% -20%, rgba(124, 58, 237, .32), transparent 60%),
+      radial-gradient(760px 420px at 12% 110%, rgba(0, 212, 255, .14), transparent 60%),
+      var(--surface);
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 26px;
+  }
+  .challenge-hero .inner {
+    max-width: 1560px; margin: 0 auto; padding: 54px 28px 48px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 30px; align-items: center;
+  }
+  .ch-hero-eyebrow {
+    margin: 0 0 10px; font: 600 11px var(--mono); letter-spacing: 2.4px; text-transform: uppercase;
+    color: var(--cyan); display: inline-flex; align-items: center; gap: 8px;
+  }
+  .ch-hero-eyebrow::before { content: ""; width: 22px; height: 1.5px; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+  .ch-hero-title {
+    margin: 0 0 14px; font-size: 56px; font-weight: 700; letter-spacing: -.03em; line-height: 1.02;
+    color: var(--text);
+  }
+  .ch-hero-title span {
+    background: linear-gradient(92deg, #00d4ff, #a855f7);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .ch-hero-sub { margin: 0 0 26px; max-width: 640px; font-size: 16px; color: var(--text-3); }
+  .ch-hero-search { position: relative; max-width: 620px; }
+  .ch-hero-search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .ch-hero-search input {
+    padding: 14px 18px 14px 46px; font-size: 15px; border-radius: 13px;
+    background: rgba(10, 10, 15, .65); border: 1px solid var(--border);
+  }
+  .ch-hero-search input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0, 212, 255, .2); }
+  .hero-character { width: 300px; height: 300px; justify-self: center; }
+  .hero-character svg { width: 100%; height: 100%; filter: drop-shadow(0 0 26px rgba(0, 212, 255, .25)); }
+  .ch-hero-stats { display: flex; gap: 26px; margin-top: 26px; }
+  .ch-hero-stats b { display: block; font: 700 22px var(--display); color: var(--text); letter-spacing: -.01em; }
+  .ch-hero-stats span { font: 600 10.5px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: var(--faint); }
+
+  /* ---------- Challenge layout: sidebar + grid ---------- */
+  .challenge-layout {
+    max-width: 1560px; margin: 0 auto; padding: 0 28px 64px;
+    display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 24px; align-items: start;
+  }
+  .filter-sidebar {
+    position: sticky; top: 74px;
+    background: var(--surface);
+    border: 1px solid var(--border); border-right: 1px solid rgba(255, 255, 255, .07);
+    border-radius: var(--radius); padding: 20px 16px 8px;
+    max-height: calc(100vh - 96px); overflow-y: auto;
+  }
+  .filter-sidebar h2 {
+    margin: 0 0 16px; font: 700 12px var(--display); letter-spacing: 1.8px; text-transform: uppercase;
+    color: var(--text); display: flex; align-items: center; gap: 9px;
+  }
+  .filter-sidebar h2 svg { color: var(--cyan); }
+  .filter-section { margin-bottom: 20px; }
+  .filter-section > h3 {
+    margin: 0 0 8px; font: 600 10px var(--mono); letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--faint); display: flex; align-items: center; justify-content: space-between;
+  }
+  .filter-section > h3::after { content: ""; flex: 1; height: 1px; background: var(--border-soft); margin-left: 10px; }
+  .filter-option {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    padding: 7px 8px; border-radius: 8px; border: none; background: transparent;
+    color: var(--text-3); font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: background .12s, color .12s;
+  }
+  .filter-option:hover { background: rgba(255, 255, 255, .05); color: var(--text); }
+  .filter-option .box {
+    width: 17px; height: 17px; flex: 0 0 17px; border-radius: 5px;
+    border: 1.5px solid #3d3d55; background: rgba(10, 10, 15, .6);
+    display: grid; place-items: center; transition: border-color .12s, background .12s, box-shadow .12s;
+  }
+  .filter-option .box svg { width: 11px; height: 11px; color: #04141a; opacity: 0; transition: opacity .12s; }
+  .filter-option.active { color: var(--text); }
+  .filter-option.active .box {
+    background: var(--cyan); border-color: var(--cyan);
+    box-shadow: 0 0 9px rgba(0, 212, 255, .55);
+  }
+  .filter-option.active .box svg { opacity: 1; }
+  .filter-option .cnt { margin-left: auto; font: 500 10.5px var(--mono); color: var(--faint); }
+  .filter-option.active .cnt { color: var(--cyan); }
+  .filter-clear {
+    width: 100%; margin: 4px 0 10px; padding: 9px; border-radius: 9px;
+    border: 1px dashed var(--border); background: transparent; color: var(--muted);
+    font: 600 12px var(--mono); letter-spacing: .5px; cursor: pointer; transition: color .12s, border-color .12s;
+  }
+  .filter-clear:hover { color: var(--cyan); border-color: rgba(0, 212, 255, .4); }
+
+  .challenge-main { min-width: 0; }
+  .results-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin: 0 0 14px; font-size: 13px; color: var(--muted);
+  }
+  .results-count { font-weight: 600; color: var(--text-2); }
+  .facet-clear { background: none; border: none; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--cyan); padding: 2px 0; }
+  .facet-clear:hover { text-decoration: underline; }
+
+  /* ---------- Challenge cards (LARGE, CWF style) ---------- */
+  .challenge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .challenge-card {
+    position: relative; overflow: hidden; cursor: pointer;
+    display: flex; flex-direction: column;
+    background: var(--card);
+    border: 1px solid rgba(255, 255, 255, .09); border-radius: var(--radius);
+    min-height: 400px;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .challenge-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 212, 255, .45);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, .55), 0 0 0 1px rgba(0, 212, 255, .12), 0 0 34px rgba(0, 212, 255, .12);
+  }
+  .challenge-cover {
+    position: relative; height: 230px; flex: 0 0 230px; overflow: hidden;
+    display: grid; place-items: center;
+  }
+  .challenge-cover::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10, 10, 15, 0) 55%, rgba(10, 10, 15, .5));
+  }
+  .challenge-cover .cover-pattern { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .2; }
+  .cover-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(70% 60% at 78% 12%, rgba(255, 255, 255, .22), transparent 60%);
+    pointer-events: none;
+  }
+  .challenge-cover .cover-icon {
+    position: relative; z-index: 1; width: 74px; height: 74px;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .5)) drop-shadow(0 0 16px rgba(255, 255, 255, .22));
+  }
+  .cover-badge {
+    position: absolute; top: 13px; right: 13px; z-index: 2;
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 700 10px var(--mono); letter-spacing: 1px; text-transform: uppercase;
+    padding: 6px 11px; border-radius: 999px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .cover-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 7px currentColor; }
+  .cover-badge.not-started { color: #ffb3c0; background: rgba(255, 51, 102, .24); border: 1px solid rgba(255, 51, 102, .5); }
+  .cover-badge.active { color: #7df3ff; background: rgba(0, 212, 255, .2); border: 1px solid rgba(0, 212, 255, .5); }
+  .cover-badge.complete { color: #b6ffd9; background: rgba(0, 255, 136, .18); border: 1px solid rgba(0, 255, 136, .5); }
+  .cover-badge.locked { color: #c4c4d2; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .25); }
+  .cover-code {
+    position: absolute; left: 13px; bottom: 11px; z-index: 2;
+    font: 700 11px var(--mono); letter-spacing: 1.4px; color: rgba(255, 255, 255, .9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+  }
+  .challenge-body {
+    flex: 1; display: flex; flex-direction: column; gap: 10px;
+    padding: 17px 18px 16px; background: var(--card);
+  }
+  .challenge-body .ch-top { display: flex; align-items: center; gap: 8px; }
+  .ch-stage {
+    font: 700 10.5px var(--mono); letter-spacing: 1px; color: var(--cyan);
+    background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .25);
+    border-radius: 7px; padding: 3px 9px;
+  }
+  .ch-branch { font: 500 10.5px var(--mono); letter-spacing: .6px; text-transform: uppercase; color: var(--faint); }
+  .challenge-title { margin: 2px 0 0; font-size: 18px; font-weight: 700; letter-spacing: -.01em; color: var(--text); line-height: 1.25; }
+  .challenge-obj {
+    margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .challenge-stats {
+    margin-top: auto; display: flex; align-items: center; gap: 14px;
+    border-top: 1px solid var(--border-soft); padding-top: 12px;
+  }
+  .ch-stat { display: inline-flex; align-items: center; gap: 6px; font: 600 11.5px var(--mono); color: var(--text-3); }
+  .ch-stat svg { width: 14px; height: 14px; }
+  .ch-stat.easy { color: var(--green); }
+  .ch-stat.medium { color: var(--yellow); }
+  .ch-stat.hard { color: var(--red); }
+  .ch-stat.pts { color: var(--yellow); }
+  .ch-stat.free { color: var(--text-3); }
+  .ch-arrow { margin-left: auto; color: var(--muted); transition: color .15s, transform .15s; }
+  .challenge-card:hover .ch-arrow { color: var(--cyan); transform: translateX(3px); }
+
+  /* ---------- Pagination ---------- */
+  .pagination {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 30px; flex-wrap: wrap;
+  }
+  .page-btn {
+    min-width: 36px; height: 36px; padding: 0 10px; border-radius: 9px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-3);
+    font: 600 13px var(--mono); cursor: pointer; transition: border-color .12s, color .12s, background .12s;
+  }
+  .page-btn:hover:not(:disabled) { border-color: rgba(0, 212, 255, .45); color: var(--text); }
+  .page-btn.active { background: rgba(0, 212, 255, .12); border-color: rgba(0, 212, 255, .55); color: var(--cyan); box-shadow: 0 0 12px rgba(0, 212, 255, .18); }
+  .page-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .page-dots { color: var(--faint); font: 600 13px var(--mono); padding: 0 2px; }
+
+  /* ============================================================
+     CHALLENGE DETAIL (PAGE 2)
+     ============================================================ */
+  .challenge-detail-layout {
+    max-width: 1440px; margin: 0 auto; padding: 0 28px 64px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 24px; align-items: start;
+  }
+  .detail-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .detail-side {
+    position: sticky; top: 74px;
+    display: flex; flex-direction: column; gap: 18px;
+    max-height: calc(100vh - 96px); overflow-y: auto; padding-right: 2px;
+  }
+
+  /* hero banner */
+  .detail-hero {
+    position: relative; overflow: hidden;
+    display: flex; gap: 30px; align-items: center;
+    background:
+      radial-gradient(600px 320px at 8% -10%, rgba(124, 58, 237, .3), transparent 60%),
+      radial-gradient(520px 300px at 100% 120%, rgba(0, 212, 255, .16), transparent 60%),
+      var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 30px 32px;
+  }
+  .detail-hero::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad); opacity: .85; }
+  .detail-illus {
+    position: relative; flex: 0 0 200px; width: 200px; height: 200px;
+    border-radius: 18px; overflow: hidden; display: grid; place-items: center;
+  }
+  .detail-illus::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(120% 130% at 82% 0%, rgba(255, 255, 255, .25), transparent 55%),
+      linear-gradient(rgba(10, 10, 15, .25) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10, 10, 15, .25) 1px, transparent 1px);
+    background-size: auto, 24px 24px, 24px 24px;
+  }
+  .detail-illus .cover-pattern { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; }
+  .detail-illus .cover-icon {
+    position: relative; z-index: 1; width: 92px; height: 92px;
+    filter: drop-shadow(0 6px 20px rgba(0, 0, 0, .5)) drop-shadow(0 0 18px rgba(255, 255, 255, .2));
+  }
+  .detail-hero h1 {
+    margin: 0 0 10px; font-size: 32px; font-weight: 700; letter-spacing: -.02em;
+    color: var(--text); line-height: 1.12;
+  }
+  .detail-hero .dh-desc { margin: 0 0 16px; color: var(--text-3); font-size: 15px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .detail-hero .dh-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .detail-hero .dh-meta { margin-top: 14px; font: 500 12px var(--mono); color: var(--faint); }
+  .detail-hero .dh-meta b { color: var(--text-3); }
+
+  /* collapsible detail cards */
+  .detail-card {
+    background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .detail-card > summary {
+    list-style: none; cursor: pointer; user-select: none;
+    display: flex; align-items: center; gap: 12px;
+    padding: 17px 20px; font: 700 14px var(--display); color: var(--text); letter-spacing: .2px;
+    transition: background .13s;
+  }
+  .detail-card > summary::-webkit-details-marker { display: none; }
+  .detail-card > summary:hover { background: rgba(255, 255, 255, .03); }
+  .detail-card > summary .sum-icon { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 9px; display: grid; place-items: center; background: var(--glass-2); border: 1px solid var(--border); }
+  .detail-card > summary .sum-icon svg { width: 16px; height: 16px; color: var(--cyan); }
+  .detail-card > summary .chev { margin-left: auto; color: var(--faint); transition: transform .18s; }
+  .detail-card[open] > summary .chev { transform: rotate(180deg); }
+  .detail-card .card-body { padding: 4px 20px 20px; }
+  .detail-card .card-body > p:first-child { margin-top: 0; }
+
+  .desc-section { margin-bottom: 16px; }
+  .desc-section h4 {
+    margin: 0 0 8px; font: 600 10.5px var(--mono); letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .desc-section p { margin: 0; color: var(--text-3); font-size: 14px; line-height: 1.65; }
+  .clue-list { margin: 0; padding-left: 18px; color: var(--text-3); font-size: 13.5px; }
+  .clue-list li { margin: 5px 0; }
+
+  /* attack flow diagram — LIGHT panel, KEY visual */
+  .flow-card { background: #f5f5f5 !important; border-color: #d8d8e0; color: #111318; }
+  .flow-card > summary { color: #111318; }
+  .flow-card > summary:hover { background: rgba(0, 0, 0, .04); }
+  .flow-card > summary .sum-icon { background: #fff; border-color: #dcdce4; }
+  .flow-card > summary .sum-icon svg { color: #7c3aed; }
+  .flow-wrap {
+    position: relative; height: 470px; margin-top: 8px;
+    background:
+      radial-gradient(520px 300px at 50% 46%, rgba(124, 58, 237, .07), transparent 70%),
+      #f5f5f5;
+    border-radius: 12px;
+  }
+  .flow-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .flow-lines line { stroke: #111318; stroke-width: .55; stroke-dasharray: 1.8 2; opacity: .55; }
+  .flow-center {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, #ff6b35, #ff3366);
+    color: #fff; border-radius: 14px; padding: 16px 20px; width: 168px;
+    box-shadow: 0 12px 30px rgba(255, 51, 102, .35);
+    z-index: 2; text-align: center;
+  }
+  .flow-center svg { width: 34px; height: 34px; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .3)); }
+  .flow-center b { font: 700 11px var(--mono); letter-spacing: .8px; line-height: 1.3; }
+  .flow-center span { font: 500 9px var(--mono); letter-spacing: .6px; text-transform: uppercase; opacity: .85; }
+  .flow-node {
+    position: absolute; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    width: 132px; text-align: center; z-index: 2;
+  }
+  .flow-node .fn-oval {
+    width: 60px; height: 60px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: linear-gradient(160deg, #dff3ff, #b7e2ff);
+    border: 2px solid #ffffff; box-shadow: 0 0 0 1.5px #9cc9e8, 0 8px 18px rgba(30, 60, 100, .18);
+    transition: transform .15s;
+  }
+  .flow-node .fn-oval svg { width: 24px; height: 24px; color: #1d4e89; }
+  .flow-node:hover .fn-oval { transform: scale(1.08); }
+  .flow-node .fn-step { font: 700 9px var(--mono); letter-spacing: 1.2px; color: #7c3aed; text-transform: uppercase; }
+  .flow-node .fn-label { font: 600 10.5px var(--sans); color: #111318; line-height: 1.3; max-width: 132px; }
+
+  /* solution / synthesis */
+  .syn-chips { margin: 8px 0 14px; }
+  .syn-field { margin-top: 12px; }
+  .syn-field label { display: block; font: 600 12px var(--mono); color: var(--muted); margin-bottom: 6px; letter-spacing: .3px; }
+  .syn-status { margin-bottom: 10px; }
+
+  /* ============================================================
+     CHALLENGE DETAIL — sidebar (lab access + questions)
+     ============================================================ */
+  .lab-access {
+    position: relative; overflow: hidden;
+    background: rgba(255, 255, 255, .05);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px 22px;
+  }
+  .lab-access::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad); opacity: .9; }
+  .la-icon {
+    width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center;
+    background: var(--grad); box-shadow: 0 8px 24px rgba(0, 212, 255, .3);
+    margin-bottom: 16px;
+  }
+  .la-icon svg { width: 24px; height: 24px; color: #fff; }
+  .lab-access h3 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--text); }
+  .la-question { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--text-2); }
+  .la-sub { margin: 0 0 16px; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .la-progress { margin: 0 0 6px; }
+  .la-progress .lp-row { display: flex; justify-content: space-between; font: 600 11px var(--mono); color: var(--muted); margin-bottom: 6px; }
+  .la-progress .lp-row b { color: var(--cyan); }
+  .la-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .la-actions .row2 { display: flex; gap: 8px; }
+  .la-actions .row2 .btn { flex: 1; }
+  .la-meta { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+  .la-done {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid rgba(0, 255, 136, .4); background: var(--success-soft);
+    color: var(--green); font: 600 12.5px var(--sans);
+  }
+
+  /* questions panel */
+  .q-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .q-panel > h3 {
+    margin: 0; padding: 16px 18px 14px;
+    font: 700 13px var(--display); letter-spacing: 1.6px; text-transform: uppercase; color: var(--text);
+    border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .q-panel > h3 svg { color: var(--purple-2); }
+  #questions-list { padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .q-card {
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--card); padding: 14px 15px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .q-card.current { border-color: rgba(124, 58, 237, .55); box-shadow: 0 0 0 1px rgba(124, 58, 237, .15), 0 10px 26px rgba(0, 0, 0, .3); }
+  .q-card.done { border-color: rgba(0, 255, 136, .28); }
+  .q-card.locked { opacity: .55; }
+  .q-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+  .q-head .q-flag { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 6px; display: grid; place-items: center; background: var(--glass-2); border: 1px solid var(--border); }
+  .q-head .q-flag svg { width: 12px; height: 12px; color: var(--purple-2); }
+  .q-head .q-num { font: 700 10px var(--mono); letter-spacing: 1px; color: var(--text-3); text-transform: uppercase; }
+  .q-pill { margin-left: auto; font: 700 9px var(--mono); letter-spacing: .8px; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
+  .q-pill.current { color: var(--purple-2); background: rgba(124, 58, 237, .15); border: 1px solid rgba(124, 58, 237, .45); }
+  .q-pill.ok { color: var(--green); background: var(--success-soft); border: 1px solid rgba(0, 255, 136, .4); }
+  .q-pill.locked { color: var(--faint); background: var(--glass-2); border: 1px solid var(--border); }
+  .q-text { margin: 0 0 6px; font-size: 13.5px; font-weight: 600; color: var(--text-2); line-height: 1.5; }
+  .q-event { margin: 0 0 10px; font: 500 11.5px var(--mono); color: var(--faint); }
+  .q-event code { color: var(--cyan); background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .2); border-radius: 5px; padding: 1px 7px; }
+  .q-locked-text { margin: 0; font-size: 12.5px; color: var(--faint); font-style: italic; }
+  .q-hint-btn {
+    margin-top: 10px; display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid rgba(124, 58, 237, .5); background: transparent; color: var(--purple-2);
+    border-radius: 9px; padding: 7px 13px; font: 600 12px var(--sans); cursor: pointer;
+    transition: background .13s, filter .13s;
+  }
+  .q-hint-btn:hover { background: rgba(124, 58, 237, .14); filter: brightness(1.1); }
+  .q-hint-btn svg { width: 14px; height: 14px; }
+
+  /* evidence form inside question card */
+  .ev-row { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px; margin-top: 9px; align-items: center; }
+  .ev-row input { font: 12px var(--mono); }
+  .candidate-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .candidate-chip {
+    border: 1px solid var(--border); border-radius: 9px; padding: 7px 13px;
+    font: 600 12px var(--mono); background: var(--glass-2); color: var(--text); cursor: pointer;
+    transition: border-color .13s, background .13s, color .13s, transform .05s;
+  }
+  .candidate-chip:hover { border-color: rgba(124, 58, 237, .6); }
+  .candidate-chip.selected {
+    border-color: var(--purple-2); color: #fff; background: var(--grad-purple); font-weight: 700;
+    box-shadow: 0 0 10px rgba(124, 58, 237, .4);
+  }
+  .q-submit { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
+  .q-submit .btn { flex: 1; }
+
+  /* ============================================================
+     FOOTER + TOAST
+     ============================================================ */
   .app-footer {
     display: flex; gap: 8px 20px; flex-wrap: wrap; align-items: center;
     padding: 13px 28px; border-top: 1px solid var(--border-soft); background: var(--bg-2);
     color: var(--faint); font: 500 12px var(--mono);
   }
   .app-footer b { color: var(--cyan); font-weight: 600; }
-  .app-footer .ok-text { color: var(--success); }
+  .app-footer .ok-text { color: var(--green); }
   .app-footer .err-text { color: var(--danger); }
-  .foot-right { margin-left: auto; color: var(--faint); }
+  .foot-right { margin-left: auto; color: var(--faint); letter-spacing: 1px; }
 
-  /* ---------- Toast ---------- */
   #toast {
     position: fixed; right: 20px; bottom: 20px; z-index: 80; max-width: 460px;
     padding: 13px 16px; border-radius: 12px;
@@ -705,18 +880,35 @@
     font: 600 13px var(--sans); color: var(--text); white-space: pre-wrap;
   }
   #toast.error { border-color: rgba(255, 82, 82, .5); color: #ffb3b3; }
-  #toast.ok { border-color: rgba(52, 211, 153, .45); color: var(--success); }
+  #toast.ok { border-color: rgba(0, 255, 136, .45); color: var(--green); }
 
-  @media (max-width: 720px) {
+  @media (max-width: 1280px) {
+    .challenge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) {
+    .challenge-layout { grid-template-columns: 1fr; }
+    .filter-sidebar { position: static; max-height: none; }
+    .challenge-detail-layout { grid-template-columns: 1fr; }
+    .detail-side { position: static; max-height: none; }
+    .challenge-hero .inner { grid-template-columns: 1fr; }
+    .hero-character { display: none; }
     .app-header { flex-wrap: wrap; padding: 12px 16px; gap: 10px; }
     .app-nav { order: 3; width: 100%; margin-left: 0; }
     .mode-pill { display: none; }
-    .user-chip { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .page { padding: 24px 16px 56px; }
-    .stats { gap: 10px; }
-    .app-footer { padding: 12px 16px; }
+    .challenge-detail-layout { padding: 0 16px 56px; }
+    .challenge-layout { padding: 0 16px 56px; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: 1fr; }
   }
-
+  @media (max-width: 560px) {
+    .challenge-grid { grid-template-columns: 1fr; }
+    .detail-hero { flex-direction: column; align-items: flex-start; }
+    .detail-illus { flex-basis: auto; width: 100%; height: 160px; }
+    .ch-hero-title { font-size: 38px; }
+    .ev-row { grid-template-columns: 1fr; }
+  }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     html { scroll-behavior: auto; }
@@ -734,13 +926,13 @@
           <img src="../docs/assets/spartan-emblem.svg" alt="" width="48" height="48" />
         </span>
         <div>
-          <h1>ZODIAC</h1>
-          <span class="sub">AI Security Lab</span>
+          <h1>ZODIAC BANK</h1>
+          <span class="sub">AI Security Challenges</span>
         </div>
       </div>
 
       <h2>Learner sign in</h2>
-      <p class="login-sub">Enter your learner credentials to access the training range.</p>
+      <p class="login-sub">Enter your learner credentials to access the challenge range.</p>
 
       <div class="field">
         <label for="learner-id">Learner ID</label>
@@ -762,7 +954,7 @@
 
       <div id="login-error" class="login-error hidden"></div>
 
-      <button id="login-btn" class="btn btn-primary btn-block" type="button">Sign in to the range</button>
+      <button id="login-btn" class="btn btn-primary btn-block" type="button">Enter the challenge range</button>
 
       <p class="login-foot">LOCAL-ONLY · SYNTHETIC DATA · NO EGRESS</p>
     </div>
@@ -778,12 +970,12 @@
       </span>
       <div>
         <span class="name">ZODIAC</span>
-        <span class="sub">AI Security Lab</span>
+        <span class="sub">AI Security Challenges</span>
       </div>
     </div>
     <nav class="app-nav" aria-label="Primary">
-      <a href="#/dashboard" data-nav="dashboard">Overview</a>
-      <a href="#/labs" data-nav="labs">Labs</a>
+      <a href="#/dashboard" data-nav="dashboard">Home</a>
+      <a href="#/challenges" data-nav="challenges">Challenges</a>
     </nav>
     <div class="app-user">
       <span class="mode-pill" id="mode-badge">…</span>
@@ -802,27 +994,27 @@
         <h1 class="hero-title" id="dash-greeting">Welcome back</h1>
         <p class="hero-tag">Train precisely. <b>Defend</b> relentlessly.</p>
         <div class="hero-cta">
-          <a class="btn btn-primary" href="#/labs">Browse labs</a>
-          <a class="btn btn-secondary" id="hero-continue" href="#/labs" style="display:none">Continue current lab</a>
+          <a class="btn btn-primary" href="#/challenges">Browse challenges</a>
+          <a class="btn btn-secondary" id="hero-continue" href="#/challenges" style="display:none">Continue current challenge</a>
         </div>
       </div>
       <div class="feature-grid">
         <div class="feature-card">
-          <span class="feature-cover" aria-hidden="true" style="background:linear-gradient(135deg, #0057c5, #00d4ff)">
+          <span class="feature-cover" aria-hidden="true" style="background:linear-gradient(135deg, #0099cc, #00d4ff)">
             <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l8 4-8 4-8-4 8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 16l8 4 8-4"/></svg>
           </span>
-          <h3>Simulation labs</h3>
+          <h3>Simulation challenges</h3>
           <p>100 hands-on scenarios across 10 progressive stages with a live synthetic bank posture.</p>
         </div>
         <div class="feature-card">
-          <span class="feature-cover" aria-hidden="true" style="background:linear-gradient(135deg, #8b5cf6, #ff2b2b)">
+          <span class="feature-cover" aria-hidden="true" style="background:linear-gradient(135deg, #7c3aed, #a855f7)">
             <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.6V11c0 4.4-3 7.6-7 9.4-4-1.8-7-5-7-9.4V5.6L12 3z"/><path d="M9 11.5l2 2 4-4"/></svg>
           </span>
           <h3>Hard gates</h3>
           <p>50 synthesis gates that validate evidence chains, detection coverage and required controls.</p>
         </div>
         <div class="feature-card">
-          <span class="feature-cover" aria-hidden="true" style="background:linear-gradient(135deg, #00d4ff, #ff2b2b)">
+          <span class="feature-cover" aria-hidden="true" style="background:linear-gradient(135deg, #ff3366, #ff6b35)">
             <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5V12l6 3.5"/></svg>
           </span>
           <h3>Live range</h3>
@@ -861,60 +1053,75 @@
     </div>
   </section>
 
-  <!-- Labs -->
-  <section id="view-labs" class="view">
-    <div class="page">
-      <div class="page-head">
-        <h1>Labs</h1>
-        <p>10 stages · 100 scenarios · 50 hard gates</p>
-      </div>
-      <div class="lab-toolbar">
-        <div class="lab-search-row">
-          <input id="lab-search" type="search" placeholder="Search labs by name or stage…" autocomplete="off" spellcheck="false" aria-label="Search labs" />
+  <!-- PAGE 1: Challenges listing -->
+  <section id="view-challenges" class="view">
+    <div class="challenge-hero">
+      <div class="inner">
+        <div>
+          <p class="ch-hero-eyebrow">Zodiac Bank · Hands-on AI Red Teaming</p>
+          <h1 class="ch-hero-title">AI Security<br /><span>Challenges</span></h1>
+          <p class="ch-hero-sub">100 hands-on scenarios across 10 progressive stages — prompt injection, RAG poisoning, agent protocol abuse, memory leaks, identity control planes, supply chain and more. Every accepted evidence event reshapes the synthetic bank posture.</p>
+          <div class="ch-hero-search">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg>
+            <input id="challenge-search" type="search" placeholder="Search challenges by title, stage or tactic…" autocomplete="off" spellcheck="false" aria-label="Search challenges" />
+          </div>
+          <div class="ch-hero-stats">
+            <div><b class="num" id="hero-count">0</b><span>challenges</span></div>
+            <div><b>10</b><span>stages</span></div>
+            <div><b>50</b><span>hard gates</span></div>
+          </div>
         </div>
-        <div id="lab-filters"></div>
+        <div class="hero-character" aria-hidden="true">
+          <svg viewBox="0 0 260 260" fill="none">
+            <defs>
+              <linearGradient id="hcg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#00d4ff"/>
+                <stop offset="1" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+            <circle cx="130" cy="130" r="108" stroke="url(#hcg)" stroke-opacity=".3" stroke-width="1.4" stroke-dasharray="3 7"/>
+            <circle cx="130" cy="130" r="92" fill="url(#hcg)" fill-opacity=".08"/>
+            <circle cx="130" cy="130" r="92" stroke="url(#hcg)" stroke-opacity=".5" stroke-width="1"/>
+            <path d="M84 168c-8-22 2-38 20-40l0 8c-10 4-14 14-8 28z" fill="#17172b" stroke="url(#hcg)" stroke-width="2"/>
+            <path d="M176 168c8-22-2-38-20-40l0 8c10 4 14 14 8 28z" fill="#17172b" stroke="url(#hcg)" stroke-width="2"/>
+            <path d="M98 132h64l-6 56c-6 12-16 18-26 18s-20-6-26-18z" fill="#17172b" stroke="url(#hcg)" stroke-width="2"/>
+            <circle cx="130" cy="150" r="9" fill="url(#hcg)"/>
+            <circle cx="130" cy="150" r="14" stroke="url(#hcg)" stroke-width="1.4" stroke-opacity=".5"/>
+            <path d="M98 96c4-26 60-26 64 0l8 22c0 18-14 30-40 30s-40-12-40-30z" fill="#10101f" stroke="url(#hcg)" stroke-width="2.4"/>
+            <path d="M108 104h44v18h-44z" fill="url(#hcg)" fill-opacity=".85"/>
+            <path d="M108 104h44" stroke="#0a0a0f" stroke-width="2"/>
+            <circle cx="74" cy="84" r="3" fill="#00d4ff"/>
+            <circle cx="186" cy="90" r="2.4" fill="#a855f7"/>
+            <circle cx="60" cy="150" r="2" fill="#00ff88"/>
+            <circle cx="200" cy="152" r="2.4" fill="#00d4ff"/>
+            <circle cx="150" cy="60" r="1.8" fill="#fbbf24"/>
+            <path d="M92 232h76" stroke="url(#hcg)" stroke-opacity=".5" stroke-width="1.4" stroke-dasharray="2 4"/>
+          </svg>
+        </div>
       </div>
-      <div id="range-list" class="labs-grid"></div>
+    </div>
+
+    <div class="challenge-layout">
+      <aside class="filter-sidebar" id="filter-sidebar" aria-label="Filter challenges"></aside>
+      <main class="challenge-main">
+        <div class="results-row">
+          <span class="results-count" id="results-count">Loading challenges…</span>
+          <button type="button" class="facet-clear hidden" id="clear-filters">Clear filters</button>
+        </div>
+        <div id="challenge-grid" class="challenge-grid"></div>
+        <nav class="pagination" id="challenge-pagination" aria-label="Pagination"></nav>
+      </main>
     </div>
   </section>
 
-  <!-- Lab detail -->
-  <section id="view-lab" class="view">
-    <div class="page">
-      <a href="#/labs" class="back-link">← Back to labs</a>
-      <div id="lab-head"></div>
-      <div class="lab-layout">
-        <aside class="lab-side">
-          <div class="panel">
-            <h2>Course curriculum</h2>
-            <div id="lab-scenarios" class="scenario-list"></div>
-          </div>
-        </aside>
-        <main class="lab-main">
-          <div class="panel">
-            <h2>Overview</h2>
-            <div id="mission-body"><p class="muted">—</p></div>
-          </div>
-          <div class="panel">
-            <h2>Scenario</h2>
-            <div id="scenario-detail"><p class="muted">Select a scenario to begin.</p></div>
-          </div>
-          <div class="panel">
-            <h2>Hard-gate synthesis &amp; flag</h2>
-            <div id="synthesis-detail"><p class="muted">Complete every required scenario to unlock synthesis.</p></div>
-          </div>
-        </main>
-        <aside class="lab-side">
-          <div class="panel">
-            <h2>Bank posture</h2>
-            <div id="posture-body"><p class="muted">—</p></div>
-          </div>
-          <div class="panel">
-            <h2>Virtual ledger</h2>
-            <div id="ledger-body"><p class="muted">—</p></div>
-          </div>
-        </aside>
-      </div>
+  <!-- PAGE 2: Challenge detail -->
+  <section id="view-challenge" class="view">
+    <div class="challenge-detail-layout">
+      <main class="detail-main">
+        <a href="#/challenges" class="back-link">← Back to challenges</a>
+        <div id="challenge-detail"></div>
+      </main>
+      <aside class="detail-side" id="challenge-side"></aside>
     </div>
   </section>
 </div>
@@ -925,7 +1132,7 @@
   <span id="status-stage">current stage: —</span>
   <span id="status-gate">gate: —</span>
   <span id="status-range">range: —</span>
-  <span class="foot-right">ZODIAC BANK · AI SECURITY LAB</span>
+  <span class="foot-right">ZODIAC BANK · AI SECURITY LABS</span>
 </footer>
 
 <div id="toast" role="status" aria-live="polite"></div>
@@ -937,8 +1144,14 @@
 /**
  * Single-file trainer UI. Vanilla JS with JSDoc types so the app stays
  * dependency-free and fast: no framework, no bundler, no build step.
- * `npm run typecheck` extracts this script and validates it with the real
- * TypeScript compiler (tsc --checkJs).
+ * `node scripts/check_ui_types.mjs` extracts this script and validates it
+ * with the real TypeScript compiler (tsc --checkJs).
+ *
+ * Layout mirrors CyberWarfare Live: a challenge catalog with a sticky filter
+ * sidebar and large cover cards, plus a detail view with hero banner, attack
+ * flow diagram and a per-step questions panel. All API integration is
+ * preserved — /api/range, /api/scenarios, hints, events, gates, synthesis,
+ * curriculum and gate flag submission.
  */
 
 /**
@@ -967,6 +1180,7 @@ const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.queryS
 /**
  * @typedef {Object} ScenarioSummary
  * @property {string} scenario_id
+ * @property {string} [stage_id]
  * @property {number} difficulty
  * @property {string} branch
  * @property {string} title
@@ -1044,7 +1258,19 @@ const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.queryS
  * @property {number} [total_hard_gates]
  */
 
-/** @typedef {{ status: string, difficulty: string, q: string }} LabFilters */
+/**
+ * @typedef {Object} StepHint
+ * @property {string} scenario_id
+ * @property {string} status
+ * @property {string} [progress]
+ * @property {string} [event]
+ * @property {string} [observation]
+ * @property {string[]} [required_evidence_keys]
+ * @property {Object} [candidates]
+ * @property {boolean} [chain_required]
+ */
+
+/** @typedef {{ stage: string, difficulty: string, branch: string, status: string, q: string }} ChallengeFilters */
 
 /**
  * @typedef {Object} AppState
@@ -1059,8 +1285,9 @@ const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.queryS
  * @property {HardGate[]} gates
  * @property {GateMeta|null} gateMeta
  * @property {{stages: CurriculumStage[], bank_profile?: Object}|null} curriculum
- * @property {string|null} currentLab
- * @property {LabFilters} labFilters
+ * @property {StepHint|null} hint
+ * @property {ChallengeFilters} challengeFilters
+ * @property {number} page
  */
 
 /** @type {AppState} */
@@ -1070,15 +1297,18 @@ const state = {
   gateUrl: "http://127.0.0.1:5050",
   range: null,
   currentStageId: null,
-  scenarios: [],      // current stage scenario list from /api/scenarios
-  selected: null,
+  scenarios: [],      // current stage scenario runs from /api/scenarios
+  selected: null,     // scenario currently open in the detail view
   synthesis: null,    // currently unlocked hard-gate requirement
   gates: [],          // current stage hard gates (from /api/gates)
   gateMeta: null,
   curriculum: null,   // gate /api/curriculum (stage status + hints)
-  currentLab: null,   // lab (stage) being viewed on the lab page
-  labFilters: { status: "all", difficulty: "all", q: "" },
+  hint: null,         // current step hint for the open scenario
+  challengeFilters: { stage: "all", difficulty: "all", branch: "all", status: "all", q: "" },
+  page: 1,
 };
+
+const PAGE_SIZE = 9;
 
 /** @type {Record<string, string>} */
 const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -1160,427 +1390,595 @@ function esc(value) {
   return String(value).replace(/[&<>"']/g, (ch) => ESC_MAP[ch] || ch);
 }
 
-/* ---------- Load ---------- */
-
-/**
- * Load the range map and curriculum, then refresh the active stage.
- * @returns {Promise<void>}
- */
-async function loadAll() {
-  const learnerInput = $("learner-id").value.trim();
-  const tokenInput = $("learner-token").value.trim();
-  const gateInput = $("gate-url").value.trim();
-  if (!learnerInput || !tokenInput) {
-    toast("learner ID and token are required", "error");
-    return;
-  }
-  state.learner = learnerInput;
-  state.token = tokenInput;
-  state.gateUrl = gateInput || "http://127.0.0.1:5050";
-  saveSettings();
-  try {
-    const range = await api(`/api/range?learner_id=${encodeURIComponent(state.learner)}`);
-    state.range = range;
-    state.currentStageId = range.current_stage_id;
-    renderPosture(range.bank_profile);
-    $("status-range").innerHTML = `range: <b>${range.stages.reduce((n, s) => n + s.scenarios.length, 0)}</b> scenarios`;
-    renderRange();
-    await refreshStage();
-    $("status-mode").innerHTML = `mode: trainer · learner <b>${esc(state.learner)}</b>`;
-  } catch (error) {
-    toast("load failed: " + error.message, "error");
-    return;
-  }
-  try {
-    const curriculum = await gateApi(`/api/curriculum?learner_id=${encodeURIComponent(state.learner)}`);
-    state.curriculum = curriculum;
-    renderPosture(curriculum.bank_profile);
-    renderProgression();
-    renderMission();
-    $("status-gate").innerHTML = `gate: <span class="ok-text">connected</span>`;
-  } catch (error) {
-    $("status-gate").innerHTML = `gate: <span class="err-text">unreachable</span> (${esc(error.message)})`;
-    renderProgression();
-    renderMission();
-  }
-}
-
-/**
- * @param {string} scenarioId
- * @returns {RangeStage|null}
- */
-function stageForScenario(scenarioId) {
-  if (!state.range) return null;
-  return state.range.stages.find((s) => s.scenarios.some((sc) => sc.scenario_id === scenarioId)) || null;
-}
-
-/**
- * @param {string} scenarioId
- * @returns {ScenarioRun|null}
- */
-function findRun(scenarioId) {
-  if (!state.scenarios) return null;
-  return state.scenarios.find((s) => s.scenario_id === scenarioId) || null;
-}
-
-/* ---------- Helpers ---------- */
+/* ---------- Shared helpers ---------- */
 
 function stageTitle(id) {
   return (id || "").split("-").slice(1).join(" ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function minDifficulty(stage) {
-  return Math.min.apply(null, (stage.scenarios || []).map((s) => s.difficulty));
+/** @param {string} s @param {number} n @returns {string} */
+function truncate(s, n) {
+  const text = String(s || "");
+  return text.length > n ? text.slice(0, n - 1) + "…" : text;
 }
 
-function maxDifficulty(stage) {
-  return Math.max.apply(null, (stage.scenarios || []).map((s) => s.difficulty));
+function findRun(scenarioId) {
+  if (!state.scenarios) return null;
+  return state.scenarios.find((s) => s.scenario_id === scenarioId) || null;
 }
 
-/* ---------- Lab cover art (CWL-style thumbnails) ---------- */
+/** Flatten every stage's scenario summaries and attach their stage_id. */
+function allScenarios() {
+  if (!state.range) return [];
+  const out = [];
+  state.range.stages.forEach((stage) => {
+    (stage.scenarios || []).forEach((sc) => {
+      out.push(Object.assign({}, sc, { stage_id: stage.stage_id }));
+    });
+  });
+  return out;
+}
 
-const COVER_GRADS = [
-  ["#0057c5", "#00d4ff"], ["#00a6ff", "#8b5cf6"], ["#8b5cf6", "#ff2b2b"],
-  ["#0057c5", "#ff2b2b"], ["#00d4ff", "#ff2b2b"], ["#0057c5", "#00a6ff"],
-  ["#00a6ff", "#ff2b2b"], ["#0057c5", "#8b5cf6"], ["#00d4ff", "#8b5cf6"],
-  ["#0057c5", "#ff0000"],
+function findScenario(scenarioId) {
+  return allScenarios().find((sc) => sc.scenario_id === scenarioId) || null;
+}
+
+/** @param {ScenarioSummary} sc */
+function scenarioStatus(sc) {
+  if (sc.stage_id && sc.stage_id !== state.currentStageId) return "locked";
+  const run = findRun(sc.scenario_id);
+  return run ? run.status : "not-started";
+}
+
+/** @param {string} status */
+function statusLabel(status) {
+  return { "not-started": "Not started", active: "In progress", complete: "Completed", locked: "Locked" }[status] || status;
+}
+
+/** @param {number} difficulty */
+function difficultyBand(difficulty) {
+  if (difficulty <= 3) return "easy";
+  if (difficulty <= 7) return "medium";
+  return "hard";
+}
+
+/** @param {string} band */
+function bandLabel(band) {
+  return { easy: "Easy", medium: "Medium", hard: "Hard" }[band] || band;
+}
+
+/** @param {string} branch */
+function branchLabel(branch) {
+  return { attack: "Offensive", defense: "Defensive", forensics: "Forensics", recovery: "Recovery" }[branch] || branch;
+}
+
+/** @param {ScenarioSummary} sc */
+function pointsFor(sc) {
+  return (sc.difficulty || 1) * 100;
+}
+
+/** @param {string} stageId */
+function stageMission(stageId) {
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  const cur = stages.find((s) => s.id === stageId);
+  return (cur && cur.mission) || (cur && cur.title) || "";
+}
+
+/* ---------- Cover art: gradient + SVG pattern + glyph per challenge ---------- */
+
+const COVER_THEMES = [
+  { g1: "#ff5f2e", g2: "#ff3366", icon: "lock", pattern: "circuit" },
+  { g1: "#7c3aed", g2: "#a855f7", icon: "skull", pattern: "nodes" },
+  { g1: "#2563eb", g2: "#00d4ff", icon: "robot", pattern: "docs" },
+  { g1: "#00d4ff", g2: "#0099cc", icon: "agents", pattern: "ice" },
+  { g1: "#16213e", g2: "#2d4a7a", icon: "mail", pattern: "servers" },
+  { g1: "#ff3366", g2: "#ff6b35", icon: "terminal", pattern: "code" },
+  { g1: "#475569", g2: "#94a3b8", icon: "flow", pattern: "grid" },
+  { g1: "#00b368", g2: "#00cc6a", icon: "team", pattern: "ad" },
+  { g1: "#ff6b35", g2: "#d90429", icon: "fire", pattern: "blast" },
+  { g1: "#0099cc", g2: "#7c3aed", icon: "eye", pattern: "radar" },
 ];
-const COVER_GLYPHS = ["shield", "vault", "radar", "globe", "layers", "key", "finger", "cpu", "cube", "flag"];
-const GLYPH_PATHS = {
+
+const ICONS = {
+  lock: '<rect x="7" y="10" width="10" height="9" rx="2"/><path d="M9.5 10V7.5a2.5 2.5 0 0 1 5 0V10"/><path d="M12 13.5v2"/>',
+  skull: '<circle cx="12" cy="12" r="8"/><circle cx="9" cy="10.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="10.6" r="1.2" fill="currentColor" stroke="none"/><path d="M12 15.5l-1.4 2M12 15.5l1.4 2"/><path d="M12 12.5v2"/>',
+  robot: '<rect x="5" y="8" width="14" height="10" rx="2"/><circle cx="9" cy="12.5" r="1.3"/><circle cx="15" cy="12.5" r="1.3"/><path d="M12 8V5.5"/><path d="M7 21v-3M17 21v-3"/>',
+  agents: '<circle cx="9" cy="9" r="2.6"/><path d="M4.5 19c.6-3.4 2.4-5 4.5-5s3.9 1.6 4.5 5"/><circle cx="16" cy="12" r="2.2"/><path d="M12.8 19c.5-2.9 2-4.3 3.7-4.3s3.2 1.4 3.7 4.3"/>',
+  mail: '<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4.5 7.5L12 13l7.5-5.5"/><path d="M4 10h4M16 10h4"/>',
+  terminal: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7.5 9.5l3 2.5-3 2.5"/><path d="M12.5 14.5h4"/>',
+  flow: '<circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6.4 7.6L10.8 16M17.6 7.6L13.2 16"/>',
+  team: '<circle cx="8" cy="8" r="3"/><circle cx="16" cy="9" r="2.4"/><path d="M2.5 19c.7-4 3-6 5.5-6s4.8 2 5.5 6"/><path d="M13.6 13.6c2.2-.7 4.5.6 5.3 3.9"/>',
+  fire: '<path d="M12 3c1.5 3 4.5 4.8 4.5 8.5A4.5 4.5 0 0 1 12 16a4.5 4.5 0 0 1-4.5-4.5c0-1.5.8-2.7 1.6-3.9C9.6 9.5 10 11 10 11c.4-3.5 1-5.5 2-8z"/><path d="M12 16c1.4 0 2.4-.9 2.4-2.2 0-1-.6-1.8-1.4-2.7-.3 1-.8 1.5-1 2-.6-.8-.9-1.2-1.3-2-.9 1.4-1.5 2.7-1.5 3.5A2.1 2.1 0 0 0 12 16z"/>',
+  eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
   shield: '<path d="M12 3l7 2.6V11c0 4.4-3 7.6-7 9.4-4-1.8-7-5-7-9.4V5.6L12 3z"/><path d="M9 11.5l2 2 4-4"/>',
   vault: '<rect x="7" y="10" width="10" height="8" rx="1.5"/><path d="M9.5 10V8a2.5 2.5 0 0 1 5 0v2"/><path d="M12 13v2.2"/>',
   radar: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5V12l6 3.5"/>',
-  globe: '<circle cx="12" cy="12" r="8.5"/><ellipse cx="12" cy="12" rx="8.5" ry="3.4"/><path d="M3.5 12h17"/><path d="M12 3.5c2.7 2.3 4 5.2 4 8.5s-1.3 6.2-4 8.5c-2.7-2.3-4-5.2-4-8.5s1.3-6.2 4-8.5z"/>',
-  layers: '<path d="M12 4l8 4-8 4-8-4 8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 16l8 4 8-4"/>',
   key: '<circle cx="8" cy="16" r="3.2"/><path d="M10.4 13.6L19 5"/><path d="M15 8.5l2.5 2.5"/><path d="M13.5 10l2 2"/>',
-  finger: '<path d="M7.5 9.5c0-2.8 2-4.8 4.5-4.8s4.5 2 4.5 4.8c0 2-.9 3.5-1.6 4.6"/><path d="M8 16.5c-1-1.6-1.6-3-1.6-4.7 0-3 2.2-5 5.6-5 3.3 0 5.6 2 5.6 5 0 2.6-1.4 5-3.2 6.4"/><path d="M8.8 20.4c-1.4-1.5-2.3-3.2-2.3-5.3"/>',
-  cpu: '<rect x="5.5" y="5.5" width="13" height="13" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v2.5M15 3v2.5M9 18.5V21M15 18.5V21M3 9h2.5M3 15h2.5M18.5 9H21M18.5 15H21"/>',
-  cube: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>',
   flag: '<path d="M6 21V4"/><path d="M6 4h11l-2.5 3.5L17 11H6"/>',
 };
 
-function coverFor(i, code) {
-  const g = COVER_GRADS[i % COVER_GRADS.length];
-  return { g1: g[0], g2: g[1], glyph: GLYPH_PATHS[COVER_GLYPHS[i % COVER_GLYPHS.length]] || "" };
+/** Decorative SVG pattern fragments for card covers (viewBox 0 0 100 100). */
+const PATTERNS = {
+  circuit: '<path d="M-5 30h30l10 12h18" stroke="white" stroke-width=".8"/><path d="M105 66H78l-9-10H52" stroke="white" stroke-width=".8"/><path d="M22 78h24l8-9h16" stroke="white" stroke-width=".8"/><path d="M36 16h-8l-4 8h-6" stroke="white" stroke-width=".8"/><circle cx="53" cy="42" r="2.4" fill="white"/><circle cx="80" cy="56" r="2.4" fill="white"/><circle cx="30" cy="69" r="2.4" fill="white"/><circle cx="60" cy="88" r="1.8" fill="white"/><rect x="76" y="30" width="6" height="6" rx="1" fill="white" opacity=".7"/>',
+  nodes: '<circle cx="20" cy="24" r="3" fill="white"/><circle cx="80" cy="20" r="3" fill="white"/><circle cx="70" cy="78" r="3" fill="white"/><circle cx="30" cy="72" r="2.2" fill="white"/><circle cx="52" cy="48" r="1.8" fill="white"/><path d="M23 26l27 20M83 22l-14 26M68 76l-14-26M32 70l18-20" stroke="white" stroke-width=".7" stroke-dasharray="2 3"/>',
+  docs: '<rect x="18" y="18" width="16" height="20" rx="2" stroke="white" stroke-width=".8" fill="none"/><rect x="38" y="30" width="16" height="20" rx="2" stroke="white" stroke-width=".8" fill="none"/><rect x="58" y="42" width="16" height="20" rx="2" stroke="white" stroke-width=".8" fill="none"/><path d="M22 26h8M42 38h8M62 50h8" stroke="white" stroke-width=".8"/>',
+  ice: '<path d="M18 30l10-14 10 14z" fill="white" opacity=".7"/><path d="M70 22l9-12 9 12z" fill="white" opacity=".6"/><path d="M14 66l11-15 11 15z" fill="white" opacity=".5"/><path d="M64 74l12-16 12 16z" fill="white" opacity=".8"/><circle cx="46" cy="40" r="1.6" fill="white"/>',
+  servers: '<rect x="20" y="16" width="22" height="8" rx="2" fill="white" opacity=".5"/><rect x="20" y="30" width="22" height="8" rx="2" fill="white" opacity=".35"/><rect x="56" y="52" width="22" height="8" rx="2" fill="white" opacity=".5"/><rect x="56" y="66" width="22" height="8" rx="2" fill="white" opacity=".35"/><path d="M26 20h4M26 34h4M62 56h4M62 70h4" stroke="white" stroke-width=".8"/>',
+  code: '<path d="M18 30l-10 10 10 10M40 30l10 10-10 10" stroke="white" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M34 22l6 26" stroke="white" stroke-width="1.4"/><path d="M66 24h20M66 34h14M66 44h18M66 54h10M66 64h16M66 74h12" stroke="white" stroke-width="1" stroke-linecap="round"/>',
+  grid: '<path d="M18 22l10 10M18 42l10 10M18 62l10 10M28 32l8-8M28 52l8-8M28 72l8-8" stroke="white" stroke-width=".8"/><circle cx="18" cy="22" r="2.6" fill="white"/><circle cx="18" cy="42" r="2.6" fill="white"/><circle cx="18" cy="62" r="2.6" fill="white"/><circle cx="38" cy="84" r="2.6" fill="white"/><rect x="64" y="20" width="18" height="12" rx="2" stroke="white" stroke-width=".8" fill="none"/><rect x="64" y="46" width="18" height="12" rx="2" stroke="white" stroke-width=".8" fill="none"/>',
+  ad: '<circle cx="30" cy="30" r="8" stroke="white" stroke-width="1" fill="none"/><circle cx="72" cy="26" r="6" stroke="white" stroke-width="1" fill="none"/><path d="M22 58c3-10 14-16 20-16s17 6 20 16" stroke="white" stroke-width="1" fill="none"/><path d="M60 52c2-7 9-11 13-11s11 4 13 11" stroke="white" stroke-width="1" fill="none"/><path d="M8 84h84" stroke="white" stroke-width=".8" stroke-dasharray="3 4"/>',
+  blast: '<path d="M50 12c6 10 18 16 18 30 0 11-9 18-18 18s-18-7-18-18c0-6 3-11 6-16 0 0 1 5 2 6 1-12 3-19 10-20z" fill="white" opacity=".5"/><circle cx="78" cy="24" r="2" fill="white"/><circle cx="24" cy="66" r="2.2" fill="white"/><circle cx="70" cy="82" r="1.8" fill="white"/><path d="M86 60l6-8M6 40l8-6" stroke="white" stroke-width="1" stroke-linecap="round"/>',
+  radar: '<circle cx="50" cy="50" r="30" stroke="white" stroke-width=".8" fill="none" stroke-dasharray="3 5"/><circle cx="50" cy="50" r="16" stroke="white" stroke-width=".8" fill="none" opacity=".6"/><path d="M50 50L76 30" stroke="white" stroke-width="1"/><circle cx="30" cy="24" r="2.2" fill="white"/><circle cx="72" cy="72" r="2.2" fill="white"/><circle cx="26" cy="70" r="1.8" fill="white"/>',
+};
+
+function coverTheme(index) {
+  return COVER_THEMES[index % COVER_THEMES.length];
 }
 
-/* ---------- Render: labs (CWL challenge grid, with filter chips) ---------- */
-
-function stageDifficultyBand(stage) {
-  const hi = maxDifficulty(stage);
-  if (hi <= 3) return "novice";
-  if (hi <= 7) return "professional";
-  return "advanced";
+/** @param {string} pattern */
+function patternSVG(pattern) {
+  return `<svg class="cover-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${PATTERNS[pattern] || ""}</svg>`;
 }
 
-function matchesLabFilters(stage) {
-  const f = state.labFilters;
-  if (f.status !== "all") {
-    const curriculumStages = (state.curriculum && state.curriculum.stages) || [];
-    const cur = curriculumStages.find((s) => s.id === stage.stage_id);
-    const isCurrent = stage.stage_id === state.currentStageId;
-    const status = (cur && cur.status === "completed") ? "completed" : isCurrent ? "in-progress" : "locked";
-    if (status !== f.status) return false;
-  }
-  if (f.difficulty !== "all" && stageDifficultyBand(stage) !== f.difficulty) return false;
+/** @param {string} icon */
+function iconSVG(icon, cls) {
+  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[icon] || ICONS.shield}</svg>`;
+}
+
+/* ---------- PAGE 1: challenge catalog ---------- */
+
+function scenarioCounts() {
+  const all = allScenarios();
+  /** @type {Record<string, number>} */
+  const stage = {};
+  /** @type {Record<string, number>} */
+  const branch = {};
+  const difficulty = { easy: 0, medium: 0, hard: 0 };
+  const status = { "not-started": 0, active: 0, complete: 0, locked: 0 };
+  all.forEach((sc) => {
+    stage[sc.stage_id] = (stage[sc.stage_id] || 0) + 1;
+    branch[sc.branch] = (branch[sc.branch] || 0) + 1;
+    difficulty[difficultyBand(sc.difficulty)] += 1;
+    status[scenarioStatus(sc)] += 1;
+  });
+  return { stage, branch, difficulty, status, total: all.length };
+}
+
+/** @param {ScenarioSummary} sc */
+function matchesChallengeFilters(sc) {
+  const f = state.challengeFilters;
+  if (f.stage !== "all" && sc.stage_id !== f.stage) return false;
+  if (f.difficulty !== "all" && difficultyBand(sc.difficulty) !== f.difficulty) return false;
+  if (f.branch !== "all" && sc.branch !== f.branch) return false;
+  if (f.status !== "all" && scenarioStatus(sc) !== f.status) return false;
   if (f.q) {
-    const hay = (stageTitle(stage.stage_id) + " " + stage.stage_id).toLowerCase();
+    const hay = (sc.title + " " + sc.scenario_id + " " + sc.branch + " " + (sc.stage_id || "")).toLowerCase();
     if (!hay.includes(f.q)) return false;
   }
   return true;
 }
 
-function renderLabFilters() {
-  const box = $("lab-filters");
+function renderChallengeFilters() {
+  const box = $("filter-sidebar");
   if (!box) return;
   if (!state.range) { box.innerHTML = ""; return; }
-  const all = state.range.stages;
-  const curriculumStages = (state.curriculum && state.curriculum.stages) || [];
-  const counts = { "in-progress": 0, completed: 0, locked: 0 };
-  const diff = { novice: 0, professional: 0, advanced: 0 };
-  all.forEach((stage) => {
-    const cur = curriculumStages.find((s) => s.id === stage.stage_id);
-    const isCurrent = stage.stage_id === state.currentStageId;
-    const status = (cur && cur.status === "completed") ? "completed" : isCurrent ? "in-progress" : "locked";
-    counts[status] += 1;
-    diff[stageDifficultyBand(stage)] += 1;
-  });
-  const f = state.labFilters;
-  const chip = (group, value, label, n) => `
-    <button type="button" class="filter-chip ${f[group] === value ? "active" : ""}" data-group="${group}" data-value="${value}">
-      ${label}${value === "all" ? "" : ` <span class="cnt">${n}</span>`}
+  const counts = scenarioCounts();
+  const f = state.challengeFilters;
+  const hasActive = f.stage !== "all" || f.difficulty !== "all" || f.branch !== "all" || f.status !== "all" || !!f.q;
+
+  /** @param {string} group @param {string} value @param {string} label @param {number} [n] */
+  const opt = (group, value, label, n) => `
+    <button type="button" class="filter-option ${f[group] === value ? "active" : ""}" data-group="${group}" data-value="${value}">
+      <span class="box"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.5l2.6 2.6L10 3.5"/></svg></span>
+      <span>${label}</span>
+      ${typeof n === "number" ? `<span class="cnt">${n}</span>` : ""}
     </button>`;
+
+  const stageOptions = (state.range.stages || []).map((s) =>
+    opt("stage", s.stage_id, stageTitle(s.stage_id), counts.stage[s.stage_id] || 0)
+  ).join("");
+
   box.innerHTML = `
-    <div class="filter-group">
-      <span class="filter-label">Status</span>
-      ${chip("status", "all", "All")}
-      ${chip("status", "in-progress", "In progress", counts["in-progress"])}
-      ${chip("status", "completed", "Completed", counts.completed)}
-      ${chip("status", "locked", "Locked", counts.locked)}
+    <h2>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16M7 12h10M10 19h4"/></svg>
+      Filter challenges
+    </h2>
+    ${hasActive ? `<button type="button" class="filter-clear" id="filter-clear-all">✕ Clear all filters</button>` : ""}
+    <div class="filter-section">
+      <h3>Stage</h3>
+      ${opt("stage", "all", "All stages", counts.total)}
+      ${stageOptions}
     </div>
-    <div class="filter-group">
-      <span class="filter-label">Difficulty</span>
-      ${chip("difficulty", "all", "All")}
-      ${chip("difficulty", "novice", "Novice", diff.novice)}
-      ${chip("difficulty", "professional", "Professional", diff.professional)}
-      ${chip("difficulty", "advanced", "Advanced", diff.advanced)}
+    <div class="filter-section">
+      <h3>Difficulty</h3>
+      ${opt("difficulty", "all", "All difficulties")}
+      ${opt("difficulty", "easy", "Easy", counts.difficulty.easy)}
+      ${opt("difficulty", "medium", "Medium", counts.difficulty.medium)}
+      ${opt("difficulty", "hard", "Hard", counts.difficulty.hard)}
+    </div>
+    <div class="filter-section">
+      <h3>Tactic</h3>
+      ${opt("branch", "all", "All tactics")}
+      ${Object.keys(counts.branch).map((b) => opt("branch", b, branchLabel(b), counts.branch[b])).join("")}
+    </div>
+    <div class="filter-section">
+      <h3>Status</h3>
+      ${opt("status", "all", "All statuses")}
+      ${opt("status", "not-started", "Not started", counts.status["not-started"])}
+      ${opt("status", "active", "In progress", counts.status.active)}
+      ${opt("status", "complete", "Completed", counts.status.complete)}
+      ${opt("status", "locked", "Locked", counts.status.locked)}
     </div>`;
-  $$(".filter-chip").forEach((btn) => {
+
+  $$(".filter-option").forEach((btn) => {
     btn.addEventListener("click", () => {
-      state.labFilters[btn.dataset.group] = btn.dataset.value;
-      renderRange();
+      const group = btn.dataset.group;
+      const value = btn.dataset.value;
+      state.challengeFilters[group] = value;
+      state.page = 1;
+      renderChallenges();
     });
   });
-}
-
-function renderRange() {
-  const list = $("range-list");
-  if (!list) return;
-  if (!state.range) { list.innerHTML = '<p class="muted">No labs loaded.</p>'; return; }
-  renderLabFilters();
-  const curriculumStages = (state.curriculum && state.curriculum.stages) || [];
-  const all = state.range.stages;
-  const shown = all.filter(matchesLabFilters);
-  const hasFilters = state.labFilters.status !== "all" || state.labFilters.difficulty !== "all" || state.labFilters.q;
-  list.innerHTML = `
-    <div class="results-row" style="grid-column:1 / -1">
-      <span class="results-count">${shown.length} ${shown.length === 1 ? "lab" : "labs"} <span class="muted">· ${all.reduce((n, s) => n + s.scenarios.length, 0)} scenarios · 50 hard gates</span></span>
-      ${hasFilters ? `<button type="button" class="facet-clear" data-clear-top="1">Clear filters</button>` : ""}
-    </div>
-    ${shown.map((stage, i) => {
-      const cur = curriculumStages.find((s) => s.id === stage.stage_id);
-      const isCurrent = stage.stage_id === state.currentStageId;
-      const isCompleted = cur && cur.status === "completed";
-      const status = isCompleted ? "Completed" : isCurrent ? "In progress" : "Locked";
-      const statusClass = isCompleted ? "ok" : isCurrent ? "accent" : "muted";
-      const code = stage.stage_id.split("-")[0];
-      const lo = String(minDifficulty(stage)).padStart(2, "0");
-      const hi = String(maxDifficulty(stage)).padStart(2, "0");
-      const cover = coverFor(i, code);
-      return `<a class="lab-card" href="#/lab/${encodeURIComponent(stage.stage_id)}">
-        <span class="lab-cover" aria-hidden="true" style="background:linear-gradient(135deg, ${cover.g1}, ${cover.g2})">
-          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${cover.glyph}</svg>
-          <span class="cover-code">${esc(code)}</span>
-        </span>
-        <div class="lab-card-top">
-          <span class="lab-code">${esc(code)}</span>
-          <span class="lab-status ${statusClass}">${status}</span>
-        </div>
-        <h3 class="lab-card-title">${esc(stageTitle(stage.stage_id))}</h3>
-        <p class="lab-card-sub">${stage.scenarios.length} hands-on scenarios · ${esc(stage.stage_id)}</p>
-        <div class="lab-card-foot">
-          <span>D${lo}–D${hi} · ${stage.scenarios.length} exercises</span>
-          <span class="lab-arrow">Open →</span>
-        </div>
-      </a>`;
-    }).join("") || '<p class="muted" style="grid-column:1 / -1; margin-top:12px">No labs match your filters.</p>'}`;
-  const clearTop = list.querySelector("[data-clear-top]");
-  if (clearTop) clearTop.addEventListener("click", () => {
-    state.labFilters = { status: "all", difficulty: "all", q: "" };
-    const search = $("lab-search");
+  const clear = $("filter-clear-all");
+  if (clear) clear.addEventListener("click", () => {
+    state.challengeFilters = { stage: "all", difficulty: "all", branch: "all", status: "all", q: "" };
+    const search = $("challenge-search");
     if (search) search.value = "";
-    renderRange();
+    state.page = 1;
+    renderChallenges();
   });
-
 }
 
-/* ---------- Stage / gates / synthesis ---------- */
-
-async function refreshStage() {
-  const data = await api(`/api/scenarios?learner_id=${encodeURIComponent(state.learner)}`);
-  if (data.status === "complete") {
-    state.currentStageId = null;
-    state.scenarios = [];
-    state.synthesis = null;
-    state.gates = [];
-    renderRange();
-    renderScenario();
-    renderSynthesis();
-    $("status-stage").textContent = "current stage: complete";
-    return;
-  }
-  state.currentStageId = data.stage_id;
-  state.scenarios = data.scenarios;
-  const gates = await api(`/api/gates?learner_id=${encodeURIComponent(state.learner)}`);
-  state.gates = gates.gates || [];
-  state.gateMeta = gates;
-  state.synthesis = state.gates.find((gate) => gate.status === "unlocked") || null;
-  renderRange();
-  renderScenario();
-  renderSynthesis();
-  renderProgression();
-  $("status-stage").innerHTML = `current stage: <b>${esc(data.stage_id)}</b>`;
-}
-
-function renderPosture(profile) {
-  if (!profile) return;
-  const domains = (profile.data_domains || []).join(", ");
-  const controls = (profile.controls || []).join(", ");
-  $("status-profile").innerHTML = `bank posture: <b>L${esc(profile.level)}</b> · ${esc(profile.security_tier)} · ${esc(profile.operating_mode)}`;
-  const body = $("posture-body");
-  if (!body) return;
-  body.innerHTML = `
-    <div class="hint" style="margin-bottom:10px"><b style="color:var(--text)">${esc(profile.label)}</b> — only this profile's synthetic data and controls are active after the last accepted flag.</div>
-    <div class="chip-grid">
-      <span class="chip">security: ${esc(profile.security_tier)}</span>
-      <span class="chip">mode: ${esc(profile.operating_mode)}</span>
-      <span class="chip">staff: ${esc(profile.staff_access)}</span>
-      <span class="chip">customer: ${esc(profile.customer_access)}</span>
+/** @param {ScenarioSummary} sc @param {number} index */
+function challengeCardHTML(sc, index) {
+  const t = coverTheme(index);
+  const st = scenarioStatus(sc);
+  const band = difficultyBand(sc.difficulty);
+  const code = (sc.stage_id || "").split("-")[0] || "SC";
+  const coverBadgeCls = st === "complete" ? "complete" : st === "active" ? "active" : st === "locked" ? "locked" : "not-started";
+  return `<article class="challenge-card" data-scenario="${esc(sc.scenario_id)}" role="button" tabindex="0" aria-label="${esc(sc.title)}">
+    <div class="challenge-cover" aria-hidden="true" style="background:linear-gradient(135deg, ${t.g1}, ${t.g2})">
+      ${patternSVG(t.pattern)}
+      <span class="cover-glow"></span>
+      ${iconSVG(t.icon, "cover-icon")}
+      <span class="cover-badge ${coverBadgeCls}">${esc(statusLabel(st))}</span>
+      <span class="cover-code">${esc(code)} · ${String(index + 1).padStart(2, "0")}</span>
     </div>
-    <div class="kv" style="margin-top:14px"><span>Data domains</span></div>
-    <div class="hint" style="font-size:12px">${esc(domains)}</div>
-    <div class="kv" style="margin-top:12px"><span>Controls</span></div>
-    <div class="hint" style="font-size:12px">${esc(controls)}</div>`;
+    <div class="challenge-body">
+      <div class="ch-top">
+        <span class="ch-stage">${esc(code)}</span>
+        <span class="ch-branch">${esc(branchLabel(sc.branch))}</span>
+      </div>
+      <h3 class="challenge-title">${esc(sc.title)}</h3>
+      <p class="challenge-obj">${esc(sc.objective)}</p>
+      <div class="challenge-stats">
+        <span class="ch-stat ${band}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8z"/></svg>
+          ${bandLabel(band)}
+        </span>
+        <span class="ch-stat free">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.2c0-.7.9-1.2 2.5-1.2s2.5.5 2.5 1.2M9.5 14.8c0 .7.9 1.2 2.5 1.2s2.5-.5 2.5-1.2"/></svg>
+          Free
+        </span>
+        <span class="ch-stat pts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4l-2 2 2 2v4H7v-4l2-2-2-2z"/><path d="M7 20h10"/></svg>
+          ${pointsFor(sc)} pts
+        </span>
+        <span class="ch-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </div>
+    </div>
+  </article>`;
 }
 
-function renderProgression() {
-  const body = $("progress-body");
-  if (!body) return;
-  const stages = (state.curriculum && state.curriculum.stages) || [];
-  const completed = stages.filter((s) => s.status === "completed").length;
-  const pct = stages.length ? Math.round((completed / stages.length) * 100) : 0;
-  const meta = state.gateMeta || /** @type {GateMeta} */ ({});
-  let gatesHtml = '<p class="muted">No hard-gate data yet.</p>';
-  if (state.gates.length) {
-    gatesHtml = state.gates.map((g) => `
-      <div class="gate-row">
-        <span class="rank">G${String(g.rank).padStart(2, "0")}</span>
-        <span class="gtitle">${esc(g.title)}</span>
-        <span class="state ${g.status}">${g.status}</span>
-      </div>`).join("");
+function renderChallengeGrid() {
+  const grid = $("challenge-grid");
+  if (!grid) return;
+  const all = allScenarios().filter(matchesChallengeFilters);
+  const totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+  if (state.page > totalPages) state.page = totalPages;
+  const start = (state.page - 1) * PAGE_SIZE;
+  const shown = all.slice(start, start + PAGE_SIZE);
+  const countEl = $("results-count");
+  if (countEl) countEl.innerHTML = `${shown.length} ${shown.length === 1 ? "challenge" : "challenges"} shown <span class="muted">· ${all.length} matched · ${allScenarios().length} total · 50 hard gates</span>`;
+  const clearBtn = $("clear-filters");
+  if (clearBtn) {
+    const hasFilters = state.challengeFilters.stage !== "all" || state.challengeFilters.difficulty !== "all" || state.challengeFilters.branch !== "all" || state.challengeFilters.status !== "all" || !!state.challengeFilters.q;
+    clearBtn.classList.toggle("hidden", !hasFilters);
   }
-  body.innerHTML = `
-    <div class="prog-row"><span>Stage progress</span><b>${completed} / ${stages.length || 10}</b></div>
-    <div class="progress-bar"><span style="width:${pct}%"></span></div>
-    <div class="prog-row" style="margin-top:16px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 50)}</b></div>
-    ${meta.current_gate_id ? `<div class="prog-row"><span>Current gate</span><b class="accent">${esc(meta.current_gate_id)}</b></div>` : ""}
-    <div style="margin-top:12px">${gatesHtml}</div>`;
-}
-
-function renderMission(stageId) {
-  const body = $("mission-body");
-  if (!body) return;
-  const stages = (state.curriculum && state.curriculum.stages) || [];
-  const stage = stageId
-    ? stages.find((s) => s.id === stageId)
-    : (stages.find((s) => s.status === "unlocked") || stages.find((s) => s.status === "completed") || null);
-  if (!stage) {
-    body.innerHTML = '<p class="muted">No mission data for this lab yet.</p>';
-    return;
+  const heroCount = $("hero-count");
+  if (heroCount) heroCount.textContent = String(allScenarios().length);
+  if (!shown.length) {
+    grid.innerHTML = '<p class="muted" style="grid-column:1 / -1; margin:24px 0; text-align:center">No challenges match your filters.</p>';
+  } else {
+    grid.innerHTML = shown.map(challengeCardHTML).join("");
+    $$(".challenge-card").forEach((card) => {
+      const open = () => openChallenge(card.dataset.scenario);
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); }
+      });
+    });
   }
-  const hints = (stage.hints || []).map((h) => `
-    <div class="hint-line">
-      <span class="hint-level">HINT ${h.level}</span>
-      <span>${esc(h.text)}</span>
-    </div>`).join("");
-  const services = (stage.target_services || []).map((s) => `<span class="chip">${esc(s)}</span>`).join("");
-  const skills = (stage.skills || []).map((s) => `<span class="chip">${esc(s)}</span>`).join("");
-  body.innerHTML = `
-    <p class="mission-text">${esc(stage.mission || stage.title || "")}</p>
-    ${services ? `<div class="chip-grid" style="margin-bottom:8px">${services}</div>` : ""}
-    ${skills ? `<div class="chip-grid" style="margin-bottom:8px">${skills}</div>` : ""}
-    <div class="hint-label">Safe progressive hints</div>
-    ${hints || '<p class="muted">No hints available.</p>'}`;
+  renderPagination(totalPages);
 }
 
-/* ---------- Scenario detail ---------- */
+function renderPagination(totalPages) {
+  const nav = $("challenge-pagination");
+  if (!nav) return;
+  if (totalPages <= 1) { nav.innerHTML = ""; return; }
+  /** @param {number} p */
+  const btn = (p, label, cls) => `
+    <button type="button" class="page-btn ${cls || ""}" data-page="${p}" ${p === state.page ? "disabled" : ""}>${label}</button>`;
+  const pages = [];
+  const cur = state.page;
+  for (let p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 1 && p < totalPages && Math.abs(p - cur) > 1) {
+      if (pages[pages.length - 1] !== "…") pages.push("…");
+      continue;
+    }
+    pages.push(p);
+  }
+  nav.innerHTML = btn(Math.max(1, cur - 1), "←", cur === 1 ? "" : "") + " " +
+    pages.map((p) => (p === "…" ? '<span class="page-dots">…</span>' : btn(Number(p), String(p), p === cur ? "active" : ""))).join("") +
+    " " + btn(Math.min(totalPages, cur + 1), "→");
+  $$(".page-btn").forEach((b) => {
+    if (b.dataset.page && !b.hasAttribute("disabled")) {
+      b.addEventListener("click", () => {
+        state.page = parseInt(b.dataset.page, 10) || 1;
+        renderChallenges();
+      });
+    }
+  });
+}
 
-function renderScenario() {
-  const detail = $("scenario-detail");
-  if (!detail) return;
-  if (!state.selected) { detail.innerHTML = '<p class="muted">Select a scenario to begin.</p>'; return; }
-  const sc = state.selected;
+function renderChallenges() {
+  renderChallengeFilters();
+  renderChallengeGrid();
+}
+
+/* ---------- PAGE 2: challenge detail ---------- */
+
+function renderLabAccess(sc) {
+  const box = $("lab-access");
+  if (!box) return;
   const run = findRun(sc.scenario_id);
   const status = run ? run.status : "not-started";
-  const progress = run ? run.progress : `0/${sc.step_count}`;
-  const clueList = (sc.clues || []).map((c) => `<li>${esc(c)}</li>`).join("");
-  detail.innerHTML = `
-    <div class="scenario-head">
-      <span class="badge">${esc(sc.scenario_id)}</span>
-      <span class="badge">D${esc(sc.difficulty)}</span>
-      <span class="badge">${esc(sc.branch)}</span>
-      <span class="badge ${status === "complete" ? "ok" : status === "active" ? "warn" : ""}">${status} · ${esc(progress)}</span>
-    </div>
-    <h3 class="scenario-title">${esc(sc.title)}</h3>
-    <p class="objective">${esc(sc.objective)}</p>
-    <details>
-      <summary>Objective clues (progressive)</summary>
-      <ul>${clueList}</ul>
-    </details>
-    <details>
-      <summary>Required detection rules</summary>
-      <div class="chip-grid" style="margin-top:9px">${(sc.detection_rule_ids || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
-    </details>
-    <details>
-      <summary>Required controls</summary>
-      <div class="chip-grid" style="margin-top:9px">${(sc.required_controls || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
-    </details>
-    <div class="row">
-      <button id="start-btn" class="btn btn-primary" type="button" ${status === "active" || status === "complete" ? "disabled" : ""}>Start scenario</button>
-      <button id="hint-btn" class="btn btn-secondary" type="button">Next-step hint</button>
-      <button id="reset-btn" class="btn btn-danger" type="button" style="display:${status === "active" ? "inline-flex" : "none"}">Reset run</button>
-    </div>
-    <div id="hint-box"></div>
-    <div id="event-box"></div>`;
-  $("start-btn").addEventListener("click", startScenario);
-  $("hint-btn").addEventListener("click", showHint);
+  const band = difficultyBand(sc.difficulty);
+  let inner;
+  if (status === "complete") {
+    inner = `
+      <div class="la-done">✓ Scenario complete — the evidence token is ready for hard-gate synthesis below.</div>`;
+  } else if (status === "active") {
+    const total = sc.step_count || 1;
+    const done = Math.max(0, Math.min(total, parseInt(String(run.progress).split("/")[0], 10) - 1));
+    const pct = Math.round((done / total) * 100);
+    inner = `
+      <div class="la-progress">
+        <div class="lp-row"><span>STEP ${done + 1} OF ${total}</span><b>${done}/${total} done</b></div>
+        <div class="progress-bar"><span style="width:${pct}%"></span></div>
+      </div>
+      <div class="la-actions">
+        <button id="hint-btn" class="btn btn-primary" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.7-1 1.4-1 2.5h-6c0-1.1-.3-1.8-1-2.5A6 6 0 0 1 12 3z"/></svg>
+          Next-step hint
+        </button>
+        <div class="row2">
+          <button id="reset-btn" class="btn btn-danger" type="button">Reset run</button>
+        </div>
+      </div>`;
+  } else {
+    inner = `
+      <div class="la-actions">
+        <button id="start-btn" class="btn btn-primary btn-block" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l14 8-14 8z"/></svg>
+          START LAB
+        </button>
+      </div>`;
+  }
+  box.innerHTML = `
+    <div class="lab-access">
+      <div class="la-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 12.5H11L9.5 22 19 10.5h-6.5z"/></svg>
+      </div>
+      <h3>Lab Access</h3>
+      <p class="la-question">Are you ready for the challenge?</p>
+      <p class="la-sub">One per-run evidence set. Every accepted step chains its token into the next observation.</p>
+      ${inner}
+      <div class="la-meta">
+        <span class="pill ${band === "hard" ? "danger" : band === "medium" ? "warn" : "ok"}">${bandLabel(band)}</span>
+        <span class="pill accent">${esc(branchLabel(sc.branch))}</span>
+        <span class="pill warn">${pointsFor(sc)} pts</span>
+        <span class="pill ${status === "complete" ? "ok" : status === "active" ? "warn" : ""}">${esc(statusLabel(status))}</span>
+      </div>
+    </div>`;
+
+  const startBtn = $("start-btn");
+  if (startBtn) startBtn.addEventListener("click", startScenario);
+  const hintBtn = $("hint-btn");
+  if (hintBtn) hintBtn.addEventListener("click", refreshHint);
   const resetBtn = $("reset-btn");
   if (resetBtn) resetBtn.addEventListener("click", resetRun);
-  if (status === "active") showHint();
-  renderLabScenarios();
 }
 
-async function selectScenario(scenarioId) {
-  if (!state.range) return;
-  const stage = stageForScenario(scenarioId);
-  const sc = stage && stage.scenarios.find((s) => s.scenario_id === scenarioId);
-  if (!sc) return;
-  if (stage.stage_id !== state.currentStageId) {
-    toast("This lab is locked — only the current stage's scenarios can be opened.", "error");
-    return;
-  }
-  state.selected = sc;
-  renderLabScenarios();
-  renderScenario();
-}
-
-async function startScenario() {
-  try {
-    const result = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/start`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ learner_id: state.learner }),
-    });
-    toast(result.message || "scenario started", "ok");
-    await refreshStage();
-  } catch (error) {
-    toast("start failed: " + error.message, "error");
-  }
-}
-
-async function showHint() {
-  const box = $("hint-box");
-  try {
-    const hint = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/hint?learner_id=${encodeURIComponent(state.learner)}`);
-    if (hint.status !== "active") {
-      box.innerHTML = `<div class="step-box"><span class="hint">Scenario is ${esc(hint.status)} (${esc(hint.progress)}).</span></div>`;
-      return;
-    }
-    box.innerHTML = `
-      <div class="step-box">
-        <div class="event">event: ${esc(hint.event)}</div>
-        <div class="obs">observation: ${esc(hint.observation)}</div>
-        <div class="keys">required evidence keys: ${(hint.required_evidence_keys || []).map((k) => `<code>${esc(k)}</code>`).join(" ") || "none"}</div>
+function renderChallengeHero(sc) {
+  const box = $("detail-hero");
+  if (!box) return;
+  const t = coverTheme(seedIndex(sc.scenario_id));
+  const band = difficultyBand(sc.difficulty);
+  const st = scenarioStatus(sc);
+  const run = findRun(sc.scenario_id);
+  box.innerHTML = `
+    <div class="detail-illus" aria-hidden="true" style="background:linear-gradient(135deg, ${t.g1}, ${t.g2})">
+      ${patternSVG(t.pattern)}
+      ${iconSVG(t.icon, "cover-icon")}
+    </div>
+    <div style="min-width:0">
+      <div class="dh-badges" style="margin-bottom:12px">
+        <span class="pill ${band === "hard" ? "danger" : band === "medium" ? "warn" : "ok"}">${bandLabel(band)} difficulty</span>
+        <span class="pill warn">${pointsFor(sc)} pts</span>
+        <span class="pill accent">${esc(branchLabel(sc.branch))}</span>
+        <span class="pill ${st === "complete" ? "ok" : st === "active" ? "warn" : "danger"}">${esc(statusLabel(st))}</span>
       </div>
-      <div class="row"><button id="fill-btn" class="btn btn-primary" type="button">Build evidence form</button></div>`;
-    $("fill-btn").addEventListener("click", () => buildEvidenceForm(hint));
-  } catch (error) {
-    box.innerHTML = `<div class="step-box"><span class="hint">hint unavailable: ${esc(error.message)}</span></div>`;
+      <h1>${esc(sc.title)}</h1>
+      <p class="dh-desc">${esc(sc.objective)}</p>
+      <div class="dh-meta">${esc(sc.scenario_id)} · ${esc(sc.stage_id || "")} · ${sc.step_count} steps${run && run.completion_token ? " · evidence token issued" : ""}</div>
+    </div>`;
+}
+
+/** @param {string} s @returns {number} */
+function seedIndex(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % 1000;
+}
+
+function renderDescription(sc) {
+  const box = $("detail-desc");
+  if (!box) return;
+  const mission = stageMission(sc.stage_id || "");
+  const clues = (sc.clues || []).map((c) => `<li>${esc(c)}</li>`).join("");
+  const rules = (sc.detection_rule_ids || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("") || '<span class="muted">none declared</span>';
+  const controls = (sc.required_controls || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("") || '<span class="muted">none declared</span>';
+  box.innerHTML = `
+    <div class="desc-section">
+      <h4>Scenario briefing</h4>
+      <p>${esc(sc.objective)}</p>
+    </div>
+    ${mission ? `<div class="desc-section"><h4>Why this matters</h4><p>${esc(mission)}</p></div>` : ""}
+    <div class="desc-section">
+      <h4>Progressive clues</h4>
+      <ul class="clue-list">${clues}</ul>
+    </div>
+    <div class="desc-section">
+      <h4>Detection coverage</h4>
+      <div class="chip-grid">${rules}</div>
+    </div>
+    <div class="desc-section">
+      <h4>Required controls</h4>
+      <div class="chip-grid">${controls}</div>
+    </div>`;
+}
+
+/* Attack flow diagram — light panel with a radial step map */
+function flowSteps(sc) {
+  const clues = (sc.clues || []).map((c) => c.trim()).filter(Boolean);
+  const phases = ["Discovery", "Reconnaissance", "Footprinting", "Exploitation", "Privilege escalation", "Lateral movement", "Exfiltration", "Cover-up"];
+  const total = Math.max(4, Math.min(7, clues.length || sc.step_count || 4));
+  const out = [];
+  for (let i = 0; i < total; i++) {
+    out.push(clues[i] ? truncate(clues[i], 26) : phases[i % phases.length]);
+  }
+  return out;
+}
+
+const FLOW_ICONS = ["radar", "eye", "key", "terminal", "fire", "flow", "skull", "vault"];
+const FLOW_GLYPHS = {
+  radar: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5V12l6 3.5"/>',
+  eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  key: '<circle cx="8" cy="16" r="3.2"/><path d="M10.4 13.6L19 5"/><path d="M15 8.5l2.5 2.5"/>',
+  terminal: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7.5 9.5l3 2.5-3 2.5"/><path d="M12.5 14.5h4"/>',
+  fire: '<path d="M12 3c1.5 3 4.5 4.8 4.5 8.5A4.5 4.5 0 0 1 12 16a4.5 4.5 0 0 1-4.5-4.5c0-1.5.8-2.7 1.6-3.9C9.6 9.5 10 11 10 11c.4-3.5 1-5.5 2-8z"/>',
+  flow: '<circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6.4 7.6L10.8 16M17.6 7.6L13.2 16"/>',
+  skull: '<circle cx="12" cy="12" r="8"/><circle cx="9" cy="10.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="10.6" r="1.2" fill="currentColor" stroke="none"/><path d="M12 15.5l-1.4 2M12 15.5l1.4 2"/>',
+  vault: '<rect x="7" y="10" width="10" height="8" rx="1.5"/><path d="M9.5 10V8a2.5 2.5 0 0 1 5 0v2"/><path d="M12 13v2.2"/>',
+};
+
+function renderFlow(sc) {
+  const box = $("detail-flow");
+  if (!box) return;
+  const labels = flowSteps(sc);
+  const n = labels.length;
+  const cx = 50;
+  const cy = 50;
+  const r = 36;
+  const pts = labels.map((label, i) => {
+    const ang = ((-90 + (i * 360) / n) * Math.PI) / 180;
+    return { x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang), label, i };
+  });
+  const lines = pts.map((p) => `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(2)}" y2="${p.y.toFixed(2)}" />`).join("");
+  const nodes = pts.map((p) => `
+    <div class="flow-node" style="left:${p.x.toFixed(2)}%; top:${p.y.toFixed(2)}%">
+      <span class="fn-oval"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${FLOW_GLYPHS[FLOW_ICONS[p.i % FLOW_ICONS.length]]}</svg></span>
+      <span class="fn-step">Step ${p.i + 1}</span>
+      <span class="fn-label">${esc(p.label)}</span>
+    </div>`).join("");
+  box.innerHTML = `
+    <div class="flow-wrap">
+      <svg class="flow-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>
+      <div class="flow-center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="10" rx="2"/><circle cx="9" cy="12.5" r="1.2"/><circle cx="15" cy="12.5" r="1.2"/><path d="M12 8V5.5"/><path d="M7 21v-3M17 21v-3"/></svg>
+        <b>AI RED TEAM AGENT</b>
+        <span>${esc(branchLabel(sc.branch))} chain</span>
+      </div>
+      ${nodes}
+    </div>
+    <p class="muted" style="margin:10px 0 0; font-size:12px; color:#66667a">Radial attack-flow map — every step must be evidenced in order before the hard gate unlocks.</p>`;
+}
+
+/* Questions panel — one card per scenario step */
+function runStepIndex(run) {
+  if (!run) return 0;
+  const n = parseInt(String(run.progress).split("/")[0], 10) || 0;
+  return Math.max(0, n - 1);
+}
+
+function renderQuestions(sc, run, hint) {
+  const box = $("questions-list");
+  if (!box) return;
+  const total = sc.step_count || 1;
+  const status = run ? run.status : "not-started";
+  const current = status === "active" ? runStepIndex(run) : status === "complete" ? total : -1;
+  const cards = [];
+  for (let i = 0; i < total; i++) {
+    const isDone = status === "complete" || (status === "active" && i < current);
+    const isCurrent = status === "active" && i === current;
+    const isLocked = !isDone && !isCurrent;
+    let body = "";
+    let pill = "";
+    if (isDone) {
+      pill = '<span class="q-pill ok">Completed</span>';
+      body = '<p class="q-locked-text">Evidence recorded for this step.</p>';
+    } else if (isCurrent) {
+      pill = '<span class="q-pill current">Current</span>';
+      if (hint && hint.status === "active") {
+        body = `
+          <p class="q-text">${esc(hint.observation || "Complete this step to continue the chain.")}</p>
+          <p class="q-event">event: <code>${esc(hint.event || "")}</code></p>
+          <div id="event-box"></div>
+          <button type="button" class="q-hint-btn hint-refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.7-1 1.4-1 2.5h-6c0-1.1-.3-1.8-1-2.5A6 6 0 0 1 12 3z"/></svg>
+            Hint
+          </button>`;
+      } else {
+        body = '<p class="q-locked-text">Start the scenario to reveal this question.</p>';
+      }
+    } else {
+      pill = '<span class="q-pill locked">Locked</span>';
+      body = '<p class="q-locked-text">Complete the previous step to unlock this question.</p>';
+    }
+    cards.push(`
+      <div class="q-card ${isCurrent ? "current" : isDone ? "done" : "locked"}">
+        <div class="q-head">
+          <span class="q-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h11l-2.5 3.5L17 11H6"/></svg></span>
+          <span class="q-num">Question ${i + 1}</span>
+          ${pill}
+        </div>
+        ${body}
+      </div>`);
+  }
+  box.innerHTML = cards.join("") || '<p class="muted">No questions yet.</p>';
+  $$(".hint-refresh").forEach((b) => b.addEventListener("click", refreshHint));
+  if (status === "active" && hint && hint.status === "active") {
+    buildEvidenceForm(hint);
   }
 }
 
+/* Evidence collection form — candidate chips rendered per required key */
 function buildEvidenceForm(hint) {
   const box = $("event-box");
+  if (!box) return;
   const keys = (hint.required_evidence_keys || []).filter((k) => k !== "event");
   const rows = keys.map((key) => {
     const info = (hint.candidates || {})[key] || { candidates: [] };
@@ -1598,15 +1996,18 @@ function buildEvidenceForm(hint) {
     return `
       <div class="ev-row">
         <input value="${esc(key)}" readonly aria-label="evidence key" />
-        <div class="candidate-row" data-key="${esc(key)}">${chips}<span class="hint" style="margin-left:6px">select one</span></div>
+        <div class="candidate-row" data-key="${esc(key)}">${chips}<span class="muted" style="margin-left:6px; font-size:11px">select one</span></div>
       </div>`;
   }).join("");
   box.innerHTML = `
-    <div class="step-box">
-      <div class="event">${esc(hint.event)}</div>
+    <div class="step-box" style="margin-top:0">
+      <div class="event">evidence required</div>
       ${rows || '<p class="muted">No evidence keys required for this step.</p>'}
-      <div class="row">
-        <button id="submit-event" class="btn btn-primary" type="button">Submit evidence event</button>
+      <div class="q-submit">
+        <button id="submit-event" class="btn btn-purple" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+          Submit evidence
+        </button>
       </div>
     </div>`;
   $$(".candidate-chip").forEach((chip) => {
@@ -1616,56 +2017,18 @@ function buildEvidenceForm(hint) {
       chip.classList.add("selected");
     });
   });
-  $("submit-event").addEventListener("click", () => submitEvent(hint));
+  const submit = $("submit-event");
+  if (submit) submit.addEventListener("click", () => submitEvent(hint));
 }
 
-async function submitEvent(hint) {
-  const evidence = {};
-  $$("#event-box .candidate-chip.selected").forEach((chip) => {
-    evidence[chip.dataset.key] = chip.dataset.value;
-  });
-  const proof = $("proof-value");
-  if (proof && proof.value) evidence.proof = proof.value;
-  try {
-    const result = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/event`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ learner_id: state.learner, event: hint.event, evidence }),
-    });
-    toast(result.message || "event accepted", "ok");
-    $("event-box").innerHTML = "";
-    $("hint-box").innerHTML = "";
-    await refreshStage();
-    if (result.status === "complete") {
-      toast("Scenario complete — evidence token issued.", "ok");
-    } else {
-      showHint();
-    }
-  } catch (error) {
-    toast("event rejected: " + error.message, "error");
-  }
-}
-
-async function resetRun() {
-  try {
-    await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/reset`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ learner_id: state.learner }),
-    });
-    toast("run reset", "ok");
-    await refreshStage();
-  } catch (error) {
-    toast("reset failed: " + error.message, "error");
-  }
-}
-
-/* ---------- Synthesis ---------- */
-
+/** Render the synthesis (solution) panel for the currently unlocked hard gate. */
 function renderSynthesis() {
-  const panel = $("synthesis-detail");
+  const panel = $("solution-body");
   if (!panel) return;
-  if (!state.synthesis) { panel.innerHTML = '<p class="muted">The next hard gate appears after the previous gate is accepted.</p>'; return; }
+  if (!state.synthesis) {
+    panel.innerHTML = '<p class="muted">The next hard gate appears after the previous gate is accepted. Complete every challenge step to unlock hard-gate synthesis.</p>';
+    return;
+  }
   const req = state.synthesis;
   const runs = state.scenarios || [];
   const completeMap = {};
@@ -1679,22 +2042,27 @@ function renderSynthesis() {
   const controlChips = (req.required_controls || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("");
   const concepts = (req.concepts || []).map((c) => `<span class="chip">${esc(c)}</span>`).join("");
   panel.innerHTML = `
-    <div class="scenario-head"><span class="badge accent">${esc(req.gate_id)}</span><span class="badge">${esc(req.title || "")}</span></div>
-    <div class="hint" style="margin-bottom:6px">Required scenarios (in order):</div>
-    <div class="chip-grid" style="margin:6px 0 12px">${scenarioChips}</div>
-    <div class="hint" style="margin-bottom:6px">Detection coverage:</div>
-    <div class="chip-grid" style="margin:6px 0 12px">${detectionChips}</div>
-    <div class="hint" style="margin-bottom:6px">Required controls:</div>
-    <div class="chip-grid" style="margin:6px 0 12px">${controlChips}</div>
-    <div class="hint" style="margin-bottom:6px">Concepts that must appear in the summary:</div>
-    <div class="chip-grid" style="margin:6px 0 12px">${concepts}</div>
-    <div class="row" style="margin:0 0 6px"><span class="badge ${allComplete ? "ok" : "warn"}">${allComplete ? "Gate scenarios complete — synthesis unlocked" : "Pending: " + missingTokens.join(", ")}</span></div>
+    <div class="syn-status">
+      <span class="pill accent">${esc(req.gate_id)}</span>
+      <span class="pill">${esc(req.title || "")}</span>
+    </div>
+    <p class="hint" style="margin:4px 0 6px">Required challenges (in order):</p>
+    <div class="chip-grid syn-chips">${scenarioChips}</div>
+    <p class="hint" style="margin:4px 0 6px">Detection coverage:</p>
+    <div class="chip-grid syn-chips">${detectionChips}</div>
+    <p class="hint" style="margin:4px 0 6px">Required controls:</p>
+    <div class="chip-grid syn-chips">${controlChips}</div>
+    <p class="hint" style="margin:4px 0 6px">Concepts that must appear in the summary:</p>
+    <div class="chip-grid syn-chips">${concepts}</div>
+    <div class="row" style="margin:0 0 6px">
+      <span class="pill ${allComplete ? "ok" : "warn"}">${allComplete ? "Gate challenges complete — synthesis unlocked" : "Pending: " + missingTokens.join(", ")}</span>
+    </div>
     ${allComplete ? `
-      <div class="field" style="margin-top:12px">
+      <div class="syn-field">
         <label for="syn-summary">Incident summary (must contain all concepts above)</label>
         <textarea id="syn-summary" placeholder="Describe the incident, evidence chain, and controls…"></textarea>
       </div>
-      <div class="field" style="margin-top:12px">
+      <div class="syn-field">
         <label for="syn-timeline">Timeline (one evidence event per line, at least ${req.scenario_ids.length} entries)</label>
         <textarea id="syn-timeline" placeholder="T1 …&#10;T2 …"></textarea>
       </div>
@@ -1731,8 +2099,8 @@ async function runSynthesis() {
     const flag = result.hard_flag;
     $("syn-result").innerHTML = `
       <div class="step-box">
-        <div class="badge ok" style="margin-bottom:9px">Synthesis accepted</div>
-        <div class="hint">Hard-gate flag (submit to unlock the next gate):</div>
+        <div class="pill ok" style="margin-bottom:9px">Synthesis accepted</div>
+        <p class="hint">Hard-gate flag (submit to unlock the next gate):</p>
         <div class="token-line">${esc(flag)}</div>
         <div class="row">
           <button id="copy-flag" class="btn btn-secondary" type="button">Copy</button>
@@ -1744,7 +2112,7 @@ async function runSynthesis() {
     });
     $("submit-gate").addEventListener("click", () => submitFlagToGate(flag));
   } catch (error) {
-    $("syn-result").innerHTML = `<div class="step-box"><span class="badge">Synthesis rejected</span><div class="obs">${esc(error.message)}</div></div>`;
+    $("syn-result").innerHTML = `<div class="step-box"><span class="pill">Synthesis rejected</span><div class="obs">${esc(error.message)}</div></div>`;
   }
 }
 
@@ -1756,7 +2124,7 @@ async function submitFlagToGate(flag) {
       body: JSON.stringify({ learner_id: state.learner, gate_id: state.synthesis.gate_id, flag }),
     });
     toast(result.message || "flag accepted", "ok");
-    $("syn-result").innerHTML = `<div class="step-box"><div class="badge ok">Gate accepted — ${esc(result.next_gate_id || result.next_stage_id || "curriculum complete")}</div></div>`;
+    $("syn-result").innerHTML = `<div class="step-box"><div class="pill ok">Gate accepted — ${esc(result.next_gate_id || result.next_stage_id || "curriculum complete")}</div></div>`;
     await refreshStage();
     await loadAll();
   } catch (error) {
@@ -1764,80 +2132,321 @@ async function submitFlagToGate(flag) {
   }
 }
 
-/* ---------- Lab page ---------- */
+/** Main detail renderer. */
+async function renderChallenge(scenarioId) {
+  const sc = findScenario(scenarioId);
+  if (!sc) {
+    toast("Unknown challenge.", "error");
+    location.hash = "#/challenges";
+    return;
+  }
+  if (scenarioStatus(sc) === "locked") {
+    toast("This challenge is locked — complete the current stage first.", "error");
+    location.hash = "#/challenges";
+    return;
+  }
+  state.selected = sc;
+  state.hint = null;
+  const main = $("challenge-detail");
+  main.innerHTML = `
+    <div class="detail-hero" id="detail-hero"></div>
+    <details class="detail-card" open>
+      <summary>
+        <span class="sum-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg></span>
+        Description
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="card-body" id="detail-desc"></div>
+    </details>
+    <details class="detail-card flow-card" open>
+      <summary>
+        <span class="sum-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6.4 7.6L10.8 16M17.6 7.6L13.2 16"/></svg></span>
+        Attack flow
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="card-body" id="detail-flow"></div>
+    </details>
+    <details class="detail-card">
+      <summary>
+        <span class="sum-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.6V11c0 4.4-3 7.6-7 9.4-4-1.8-7-5-7-9.4V5.6L12 3z"/><path d="M9 11.5l2 2 4-4"/></svg></span>
+        Solution — hard-gate synthesis
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="card-body" id="solution-body"></div>
+    </details>`;
 
-function renderLabScenarios() {
-  const box = $("lab-scenarios");
-  if (!box) return;
-  const stage = state.range && state.range.stages.find((s) => s.stage_id === state.currentLab);
-  if (!stage) { box.innerHTML = '<p class="muted">No scenarios.</p>'; return; }
-  box.innerHTML = stage.scenarios.map((sc) => {
-    const run = findRun(sc.scenario_id);
-    const status = run ? run.status : "not-started";
-    const active = state.selected && state.selected.scenario_id === sc.scenario_id;
-    return `<button type="button" class="scenario-row ${active ? "active" : ""}" data-scenario="${esc(sc.scenario_id)}">
-      <span class="sc-diff">D${String(sc.difficulty).padStart(2, "0")}</span>
-      <span class="sc-title">${esc(sc.title)}</span>
-      <span class="state ${status}">${status}</span>
-    </button>`;
-  }).join("");
-  $$(".scenario-row").forEach((row) => {
-    row.addEventListener("click", () => selectScenario(row.dataset.scenario));
-  });
+  const side = $("challenge-side");
+  side.innerHTML = `
+    <div id="lab-access"></div>
+    <div class="q-panel">
+      <h3>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h11l-2.5 3.5L17 11H6"/></svg>
+        Questions
+      </h3>
+      <div id="questions-list"></div>
+    </div>`;
+
+  renderChallengeHero(sc);
+  renderDescription(sc);
+  renderFlow(sc);
+  renderSynthesis();
+  renderLabAccess(sc);
+  const run = findRun(sc.scenario_id);
+  renderQuestions(sc, run, null);
+  if (run && run.status === "active") {
+    try {
+      const hint = await api(`/api/scenarios/${encodeURIComponent(sc.scenario_id)}/hint?learner_id=${encodeURIComponent(state.learner)}`);
+      state.hint = hint;
+    } catch (error) {
+      state.hint = null;
+    }
+    renderQuestions(sc, findRun(sc.scenario_id), state.hint);
+  }
 }
 
-function renderLab(stageId) {
-  state.currentLab = stageId;
-  const stage = state.range && state.range.stages.find((s) => s.stage_id === stageId);
-  const stageIdx = (state.range && state.range.stages.findIndex((s) => s.stage_id === stageId)) || 0;
-  const stages = (state.curriculum && state.curriculum.stages) || [];
-  const cur = stages.find((s) => s.id === stageId);
-  const isCurrent = stageId === state.currentStageId;
-  const isCompleted = cur && cur.status === "completed";
-  const status = isCompleted ? "Completed" : isCurrent ? "In progress" : "Locked";
-  const statusClass = isCompleted ? "ok" : isCurrent ? "accent" : "muted";
-  const code = stageId.split("-")[0];
-  const cover = stage ? coverFor(stageIdx, code) : { g1: "#0057c5", g2: "#00d4ff", glyph: "" };
-  const scTotal = stage ? stage.scenarios.length : 0;
-  const done = isCompleted ? scTotal : (state.scenarios || []).filter((s) => s.status === "complete").length;
-  const pct = scTotal ? Math.round((done / scTotal) * 100) : 0;
-  const band = stage ? stageDifficultyBand(stage) : "—";
-  const lo = stage ? String(minDifficulty(stage)).padStart(2, "0") : "—";
-  const hi = stage ? String(maxDifficulty(stage)).padStart(2, "0") : "—";
-  const head = $("lab-head");
-  if (head) {
-    head.innerHTML = `
-      <div class="lab-hero">
-        <div class="lab-banner" aria-hidden="true" style="background:linear-gradient(135deg, ${cover.g1}, ${cover.g2})">
-          <span class="banner-chip">${esc(code)} · ${status}</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${cover.glyph}</svg>
-          <span class="banner-code">${esc(code)}</span>
-        </div>
-        <div class="lab-head-top">
-          <span class="lab-code">${esc(code)}</span>
-          <span class="lab-status ${statusClass}">${status}</span>
-        </div>
-        <h1 class="lab-title">${esc(stageTitle(stageId))}</h1>
-        <div class="lab-meta">${esc(stageId)} · ${scTotal} scenarios · D${lo}–D${hi} · <span class="${statusClass}">${status}</span></div>
-        <div class="lab-stats">
-          <div class="lab-stat"><b class="accent">${scTotal}</b><span>scenarios</span></div>
-          <div class="lab-stat"><b>D${lo}–D${hi}</b><span>difficulty</span></div>
-          <div class="lab-stat"><b>${esc(band)}</b><span>level band</span></div>
-          <div class="lab-stat"><b>${pct}%</b><span>complete</span></div>
-        </div>
-        <div class="lab-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Lab progress">
-          <div class="lab-progress-fill" style="width:${pct}%"></div>
-        </div>
-      </div>`;
+/** Re-fetch the current step hint and re-render the questions panel. */
+async function refreshHint() {
+  const sc = state.selected;
+  if (!sc) return;
+  try {
+    const hint = await api(`/api/scenarios/${encodeURIComponent(sc.scenario_id)}/hint?learner_id=${encodeURIComponent(state.learner)}`);
+    state.hint = hint;
+    renderQuestions(sc, findRun(sc.scenario_id), hint);
+  } catch (error) {
+    toast("hint unavailable: " + error.message, "error");
   }
-  renderMission(stageId);
-  renderLabScenarios();
-  renderScenario();
+}
+
+function openChallenge(scenarioId) {
+  const sc = findScenario(scenarioId);
+  if (!sc) { toast("Unknown challenge.", "error"); return; }
+  if (scenarioStatus(sc) === "locked") {
+    toast("This challenge is locked — complete the current stage first.", "error");
+    return;
+  }
+  location.hash = "#/challenge/" + encodeURIComponent(scenarioId);
+}
+
+/* ---------- Scenario lifecycle ---------- */
+
+async function startScenario() {
+  try {
+    const result = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learner_id: state.learner }),
+    });
+    toast(result.message || "scenario started", "ok");
+    await refreshStage();
+  } catch (error) {
+    toast("start failed: " + error.message, "error");
+  }
+}
+
+async function submitEvent(hint) {
+  const evidence = {};
+  $$("#event-box .candidate-chip.selected").forEach((chip) => {
+    evidence[chip.dataset.key] = chip.dataset.value;
+  });
+  const proof = $("proof-value");
+  if (proof && proof.value) evidence.proof = proof.value;
+  try {
+    const result = await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/event`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learner_id: state.learner, event: hint.event, evidence }),
+    });
+    toast(result.message || "event accepted", "ok");
+    await refreshStage();
+    if (result.status === "complete") {
+      toast("Scenario complete — evidence token issued.", "ok");
+    }
+  } catch (error) {
+    toast("event rejected: " + error.message, "error");
+    if (state.selected) renderChallenge(state.selected.scenario_id);
+  }
+}
+
+async function resetRun() {
+  try {
+    await api(`/api/scenarios/${encodeURIComponent(state.selected.scenario_id)}/reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learner_id: state.learner }),
+    });
+    toast("run reset", "ok");
+    await refreshStage();
+    if (state.selected) renderChallenge(state.selected.scenario_id);
+  } catch (error) {
+    toast("reset failed: " + error.message, "error");
+  }
+}
+
+/* ---------- Load / refresh ---------- */
+
+async function loadAll() {
+  const learnerInput = $("learner-id").value.trim();
+  const tokenInput = $("learner-token").value.trim();
+  const gateInput = $("gate-url").value.trim();
+  if (!learnerInput || !tokenInput) {
+    toast("learner ID and token are required", "error");
+    return;
+  }
+  state.learner = learnerInput;
+  state.token = tokenInput;
+  state.gateUrl = gateInput || "http://127.0.0.1:5050";
+  saveSettings();
+  try {
+    const range = await api(`/api/range?learner_id=${encodeURIComponent(state.learner)}`);
+    state.range = range;
+    state.currentStageId = range.current_stage_id;
+    renderPosture(range.bank_profile);
+    $("status-range").innerHTML = `range: <b>${range.stages.reduce((n, s) => n + s.scenarios.length, 0)}</b> scenarios`;
+    renderChallenges();
+    await refreshStage();
+    $("status-mode").innerHTML = `mode: trainer · learner <b>${esc(state.learner)}</b>`;
+  } catch (error) {
+    toast("load failed: " + error.message, "error");
+    return;
+  }
+  try {
+    const curriculum = await gateApi(`/api/curriculum?learner_id=${encodeURIComponent(state.learner)}`);
+    state.curriculum = curriculum;
+    renderPosture(curriculum.bank_profile);
+    renderProgression();
+    renderDashboard();
+    $("status-gate").innerHTML = `gate: <span class="ok-text">connected</span>`;
+  } catch (error) {
+    $("status-gate").innerHTML = `gate: <span class="err-text">unreachable</span> (${esc(error.message)})`;
+    renderProgression();
+    renderDashboard();
+  }
+}
+
+async function refreshStage() {
+  const data = await api(`/api/scenarios?learner_id=${encodeURIComponent(state.learner)}`);
+  if (data.status === "complete") {
+    state.currentStageId = null;
+    state.scenarios = [];
+    state.synthesis = null;
+    state.gates = [];
+    renderChallenges();
+    if (state.selected) renderChallenge(state.selected.scenario_id);
+    renderSynthesis();
+    renderProgression();
+    $("status-stage").textContent = "current stage: complete";
+    return;
+  }
+  state.currentStageId = data.stage_id;
+  state.scenarios = data.scenarios;
+  const gates = await api(`/api/gates?learner_id=${encodeURIComponent(state.learner)}`);
+  state.gates = gates.gates || [];
+  state.gateMeta = gates;
+  state.synthesis = state.gates.find((gate) => gate.status === "unlocked") || null;
+  renderChallenges();
+  if (state.selected) renderChallenge(state.selected.scenario_id);
   renderSynthesis();
-  renderLedger();
+  renderProgression();
+  $("status-stage").innerHTML = `current stage: <b>${esc(data.stage_id)}</b>`;
+}
+
+function renderPosture(profile) {
+  if (!profile) return;
+  const domains = (profile.data_domains || []).join(", ");
+  const controls = (profile.controls || []).join(", ");
+  $("status-profile").innerHTML = `bank posture: <b>L${esc(profile.level)}</b> · ${esc(profile.security_tier)} · ${esc(profile.operating_mode)}`;
+  const body = $("posture-body");
+  if (!body) return;
+  body.innerHTML = `
+    <div class="hint" style="margin-bottom:10px"><b style="color:var(--text)">${esc(profile.label)}</b> — only this profile's synthetic data and controls are active after the last accepted flag.</div>
+    <div class="chip-grid">
+      <span class="chip">security: ${esc(profile.security_tier)}</span>
+      <span class="chip">mode: ${esc(profile.operating_mode)}</span>
+      <span class="chip">staff: ${esc(profile.staff_access)}</span>
+      <span class="chip">customer: ${esc(profile.customer_access)}</span>
+    </div>
+    <div class="kv" style="margin-top:14px"><span>Data domains</span></div>
+    <div class="hint" style="font-size:12px">${esc(domains)}</div>
+    <div class="kv" style="margin-top:12px"><span>Controls</span></div>
+    <div class="hint" style="font-size:12px">${esc(controls)}</div>`;
 }
 
 /* ---------- Dashboard ---------- */
+
+function renderProgression() {
+  const body = $("progress-body");
+  if (!body) return;
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  const completed = stages.filter((s) => s.status === "completed").length;
+  const pct = stages.length ? Math.round((completed / stages.length) * 100) : 0;
+  const meta = state.gateMeta || /** @type {GateMeta} */ ({});
+  let gatesHtml = '<p class="muted">No hard-gate data yet.</p>';
+  if (state.gates.length) {
+    gatesHtml = state.gates.map((g) => `
+      <div class="gate-row">
+        <span class="rank">G${String(g.rank).padStart(2, "0")}</span>
+        <span class="gtitle">${esc(g.title)}</span>
+        <span class="state ${g.status}">${g.status}</span>
+      </div>`).join("");
+  }
+  body.innerHTML = `
+    <div class="prog-row"><span>Stage progress</span><b>${completed} / ${stages.length || 10}</b></div>
+    <div class="progress-bar"><span style="width:${pct}%"></span></div>
+    <div class="prog-row" style="margin-top:16px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 50)}</b></div>
+    ${meta.current_gate_id ? `<div class="prog-row"><span>Current gate</span><b class="accent">${esc(meta.current_gate_id)}</b></div>` : ""}
+    <div style="margin-top:12px">${gatesHtml}</div>`;
+}
+
+function renderActivity() {
+  const box = $("activity-body");
+  if (!box) return;
+  const rows = [];
+  if (state.range) {
+    rows.push({ t: "Range initialized", d: `${state.range.stages.length} stages · 100 scenarios`, kind: "ok" });
+  }
+  if (state.currentStageId) {
+    rows.push({ t: "Current stage", d: state.currentStageId, kind: "accent" });
+  }
+  if (state.synthesis) {
+    rows.push({ t: "Gate unlocked", d: `${state.synthesis.gate_id} · ${state.synthesis.title || ""}`, kind: "accent" });
+  }
+  const activeRuns = (state.scenarios || []).filter((s) => s.status === "active");
+  const doneRuns = (state.scenarios || []).filter((s) => s.status === "complete");
+  activeRuns.forEach((r) => rows.push({ t: "Scenario active", d: r.scenario_id, kind: "warn" }));
+  doneRuns.forEach((r) => rows.push({ t: "Scenario complete", d: r.scenario_id, kind: "ok" }));
+  if (state.gateMeta && state.gateMeta.current_gate_id) {
+    rows.push({ t: "Next gate", d: state.gateMeta.current_gate_id, kind: "muted" });
+  }
+  box.innerHTML = rows.slice(0, 8).map((r) => `
+    <div class="act-row">
+      <span class="act-dot ${r.kind}"></span>
+      <span class="act-t">${esc(r.t)}</span>
+      <span class="act-d">${esc(r.d)}</span>
+    </div>`).join("") || '<p class="muted">No activity yet.</p>';
+}
+
+function renderBadge() {
+  const box = $("badge-body");
+  if (!box) return;
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  const completed = stages.filter((s) => s.status === "completed").length;
+  const next = stages.find((s) => s.status === "unlocked") || null;
+  const pct = stages.length ? Math.round((completed / stages.length) * 100) : 0;
+  const circ = 188.5;
+  box.innerHTML = `
+    <div class="badge-card">
+      <svg class="badge-ring" viewBox="0 0 72 72" aria-hidden="true">
+        <circle class="ring-bg" cx="36" cy="36" r="30"></circle>
+        <circle class="ring-fg" cx="36" cy="36" r="30" style="stroke-dasharray:${(pct / 100) * circ}, ${circ}"></circle>
+        <text class="ring-pct" x="36" y="41" text-anchor="middle">${pct}%</text>
+      </svg>
+      <div>
+        <div class="label">Next badge</div>
+        <div class="title">${next ? esc(stageTitle(next.id)) : "Lab complete"}</div>
+        <div class="sub">${completed} of ${stages.length || 10} stages completed</div>
+      </div>
+    </div>`;
+}
 
 function seedHash(str) {
   let h = 2166136261;
@@ -1891,60 +2500,16 @@ function ledgerHTML() {
 }
 
 function renderLedger() {
-  const html = ledgerHTML();
-  const boxes = [$("ledger-body"), $("dash-ledger")];
-  boxes.forEach((box) => { if (box) box.innerHTML = html; });
+  const box = $("dash-ledger");
+  if (box) box.innerHTML = ledgerHTML();
 }
 
-function renderBadge() {
-  const box = $("badge-body");
-  if (!box) return;
-  const stages = (state.curriculum && state.curriculum.stages) || [];
-  const completed = stages.filter((s) => s.status === "completed").length;
-  const next = stages.find((s) => s.status === "unlocked") || null;
-  const pct = stages.length ? Math.round((completed / stages.length) * 100) : 0;
-  const circ = 188.5;
-  box.innerHTML = `
-    <div class="badge-card">
-      <svg class="badge-ring" viewBox="0 0 72 72" aria-hidden="true">
-        <circle class="ring-bg" cx="36" cy="36" r="30"></circle>
-        <circle class="ring-fg" cx="36" cy="36" r="30" style="stroke-dasharray:${(pct / 100) * circ}, ${circ}"></circle>
-        <text class="ring-pct" x="36" y="41" text-anchor="middle">${pct}%</text>
-      </svg>
-      <div>
-        <div class="label">Next badge</div>
-        <div class="title">${next ? esc(stageTitle(next.id)) : "Lab complete"}</div>
-        <div class="sub">${completed} of ${stages.length || 10} stages completed</div>
-      </div>
-    </div>`;
-}
-
-function renderActivity() {
-  const box = $("activity-body");
-  if (!box) return;
-  const rows = [];
-  if (state.range) {
-    rows.push({ t: "Range initialized", d: `${state.range.stages.length} stages · 100 scenarios`, kind: "ok" });
-  }
-  if (state.currentStageId) {
-    rows.push({ t: "Current stage", d: state.currentStageId, kind: "accent" });
-  }
-  if (state.synthesis) {
-    rows.push({ t: "Gate unlocked", d: `${state.synthesis.gate_id} · ${state.synthesis.title || ""}`, kind: "accent" });
-  }
-  const activeRuns = (state.scenarios || []).filter((s) => s.status === "active");
-  const doneRuns = (state.scenarios || []).filter((s) => s.status === "complete");
-  activeRuns.forEach((r) => rows.push({ t: "Scenario active", d: r.scenario_id, kind: "warn" }));
-  doneRuns.forEach((r) => rows.push({ t: "Scenario complete", d: r.scenario_id, kind: "ok" }));
-  if (state.gateMeta && state.gateMeta.current_gate_id) {
-    rows.push({ t: "Next gate", d: state.gateMeta.current_gate_id, kind: "muted" });
-  }
-  box.innerHTML = rows.slice(0, 8).map((r) => `
-    <div class="act-row">
-      <span class="act-dot ${r.kind}"></span>
-      <span class="act-t">${esc(r.t)}</span>
-      <span class="act-d">${esc(r.d)}</span>
-    </div>`).join("") || '<p class="muted">No activity yet.</p>';
+/** First scenario of the current stage that is not yet complete, if any. */
+function nextChallengeId() {
+  if (!state.currentStageId) return null;
+  const inStage = allScenarios().filter((sc) => sc.stage_id === state.currentStageId);
+  const next = inStage.find((sc) => scenarioStatus(sc) !== "complete");
+  return next ? next.scenario_id : (inStage[0] ? inStage[0].scenario_id : null);
 }
 
 function renderDashboard() {
@@ -1971,29 +2536,30 @@ function renderDashboard() {
   renderBadge();
   renderLedger();
   const heroContinue = $("hero-continue");
+  const nextId = nextChallengeId();
   if (heroContinue) {
-    if (state.currentStageId) {
-      heroContinue.href = "#/lab/" + encodeURIComponent(state.currentStageId);
+    if (nextId) {
+      heroContinue.href = "#/challenge/" + encodeURIComponent(nextId);
       heroContinue.style.display = "inline-flex";
-      heroContinue.textContent = "Continue " + stageTitle(state.currentStageId);
+      heroContinue.textContent = "Continue " + stageTitle(state.currentStageId || "");
     } else {
       heroContinue.style.display = "none";
     }
   }
   const cont = $("continue-body");
   if (cont) {
-    if (state.currentStageId) {
+    if (nextId) {
       cont.innerHTML = `
         <p class="muted" style="margin:0 0 12px">Pick up where you left off.</p>
         <div class="continue-card">
           <div>
-            <div class="label">Current lab</div>
-            <div class="title">${esc(stageTitle(state.currentStageId))}</div>
+            <div class="label">Current stage</div>
+            <div class="title">${esc(stageTitle(state.currentStageId || ""))}</div>
           </div>
-          <a class="btn btn-primary" href="#/lab/${encodeURIComponent(state.currentStageId)}">Continue</a>
+          <a class="btn btn-primary" href="#/challenge/${encodeURIComponent(nextId)}">Continue</a>
         </div>`;
     } else {
-      cont.innerHTML = `<p class="muted">Course complete — review any lab from the Labs page.</p>`;
+      cont.innerHTML = `<p class="muted">Course complete — review any challenge from the Challenges page.</p>`;
     }
   }
 }
@@ -2019,7 +2585,7 @@ function router() {
   const viewApp = $("view-app");
   if (viewApp) viewApp.classList.toggle("hidden", path === "login");
 
-  const views = { login: "view-login", dashboard: "view-dashboard", labs: "view-labs", lab: "view-lab" };
+  const views = { login: "view-login", dashboard: "view-dashboard", challenges: "view-challenges", challenge: "view-challenge" };
   Object.keys(views).forEach((k) => {
     const el = $(views[k]);
     if (el) el.classList.toggle("hidden", k !== path);
@@ -2030,8 +2596,14 @@ function router() {
   });
 
   if (path === "dashboard") renderDashboard();
-  if (path === "labs") renderRange();
-  if (path === "lab") { state.currentLab = param || state.currentStageId; renderLab(state.currentLab); }
+  if (path === "challenges") renderChallenges();
+  if (path === "challenge") {
+    if (param) {
+      renderChallenge(decodeURIComponent(param));
+    } else {
+      location.hash = "#/challenges";
+    }
+  }
 
   window.scrollTo(0, 0);
 }
@@ -2078,8 +2650,8 @@ async function login() {
   setLoading($("login-btn"), false);
   if (state.range) {
     updateHeader();
-    location.hash = "#/dashboard";
-    renderDashboard();
+    location.hash = "#/challenges";
+    renderChallenges();
   } else {
     showLoginError("Could not load the range — check your token and gate URL.");
   }
@@ -2093,8 +2665,8 @@ function logout() {
   state.synthesis = null;
   state.gateMeta = null;
   state.currentStageId = null;
-  state.currentLab = null;
   state.selected = null;
+  state.hint = null;
   location.hash = "#/login";
   router();
 }
@@ -2117,15 +2689,16 @@ $("login-btn").addEventListener("click", login);
 $("logout-btn").addEventListener("click", logout);
 $("password-toggle").addEventListener("click", togglePassword);
 
-// Debounced lab search: only re-render the grid after the learner pauses
-// typing (120ms), instead of rebuilding all cards on every keystroke.
-const labSearch = $("lab-search");
-let labSearchTimer = 0;
-if (labSearch) labSearch.addEventListener("input", () => {
-  window.clearTimeout(labSearchTimer);
-  labSearchTimer = window.setTimeout(() => {
-    state.labFilters.q = labSearch.value.trim().toLowerCase();
-    renderRange();
+// Debounced challenge search: only re-render the grid after the learner
+// pauses typing (120ms), instead of rebuilding all cards on every keystroke.
+const challengeSearch = $("challenge-search");
+let searchTimer = 0;
+if (challengeSearch) challengeSearch.addEventListener("input", () => {
+  window.clearTimeout(searchTimer);
+  searchTimer = window.setTimeout(() => {
+    state.challengeFilters.q = challengeSearch.value.trim().toLowerCase();
+    state.page = 1;
+    renderChallenges();
   }, 120);
 });
 
