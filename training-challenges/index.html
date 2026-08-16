@@ -3,707 +3,566 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Zodiac Bank · AI Security Labs — Command Center</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2300ff88' stroke-width='2' stroke-linejoin='round' d='M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z'/%3E%3C/svg%3E" />
+<title>Zodiac Bank · AI Security Lab</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%236366f1' stroke-width='2' stroke-linejoin='round' d='M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   /* ============================================================
-     ZODIAC BANK — AI SECURITY LABS · COMMAND CENTER
-     Elite dark theme: deep-space black, electric cyan-green accent,
-     holographic purple highlights, glass-morphism surfaces.
+     Zodiac Bank · AI Security Lab
+     Senior, restrained dark theme. Neutrals + a single indigo accent.
      ============================================================ */
   :root {
-    --bg-0: #0a0a0f;
-    --bg-1: #0d0d16;
-    --bg-2: #10101b;
-    --glass: rgba(15, 15, 25, 0.62);
-    --glass-2: rgba(20, 20, 34, 0.66);
-    --panel: rgba(13, 13, 22, 0.72);
-    --panel-2: rgba(22, 22, 36, 0.8);
-    --panel-3: rgba(28, 28, 46, 0.85);
-    --line: rgba(0, 255, 136, 0.08);
-    --line-2: rgba(0, 255, 136, 0.16);
-    --line-3: rgba(0, 255, 136, 0.3);
-    --text: #e8e8f0;
-    --text-2: #b8b8cc;
-    --muted: #8888a0;
-    --faint: #666680;
-
-    --accent: #00ff88;           /* electric cyan-green */
-    --accent-2: #00cc6a;
-    --green: #00ff88;            /* alias used by inline JS styles */
-    --mint: #33ffb8;
-    --cyan: #22d3ee;             /* AI / telemetry */
-    --holo: #7c3aed;             /* holographic purple */
-    --holo-2: #a855f7;
-    --danger: #ff3366;           /* attack / danger */
-    --danger-2: #ff6b35;
-    --amber: #ffb020;
-
-    --mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    --sans: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --display: "Space Grotesk", "Orbitron", "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
-
-    --r-sm: 8px;
-    --r-md: 12px;
-    --r-lg: 16px;
-    --shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 14px 40px rgba(0,0,0,.55);
-    --glow: 0 0 0 1px rgba(0,255,136,.14), 0 0 34px rgba(0,255,136,.14);
-    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --bg: #0a0a0c;
+    --bg-soft: #0e0e11;
+    --surface: #131316;
+    --surface-2: #18181c;
+    --surface-3: #1f1f24;
+    --border: #232329;
+    --border-soft: #1b1b20;
+    --text: #f4f4f5;
+    --text-2: #a1a1aa;
+    --text-3: #6b6b74;
+    --accent: #6366f1;
+    --accent-2: #818cf8;
+    --accent-soft: rgba(99, 102, 241, .12);
+    --success: #22c55e;
+    --success-soft: rgba(34, 197, 94, .12);
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --danger-soft: rgba(239, 68, 68, .12);
+    --green: #22c55e;           /* alias used by inline render styles */
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --radius: 12px;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
   }
   * { box-sizing: border-box; }
   html { color-scheme: dark; scroll-behavior: smooth; }
   body {
-    margin: 0;
-    background: var(--bg-0);
-    color: var(--text);
-    font: 15px/1.6 var(--sans);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    overflow-x: hidden;
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.6 var(--sans); min-height: 100vh;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
   }
-  ::selection { background: rgba(0, 255, 136, .28); color: #fff; }
+  ::selection { background: rgba(99,102,241,.32); color: #fff; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; }
+  .hidden { display: none !important; }
+  .muted { color: var(--text-2); }
 
   /* ---------- Scrollbar ---------- */
-  ::-webkit-scrollbar { width: 11px; height: 11px; }
-  ::-webkit-scrollbar-track { background: var(--bg-1); }
-  ::-webkit-scrollbar-thumb { background: #23233a; border-radius: 8px; border: 2px solid var(--bg-1); }
-  ::-webkit-scrollbar-thumb:hover { background: #32324f; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #2a2a31; border-radius: 8px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a44; }
 
-  /* ============================================================
-     AMBIENT BACKGROUND
-     ============================================================ */
-  .bg-fx { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-  .bg-mesh {
-    position: absolute; inset: -20%;
-    background:
-      radial-gradient(46% 42% at 14% 8%, rgba(0, 255, 136, .10), transparent 60%),
-      radial-gradient(38% 40% at 88% 6%, rgba(124, 58, 237, .12), transparent 62%),
-      radial-gradient(52% 50% at 50% 112%, rgba(34, 211, 238, .08), transparent 60%);
-    filter: blur(30px);
-    animation: mesh 26s ease-in-out infinite alternate;
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+    border-radius: 9px; padding: 9px 15px; font-weight: 600; font-size: 14px; cursor: pointer;
+    transition: background .15s, border-color .15s, transform .05s, opacity .15s;
   }
-  @keyframes mesh { from { transform: translate3d(-2%, -1%, 0) scale(1); } to { transform: translate3d(2%, 2%, 0) scale(1.06); } }
-  .bg-grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(0,255,136,.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,255,136,.045) 1px, transparent 1px);
-    background-size: 46px 46px;
-    -webkit-mask-image: radial-gradient(1300px 800px at 50% 0%, #000 28%, transparent 84%);
-    mask-image: radial-gradient(1300px 800px at 50% 0%, #000 28%, transparent 84%);
+  .btn:hover:not(:disabled) { background: var(--surface-3); border-color: #2e2e36; }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn-primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
   }
-  #particles { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .9; }
-  .bg-scanline {
-    position: absolute; left: 0; right: 0; height: 26%;
-    background: linear-gradient(180deg, transparent, rgba(0,255,136,.025), transparent);
-    animation: scan 10s linear infinite;
-  }
-  @keyframes scan { from { top: -26%; } to { top: 110%; } }
-  .bg-noise {
-    position: absolute; inset: 0; opacity: .05;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  .shell { position: relative; z-index: 1; }
-
-  /* ============================================================
-     TOP BAR
-     ============================================================ */
-  .topbar {
-    position: sticky; top: 0; z-index: 40;
-    display: flex; align-items: center; gap: 16px; row-gap: 8px; flex-wrap: wrap;
-    padding: 13px 26px;
-    background: rgba(10, 10, 18, .78);
-    backdrop-filter: blur(22px) saturate(150%);
-    border-bottom: 1px solid var(--line);
-  }
-  .topbar::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,255,136,.55), rgba(168,85,247,.4), transparent);
-    opacity: .6;
-  }
-  .icon-btn {
-    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
-    width: 40px; height: 40px; border-radius: 10px; color: var(--text-2);
-    background: transparent; border: 1px solid transparent; transition: all .18s var(--ease);
-  }
-  .icon-btn:hover { color: var(--accent); background: var(--glass-2); border-color: var(--line-2); }
-  .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .brand { display: flex; align-items: center; gap: 13px; }
-  .brand .mark {
-    width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center;
-    border-radius: 11px; background: linear-gradient(150deg, rgba(0,255,136,.16), rgba(20,20,34,.7));
-    border: 1px solid rgba(0,255,136,.3);
-    box-shadow: 0 0 0 1px rgba(0,255,136,.06), 0 0 24px rgba(0,255,136,.22);
-  }
-  .brand .mark svg { width: 23px; height: 23px; }
-  .brand h1 { margin: 0; font: 700 17px/1.05 var(--display); letter-spacing: 4px; color: var(--text); }
-  .brand .sub { display: block; margin-top: 3px; color: var(--accent); font: 600 10px var(--mono); letter-spacing: 2.6px; }
-  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
-  .badge {
-    display: inline-flex; align-items: center; gap: 7px;
-    font: 600 10.5px var(--mono); letter-spacing: 1px;
-    padding: 5px 11px; border: 1px solid var(--line-2); border-radius: 999px;
-    color: var(--muted); background: rgba(18,18,30,.6); white-space: nowrap;
-  }
-  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 9px currentColor; }
-  .badge.ok { color: var(--accent); border-color: rgba(0,255,136,.4); background: rgba(0,255,136,.06); }
-  .badge.warn { color: var(--amber); border-color: rgba(255,176,32,.4); background: rgba(255,176,32,.06); }
-  .badge.accent { color: var(--cyan); border-color: rgba(34,211,238,.4); background: rgba(34,211,238,.06); }
-  .badge.holo { color: var(--holo-2); border-color: rgba(168,85,247,.4); background: rgba(124,58,237,.1); }
-  .badge.live .dot { animation: blink 2s ease-in-out infinite; }
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
-
-  /* ============================================================
-     HERO
-     ============================================================ */
-  .hero {
-    position: relative; padding: 44px 28px 30px; max-width: 1760px; margin: 0 auto;
-    display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: 34px; align-items: center;
-  }
-  @media (max-width: 1080px) { .hero { grid-template-columns: 1fr; } }
-  .hero-kicker {
-    margin: 0 0 12px; color: var(--accent); font: 700 11px var(--mono); letter-spacing: 3.5px;
-    display: flex; align-items: center; gap: 12px; text-transform: uppercase;
-  }
-  .hero-kicker::before { content: ""; width: 30px; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); }
-  .hero-title { margin: 0 0 14px; font: 800 clamp(30px, 4.4vw, 52px)/1.06 var(--display); letter-spacing: 1px; }
-  .hero-title .w { display: inline-block; opacity: 0; animation: wordIn .7s var(--ease) forwards; }
-  .hero-title .w1 { animation-delay: .05s; color: var(--text); }
-  .hero-title .w2 { animation-delay: .18s; background: linear-gradient(92deg, #ff6b35, #ff3366); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero-title .w3 { animation-delay: .31s; background: linear-gradient(92deg, #22d3ee, #38bdf8); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero-title .w4 { animation-delay: .44s; background: linear-gradient(92deg, #00ff88, #00cc6a); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  @keyframes wordIn { from { opacity: 0; transform: translateY(16px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
-  .hero-sub { margin: 0; max-width: 660px; color: var(--muted); font-size: 15.5px; }
-
-  .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; }
-  .kpi {
-    position: relative; overflow: hidden; padding: 17px 18px;
-    border: 1px solid var(--line); border-radius: var(--r-lg);
-    background: linear-gradient(180deg, var(--glass), rgba(10,10,18,.5));
-    backdrop-filter: blur(14px);
-    transition: transform .22s var(--ease), border-color .22s var(--ease), box-shadow .22s var(--ease);
-  }
-  .kpi:hover { transform: translateY(-3px); border-color: var(--line-3); box-shadow: var(--glow); }
-  .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0,255,136,.5), transparent); opacity: .6; }
-  .kpi b { display: block; font: 800 30px/1 var(--display); color: var(--text); letter-spacing: .5px; }
-  .kpi b.acc { background: linear-gradient(92deg, #00ff88, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .kpi span { display: block; margin-top: 6px; color: var(--faint); font: 600 10px var(--mono); letter-spacing: 1.8px; text-transform: uppercase; }
-  .kpi .ico { position: absolute; top: 14px; right: 14px; color: var(--line-3); }
-
-  /* ============================================================
-     AUTH / CONTROLS PANEL
-     ============================================================ */
-  .controls {
-    display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;
-    max-width: 1760px; margin: 6px auto 0; padding: 22px 28px;
-    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    background: linear-gradient(180deg, rgba(13,13,22,.72), rgba(10,10,18,.5));
-    backdrop-filter: blur(16px);
-  }
-  .controls .hint-lock {
-    flex: 1 1 100%; display: flex; align-items: center; gap: 8px;
-    font: 600 11px var(--mono); letter-spacing: 1px; color: var(--faint);
-  }
-  .controls .hint-lock svg { color: var(--accent); }
-  .float-field { position: relative; min-width: 170px; flex: 1 1 200px; }
-  .float-field input {
-    width: 100%; background: var(--glass-2); border: 1px solid var(--line-2); border-radius: var(--r-md);
-    padding: 22px 44px 8px 44px; color: var(--text); font: 500 14px var(--sans);
-    transition: border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
-  }
-  .float-field input:hover { border-color: var(--line-3); }
-  .float-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,255,136,.15); background: var(--glass); }
-  .float-field input::placeholder { color: transparent; }
-  .float-field label {
-    position: absolute; left: 44px; top: 50%; transform: translateY(-50%);
-    color: var(--muted); font: 500 13px var(--sans); pointer-events: none;
-    transition: all .18s var(--ease);
-  }
-  .float-field input:focus + label,
-  .float-field input:not(:placeholder-shown) + label {
-    top: 9px; transform: none; font: 700 9.5px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent);
-  }
-  .float-field .f-ico { position: absolute; left: 15px; top: 16px; color: var(--faint); pointer-events: none; }
-  .float-field input:focus ~ .f-ico { color: var(--accent); }
-  .reveal {
-    position: absolute; right: 8px; top: 12px; cursor: pointer;
-    width: 32px; height: 32px; display: grid; place-items: center;
-    background: transparent; border: none; color: var(--faint); border-radius: 8px; padding: 0;
-    transition: color .15s, background .15s;
-  }
-  .reveal:hover, .reveal.on { color: var(--accent); background: rgba(0,255,136,.08); }
-  .reveal:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  input, textarea, select { font: inherit; color: var(--text); }
-  input[type="password"] { font-family: var(--mono); letter-spacing: 1px; }
-
-  button {
-    cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-    border: 1px solid var(--line-2); background: var(--glass-2); color: var(--text);
-    border-radius: var(--r-md); padding: 11px 16px; font-weight: 600; font-size: 14px;
-    transition: all .18s var(--ease);
-  }
-  button:hover:not(:disabled) { border-color: var(--accent); background: var(--panel-3); transform: translateY(-1px); }
-  button:active:not(:disabled) { transform: translateY(0); }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  button.primary {
-    background: linear-gradient(180deg, #00ff88, #00b260);
-    border-color: rgba(0,255,136,.55); color: #02150b; font-weight: 800; letter-spacing: .3px;
-    box-shadow: var(--glow);
-  }
-  button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #19ff95, #00c96e); box-shadow: 0 0 44px rgba(0,255,136,.3); }
-  button.danger { border-color: rgba(255,51,102,.5); color: var(--danger); background: transparent; }
-  button.danger:hover:not(:disabled) { background: rgba(255,51,102,.12); border-color: var(--danger); }
-  .btn-xl { min-height: 50px; font: 800 13px var(--mono); letter-spacing: 1.4px; text-transform: uppercase; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-2); border-color: var(--accent-2); }
+  .btn-danger { background: transparent; border-color: rgba(239,68,68,.45); color: var(--danger); }
+  .btn-danger:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); }
+  .btn-ghost { background: transparent; border-color: transparent; color: var(--text-2); }
+  .btn-ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+  .btn-block { width: 100%; }
   .spinner {
     width: 15px; height: 15px; border-radius: 50%;
-    border: 2px solid rgba(2,21,11,.35); border-top-color: #02150b;
+    border: 2px solid rgba(255,255,255,.35); border-top-color: #fff;
     animation: spin .7s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  button.loading .spinner { display: inline-block; }
+
+  /* ---------- Inputs ---------- */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 13px; font-weight: 600; color: var(--text-2); }
+  input, textarea, select {
+    font: inherit; color: var(--text);
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-radius: 9px; padding: 10px 12px; width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input::placeholder, textarea::placeholder { color: var(--text-3); }
+  input:hover:not(:focus), textarea:hover:not(:focus) { border-color: #2e2e36; }
+  input:focus, textarea:focus, select:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  input[type="password"] { font-family: var(--mono); letter-spacing: 1px; }
+  textarea { min-height: 76px; resize: vertical; font: 13px var(--mono); line-height: 1.55; }
+  .input-group { position: relative; }
+  .input-group input { padding-right: 46px; }
+  .reveal {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 32px; height: 32px; display: grid; place-items: center;
+    background: transparent; border: none; cursor: pointer; color: var(--text-3);
+    border-radius: 7px; padding: 0;
+  }
+  .reveal:hover, .reveal.on { color: var(--text); background: var(--surface-3); }
 
   /* ============================================================
-     DASHBOARD GRID
+     LOGIN
      ============================================================ */
-  .dashboard {
-    display: grid; grid-template-columns: 288px minmax(0, 1fr) 316px;
-    gap: 20px; padding: 22px 28px 46px; max-width: 1760px; margin: 0 auto; align-items: start;
+  .login-wrap {
+    min-height: 100vh; display: grid; place-items: center; padding: 32px 20px;
+    background:
+      radial-gradient(720px 420px at 50% -10%, rgba(99,102,241,.14), transparent 60%),
+      radial-gradient(600px 400px at 85% 110%, rgba(34,197,94,.06), transparent 60%),
+      var(--bg);
   }
-  body.rail-collapsed .dashboard { grid-template-columns: minmax(0, 1fr) 316px; }
-  body.rail-collapsed .rail { display: none; }
-  @media (max-width: 1420px) {
-    .dashboard { grid-template-columns: 280px minmax(0, 1fr); }
-    body.rail-collapsed .dashboard { grid-template-columns: minmax(0, 1fr); }
-    .context { display: none; }
+  .login-card {
+    width: 100%; max-width: 400px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 34px 32px 28px; box-shadow: var(--shadow);
   }
-  @media (max-width: 980px) {
-    .dashboard { grid-template-columns: 1fr; }
-    body.rail-collapsed .dashboard { grid-template-columns: 1fr; }
-    .rail { position: static; }
+  .login-brand { display: flex; align-items: center; gap: 13px; margin-bottom: 26px; }
+  .login-brand .mark {
+    width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center;
+    border-radius: 11px; background: var(--accent-soft); border: 1px solid rgba(99,102,241,.3);
   }
-  .rail, .context { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 82px; min-width: 0; }
-  @media (max-width: 980px) { .rail, .context { position: static; } }
-  .content { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-
-  .nav-rail { display: flex; flex-direction: column; gap: 4px; }
-  .nav-item {
-    cursor: pointer; display: flex; align-items: center; gap: 11px;
-    padding: 10px 12px; border-radius: var(--r-md); color: var(--muted);
-    font: 600 13px var(--sans); border: 1px solid transparent;
-    transition: all .16s var(--ease); background: transparent;
+  .login-brand .mark svg { width: 23px; height: 23px; }
+  .login-brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: .5px; }
+  .login-brand .sub { display: block; margin-top: 2px; font-size: 12px; color: var(--text-3); letter-spacing: 1px; }
+  .login-card > h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
+  .login-sub { margin: 0 0 22px; color: var(--text-3); font-size: 14px; }
+  .login-card .field { margin-bottom: 16px; }
+  .login-error {
+    margin: 4px 0 14px; padding: 10px 12px; font-size: 13px;
+    border: 1px solid rgba(239,68,68,.4); background: var(--danger-soft);
+    color: #fca5a5; border-radius: 9px;
   }
-  .nav-item svg { color: var(--faint); }
-  .nav-item:hover { color: var(--text); background: var(--glass-2); border-color: var(--line); }
-  .nav-item.active { color: var(--accent); background: rgba(0,255,136,.07); border-color: rgba(0,255,136,.2); }
-  .nav-item.active svg { color: var(--accent); }
+  .login-foot {
+    margin: 18px 0 0; text-align: center; font-size: 12px; color: var(--text-3);
+  }
 
   /* ============================================================
-     PANELS
+     APP SHELL (header / nav)
      ============================================================ */
+  .app-header {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 20px;
+    padding: 12px 28px; background: rgba(10,10,12,.86);
+    backdrop-filter: blur(14px); border-bottom: 1px solid var(--border-soft);
+  }
+  .app-brand { display: flex; align-items: center; gap: 11px; }
+  .app-brand .mark {
+    width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center;
+    border-radius: 8px; background: var(--accent-soft); border: 1px solid rgba(99,102,241,.28);
+  }
+  .app-brand .mark svg { width: 19px; height: 19px; }
+  .app-brand .name { font-weight: 700; font-size: 15px; }
+  .app-brand .sub { display: block; font-size: 11px; color: var(--text-3); letter-spacing: .5px; }
+  .app-nav { display: flex; gap: 4px; margin-left: 8px; }
+  .app-nav a {
+    padding: 7px 13px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    color: var(--text-2); transition: background .14s, color .14s;
+  }
+  .app-nav a:hover { color: var(--text); background: var(--surface-2); }
+  .app-nav a.active { color: var(--text); background: var(--surface-2); }
+  .app-user { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .user-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+    border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 600;
+    background: var(--surface); color: var(--text-2);
+  }
+  .user-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+  .mode-pill {
+    font: 500 11px var(--mono); letter-spacing: .5px; color: var(--text-3);
+    padding: 5px 10px; border: 1px solid var(--border-soft); border-radius: 999px; text-transform: uppercase;
+  }
+
+  /* ---------- Page scaffolding ---------- */
+  .page { max-width: 1080px; margin: 0 auto; padding: 32px 28px 64px; }
+  .page-head { margin-bottom: 24px; }
+  .page-head h1 { margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+  .page-head p { margin: 0; color: var(--text-3); font-size: 14px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-2); margin-bottom: 18px; }
+  .back-link:hover { color: var(--text); }
+
   .panel {
-    position: relative; padding: 18px;
-    background: linear-gradient(180deg, var(--glass), rgba(10,10,18,.6));
-    backdrop-filter: blur(20px) saturate(140%);
-    border: 1px solid var(--line); border-radius: var(--r-lg);
-    box-shadow: var(--shadow);
-    min-width: 0;
-  }
-  .panel::before {
-    content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,255,136,.34), transparent);
-    border-radius: var(--r-lg) var(--r-lg) 0 0; opacity: .7; pointer-events: none;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
   }
   .panel > h2 {
-    display: flex; align-items: center; gap: 9px;
-    margin: 0 0 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
-    font: 700 11px var(--mono); letter-spacing: 2.4px; text-transform: uppercase; color: var(--accent);
+    margin: 0 0 14px; font-size: 12px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--text-3);
   }
-  .panel > h2::before {
-    content: ""; width: 8px; height: 8px; border-radius: 2px; flex: 0 0 auto;
-    background: linear-gradient(135deg, var(--accent), var(--holo-2));
-    box-shadow: 0 0 10px rgba(0,255,136,.5);
-  }
-  .panel > h2 .count { margin-left: auto; color: var(--faint); font-weight: 600; letter-spacing: 1px; text-transform: none; }
 
-  /* ---------- Range map ---------- */
-  .stage { border-radius: var(--r-sm); overflow: hidden; margin-bottom: 6px; border: 1px solid transparent; transition: border-color .2s var(--ease), background .2s var(--ease); }
-  .stage.current { border-color: rgba(0,255,136,.24); background: rgba(0,255,136,.04); }
-  .stage-head { display: flex; align-items: center; gap: 9px; cursor: pointer; padding: 10px 11px; border-radius: var(--r-sm); }
-  .stage-head:hover { background: var(--glass-2); }
-  .stage-head .chevron { transition: transform .2s var(--ease); color: var(--faint); flex: 0 0 auto; }
-  .stage.open .stage-head .chevron { transform: rotate(90deg); color: var(--accent); }
-  .stage-head .num {
-    flex: 0 0 auto; font: 700 10px var(--mono); letter-spacing: .5px;
-    color: var(--faint); background: var(--panel-3); border: 1px solid var(--line-2); border-radius: 5px; padding: 2px 6px;
+  /* ---------- Dashboard ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
   }
-  .stage.current .stage-head .num { color: var(--accent); border-color: rgba(0,255,136,.4); }
-  .stage-head .name { font-weight: 700; font-size: 13.5px; letter-spacing: .2px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .stage-head .meta { margin-left: auto; color: var(--faint); font: 600 10.5px var(--mono); white-space: nowrap; }
-  .stage-body { display: none; padding: 2px 0 7px; }
-  .stage.open .stage-body { display: block; }
-  .scenario-item {
-    display: flex; align-items: center; gap: 9px;
-    padding: 7px 10px 7px 26px; cursor: pointer;
-    border-left: 2px solid var(--line); font-size: 13px; color: var(--muted);
-    transition: background .14s var(--ease), border-color .14s var(--ease), color .14s var(--ease);
+  .stat b { display: block; font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .stat span { font-size: 13px; color: var(--text-3); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
+
+  .prog-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-2); margin: 0 0 6px; }
+  .prog-row b { color: var(--text); font-weight: 600; }
+  .prog-row b.accent { color: var(--accent-2); }
+  .progress-bar { height: 8px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+  .progress-bar > span {
+    display: block; height: 100%; background: var(--accent);
+    border-radius: 999px; transition: width .5s cubic-bezier(.4,0,.2,1);
   }
-  .scenario-item:hover { background: var(--glass-2); color: var(--text); }
-  .scenario-item.active { border-left-color: var(--accent); background: var(--panel-3); color: var(--text); }
-  .scenario-item .diff {
-    flex: 0 0 auto; color: var(--amber); font: 700 10px var(--mono);
-    background: rgba(255,176,32,.09); border: 1px solid rgba(255,176,32,.26); border-radius: 4px; padding: 1px 5px;
+  .gate-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--border-soft); }
+  .gate-row:last-child { border-bottom: 0; }
+  .gate-row .rank { flex: 0 0 auto; color: var(--accent-2); font: 600 11px var(--mono); background: var(--accent-soft); border-radius: 5px; padding: 1px 7px; }
+  .gate-row .gtitle { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .continue-card {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    margin-top: 8px; padding: 16px; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--bg-soft);
   }
-  .scenario-item .title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .continue-card .label { font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; }
+  .continue-card .title { font-size: 16px; font-weight: 600; margin-top: 2px; }
+
+  /* ---------- Labs grid ---------- */
+  .labs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 640px) { .labs-grid { grid-template-columns: 1fr; } }
+  .lab-card {
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; transition: border-color .15s, transform .15s, box-shadow .15s;
+  }
+  .lab-card:hover { border-color: #2e2e36; transform: translateY(-2px); box-shadow: var(--shadow); }
+  .lab-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .lab-code {
+    font: 600 12px var(--mono); letter-spacing: .5px; color: var(--accent-2);
+    background: var(--accent-soft); border-radius: 7px; padding: 3px 9px;
+  }
+  .lab-status { font-size: 12px; font-weight: 600; }
+  .lab-status.ok { color: var(--success); }
+  .lab-status.accent { color: var(--accent-2); }
+  .lab-status.muted { color: var(--text-3); }
+  .lab-card-title { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+  .lab-card-sub { margin: 0; font-size: 13px; color: var(--text-3); }
+  .lab-card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; font-size: 12px; color: var(--text-3); }
+  .lab-arrow { color: var(--text-2); transition: transform .15s; }
+  .lab-card:hover .lab-arrow { transform: translateX(3px); color: var(--accent-2); }
+
+  /* ---------- Lab detail ---------- */
+  .lab-head-top { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .lab-head-top .lab-code { font-size: 14px; padding: 6px 12px; }
+  .lab-title { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+  .lab-meta { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+  .lab-meta .ok { color: var(--success); font-weight: 600; }
+  .lab-meta .accent { color: var(--accent-2); font-weight: 600; }
+  .lab-meta .muted { color: var(--text-3); }
+  .lab-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr) 260px; gap: 16px; align-items: start; }
+  @media (max-width: 1080px) { .lab-layout { grid-template-columns: 1fr; } }
+  .lab-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .lab-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+  /* scenario list */
+  .scenario-list { display: flex; flex-direction: column; gap: 4px; }
+  .scenario-row {
+    display: flex; align-items: center; gap: 10px; text-align: left;
+    padding: 10px 12px; border-radius: 9px; border: 1px solid transparent;
+    background: transparent; cursor: pointer; width: 100%;
+    transition: background .13s, border-color .13s;
+  }
+  .scenario-row:hover { background: var(--surface-2); }
+  .scenario-row.active { background: var(--surface-2); border-color: var(--border); }
+  .sc-diff { flex: 0 0 auto; font: 600 11px var(--mono); color: var(--warn); background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.25); border-radius: 5px; padding: 1px 6px; }
+  .sc-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+  .scenario-row.active .sc-title { color: var(--text); }
+
+  /* status states (shared) */
   .state {
     flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px;
-    font: 600 9.5px var(--mono); letter-spacing: .5px; text-transform: uppercase;
+    font: 600 10px var(--mono); letter-spacing: .5px; text-transform: uppercase;
   }
-  .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 7px currentColor; }
-  .state.not-started { color: var(--faint); }
-  .state.active { color: var(--amber); }
-  .state.complete { color: var(--accent); }
-  .state.locked { color: var(--faint); }
-  .state.unlocked { color: var(--cyan); }
+  .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .state.not-started { color: var(--text-3); }
+  .state.active { color: var(--warn); }
+  .state.complete { color: var(--success); }
+  .state.locked { color: var(--text-3); }
+  .state.unlocked { color: var(--accent-2); }
 
-  /* ---------- Progression ---------- */
-  .progress-bar { height: 9px; border-radius: 999px; background: var(--panel-3); overflow: hidden; border: 1px solid var(--line); }
-  .progress-bar > span {
-    display: block; height: 100%;
-    background: linear-gradient(90deg, var(--accent-2), var(--accent), var(--mint));
-    border-radius: 999px; box-shadow: 0 0 16px rgba(0,255,136,.5);
-    transition: width .5s var(--ease); position: relative; overflow: hidden;
-  }
-  .progress-bar > span::after {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
-    animation: shimmer 2.4s ease-in-out infinite;
-  }
-  @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
-  .kv { display: flex; justify-content: space-between; gap: 10px; font: 600 12px var(--mono); color: var(--muted); margin: 11px 0 7px; }
-  .kv b { color: var(--text); font-weight: 700; }
-  .gate-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; font-size: 12.5px; border-bottom: 1px solid var(--line); }
-  .gate-row:last-child { border-bottom: 0; }
-  .gate-row .rank {
-    flex: 0 0 auto; color: var(--accent); font: 700 10.5px var(--mono);
-    background: rgba(0,255,136,.08); border: 1px solid rgba(0,255,136,.26); border-radius: 5px; padding: 1px 6px;
-  }
-  .gate-row .gtitle { flex: 1 1 auto; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* scenario detail */
+  .scenario-head { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+  .scenario-title { margin: 4px 0 8px; font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+  .objective { color: var(--text-2); margin: 0 0 14px; font-size: 14px; }
+  details { border: 1px solid var(--border); border-radius: 9px; padding: 11px 14px; margin-top: 10px; background: var(--bg-soft); }
+  details summary { cursor: pointer; color: var(--text); font-weight: 600; font-size: 13px; list-style: none; display: flex; align-items: center; gap: 8px; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "▸"; color: var(--text-3); transition: transform .15s; }
+  details[open] summary::before { transform: rotate(90deg); color: var(--accent-2); }
+  details ul { margin: 9px 0 0; padding-left: 18px; color: var(--text-2); font-size: 13px; }
+  details li { margin: 4px 0; }
 
-  /* ---------- Profile card ---------- */
-  .profile { padding: 14px 16px; }
-  .profile .p-row { display: flex; justify-content: space-between; gap: 8px; font: 600 11px var(--mono); padding: 5px 0; color: var(--muted); }
-  .profile .p-row b { color: var(--accent); font-weight: 700; text-align: right; word-break: break-all; }
+  .row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+  .step-box {
+    margin-top: 13px; padding: 14px; background: var(--bg-soft);
+    border: 1px solid var(--border); border-radius: 9px; border-left: 3px solid var(--accent);
+  }
+  .step-box .event { font: 600 13px var(--mono); color: var(--accent-2); }
+  .step-box .obs { color: var(--text); margin-top: 8px; font-size: 14px; }
+  .keys { margin-top: 10px; font-size: 12.5px; color: var(--text-2); font-family: var(--mono); }
+  .keys code { background: var(--surface-3); color: var(--accent-2); border-radius: 5px; padding: 1px 7px; margin: 0 3px; }
+  .hint { font-size: 13px; color: var(--text-2); }
+  .hint code { color: var(--accent-2); }
 
-  /* ---------- Chips ---------- */
+  /* evidence form */
+  .ev-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px; margin-top: 9px; align-items: center; }
+  @media (max-width: 480px) { .ev-row { grid-template-columns: 1fr; } }
+  .ev-row input { font: 12px var(--mono); }
+  .candidate-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .candidate-chip {
+    border: 1px solid var(--border); border-radius: 7px; padding: 7px 12px;
+    font: 600 12px var(--mono); background: var(--surface-2); color: var(--text); cursor: pointer;
+    transition: border-color .13s, background .13s, transform .05s;
+  }
+  .candidate-chip:hover { border-color: #2e2e36; }
+  .candidate-chip.selected { border-color: var(--accent); color: #fff; background: var(--accent); }
+
+  /* chips + badges */
   .chip-grid { display: flex; flex-wrap: wrap; gap: 7px; }
   .chip {
     display: inline-flex; align-items: center; gap: 5px;
-    border: 1px solid var(--line-2); border-radius: 6px; padding: 4px 9px;
-    font: 600 11px var(--mono); background: var(--glass-2); color: var(--muted);
+    border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px;
+    font: 500 11.5px var(--mono); background: var(--surface-2); color: var(--text-2);
   }
-  .chip.checked { border-color: rgba(0,255,136,.5); color: var(--accent); background: rgba(0,255,136,.08); }
+  .chip.checked { border-color: rgba(34,197,94,.4); color: var(--success); background: var(--success-soft); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 600 11px var(--mono); letter-spacing: .5px;
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text-2); background: var(--surface-2);
+  }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .badge.ok { color: var(--success); border-color: rgba(34,197,94,.35); background: var(--success-soft); }
+  .badge.warn { color: var(--warn); border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.1); }
+  .badge.accent { color: var(--accent-2); border-color: rgba(99,102,241,.35); background: var(--accent-soft); }
 
-  /* ---------- Scenario detail ---------- */
-  .scenario-head { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-  .scenario-title { margin: 4px 0 8px; font: 700 20px/1.3 var(--display); letter-spacing: .2px; }
-  .objective { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
-  details { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 11px 14px; margin-top: 10px; background: var(--glass-2); }
-  details summary { cursor: pointer; color: var(--cyan); font-weight: 600; font-size: 13px; list-style: none; display: flex; align-items: center; gap: 8px; }
-  details summary::-webkit-details-marker { display: none; }
-  details summary::before { content: "▸"; color: var(--faint); transition: transform .16s var(--ease); }
-  details[open] summary::before { transform: rotate(90deg); color: var(--accent); }
-  details ul { margin: 9px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
-  details li { margin: 4px 0; }
-  .step-box {
-    margin-top: 13px; padding: 14px;
-    background: var(--glass-2); border: 1px solid var(--line); border-radius: var(--r-sm);
-    border-left: 3px solid var(--accent);
-  }
-  .step-box .event { font: 700 13px var(--mono); color: var(--accent); }
-  .step-box .obs { color: var(--text); margin-top: 8px; font-size: 14px; }
-  .keys { margin-top: 10px; font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
-  .keys code { background: var(--panel-3); color: var(--cyan); border-radius: 5px; padding: 1px 7px; margin: 0 3px; border: 1px solid var(--line-2); }
-  .row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; margin-top: 13px; }
-  .hint { font-size: 12.5px; color: var(--muted); }
-  .hint code { color: var(--cyan); }
-
-  /* ---------- Evidence form ---------- */
-  .ev-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px; margin-top: 9px; align-items: center; }
-  @media (max-width: 480px) { .ev-row { grid-template-columns: 1fr; align-items: stretch; } }
-  .ev-row input[readonly] { color: var(--muted); }
-  .ev-row input { background: var(--glass-2); border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 9px 12px; width: 100%; }
-  .candidate-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .candidate-chip {
-    border: 1px solid var(--line-2); border-radius: 7px; padding: 7px 12px;
-    font: 600 12px var(--mono); background: var(--panel-3); color: var(--text); cursor: pointer;
-    transition: all .14s var(--ease);
-  }
-  .candidate-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .candidate-chip.selected { border-color: var(--accent); color: var(--accent); background: rgba(0,255,136,.13); box-shadow: 0 0 0 2px rgba(0,255,136,.18); }
-
-  textarea {
-    width: 100%; min-height: 76px; resize: vertical;
-    background: var(--glass-2); border: 1px solid var(--line-2); border-radius: var(--r-sm);
-    padding: 11px 13px; font: 13px var(--mono); line-height: 1.55;
-    transition: border-color .18s var(--ease), box-shadow .18s var(--ease);
-  }
-  textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,255,136,.15); }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font: 700 10px var(--mono); letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
   .token-line {
-    font: 700 13px var(--mono); color: var(--accent); word-break: break-all;
-    background: var(--panel-3); border: 1px dashed rgba(0,255,136,.5); border-radius: var(--r-sm);
+    font: 600 13px var(--mono); color: var(--accent-2); word-break: break-all;
+    background: var(--surface-3); border: 1px dashed rgba(99,102,241,.4); border-radius: 9px;
     padding: 12px 14px; margin: 9px 0;
   }
-  .muted { color: var(--muted); }
+  .kv { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--text-3); margin: 8px 0 4px; }
+  .kv b { color: var(--text); font-weight: 600; }
+  .ok-text { color: var(--success); }
+  .err-text { color: var(--danger); }
 
-  /* ---------- Mission ---------- */
-  .mission-text { color: var(--text); font-size: 14px; margin: 0 0 11px; }
-  .hint-line { display: flex; gap: 11px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  /* mission */
+  .mission-text { color: var(--text); font-size: 14px; margin: 0 0 12px; }
+  .hint-label { font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 4px; }
+  .hint-line { display: flex; gap: 11px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); font-size: 13px; color: var(--text-2); }
   .hint-line:last-child { border-bottom: 0; }
   .hint-level {
-    flex: 0 0 auto; align-self: flex-start; min-width: 58px; text-align: center;
+    flex: 0 0 auto; align-self: flex-start; min-width: 54px; text-align: center;
     font: 700 10.5px var(--mono); letter-spacing: .5px; border-radius: 6px; padding: 3px 8px;
-    color: var(--amber); background: rgba(255,176,32,.1); border: 1px solid rgba(255,176,32,.3);
+    color: var(--warn); background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.25);
   }
 
-  /* ---------- Activity feed ---------- */
-  #activity-feed { display: flex; flex-direction: column; gap: 0; max-height: 340px; overflow-y: auto; }
-  .act {
-    display: flex; align-items: center; gap: 9px; padding: 7px 4px;
-    font: 500 11.5px var(--mono); color: var(--muted); border-bottom: 1px solid var(--line);
-    animation: actIn .3s var(--ease);
+  /* ---------- Footer ---------- */
+  .app-footer {
+    display: flex; gap: 8px 20px; flex-wrap: wrap; align-items: center;
+    padding: 14px 28px; border-top: 1px solid var(--border-soft); background: var(--bg-soft);
+    color: var(--text-3); font: 500 12px var(--mono);
   }
-  .act:last-child { border-bottom: 0; }
-  @keyframes actIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-  .act .act-t { color: var(--faint); flex: 0 0 auto; }
-  .act .act-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: 0 0 auto; box-shadow: 0 0 7px currentColor; }
-  .act .act-msg { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .act.ok { color: var(--accent); }
-  .act.err { color: var(--danger); }
-  .act.info { color: var(--muted); }
-
-  /* ============================================================
-     STATUS BAR
-     ============================================================ */
-  .statusbar {
-    position: sticky; bottom: 0; z-index: 40;
-    display: flex; gap: 12px 28px; flex-wrap: wrap; align-items: center;
-    padding: 11px 28px; border-top: 1px solid var(--line);
-    background: rgba(10,10,18,.85); backdrop-filter: blur(18px);
-    color: var(--muted); font: 600 11.5px var(--mono); letter-spacing: .3px;
-  }
-  .statusbar b { color: var(--text); font-weight: 700; }
-  .statusbar .ok-text { color: var(--accent); }
-  .statusbar .err-text { color: var(--danger); }
-  .statusbar .live-tag {
-    margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
-    color: var(--accent); font-weight: 600;
-  }
-  .statusbar .live-tag::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: blink 2s ease-in-out infinite; }
+  .app-footer b { color: var(--text-2); font-weight: 600; }
+  .app-footer .ok-text { color: var(--success); }
+  .app-footer .err-text { color: var(--danger); }
+  .foot-right { margin-left: auto; color: var(--text-3); }
 
   /* ---------- Toast ---------- */
   #toast {
-    position: fixed; right: 22px; bottom: 56px; z-index: 80; max-width: 460px;
-    padding: 14px 18px; border-radius: var(--r-md);
-    border: 1px solid var(--line-2); background: var(--panel-2);
-    backdrop-filter: blur(14px); box-shadow: var(--shadow); display: none;
-    font: 600 13px var(--mono); color: var(--text); white-space: pre-wrap;
-    animation: toastIn .3s var(--ease);
+    position: fixed; right: 20px; bottom: 20px; z-index: 80; max-width: 460px;
+    padding: 13px 16px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface-2);
+    box-shadow: var(--shadow); display: none;
+    font: 600 13px var(--sans); color: var(--text); white-space: pre-wrap;
   }
-  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  #toast.error { border-color: rgba(255,51,102,.55); color: var(--danger); }
-  #toast.ok { border-color: rgba(0,255,136,.55); color: var(--accent); }
+  #toast.error { border-color: rgba(239,68,68,.45); color: #fca5a5; }
+  #toast.ok { border-color: rgba(34,197,94,.4); color: var(--success); }
 
   @media (max-width: 720px) {
-    .topbar { padding: 11px 16px; }
-    .brand h1 { font-size: 15px; letter-spacing: 2px; }
-    .brand .mark { width: 36px; height: 36px; flex: 0 0 36px; }
-    .badge { font-size: 9px; letter-spacing: .5px; padding: 4px 8px; }
-    .badges { gap: 5px; margin-left: 0; width: 100%; }
-    .hero { padding: 28px 16px 20px; }
-    .controls { padding: 18px 16px; }
-    .dashboard { padding: 18px 16px 40px; }
-    .statusbar { padding: 10px 16px; }
-    .float-field { min-width: 100%; }
+    .app-header { flex-wrap: wrap; padding: 12px 16px; }
+    .app-nav { order: 3; width: 100%; }
+    .mode-pill { display: none; }
+    .user-chip { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .page { padding: 24px 16px 56px; }
+    .stats { gap: 10px; }
+    .app-footer { padding: 12px 16px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     html { scroll-behavior: auto; }
-    .hero-title .w { opacity: 1; }
   }
 </style>
 </head>
 <body>
-<div class="bg-fx" aria-hidden="true">
-  <div class="bg-mesh"></div>
-  <div class="bg-grid"></div>
-  <canvas id="particles"></canvas>
-  <div class="bg-scanline"></div>
-  <div class="bg-noise"></div>
+
+<!-- ================= LOGIN ================= -->
+<div id="view-login" class="view">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand">
+        <span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+            <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#6366f1"/>
+            <path d="M8.5 15.5l2.2-4.6 2.2 2.3 2.6-5.2" stroke="#818cf8"/>
+          </svg>
+        </span>
+        <div>
+          <h1>Zodiac Bank</h1>
+          <span class="sub">AI SECURITY LAB</span>
+        </div>
+      </div>
+
+      <h2>Sign in</h2>
+      <p class="login-sub">Enter your learner credentials to access the training range.</p>
+
+      <div class="field">
+        <label for="learner-id">Learner ID</label>
+        <input id="learner-id" placeholder="analyst-01" autocomplete="off" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label for="learner-token">Learner token</label>
+        <div class="input-group">
+          <input id="learner-token" type="password" placeholder="••••••••••••••••" autocomplete="off" />
+          <button class="reveal" id="password-toggle" type="button" aria-label="Toggle token visibility" aria-pressed="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="gate-url">Training gate URL</label>
+        <input id="gate-url" value="http://127.0.0.1:5050" autocomplete="off" spellcheck="false" />
+      </div>
+
+      <div id="login-error" class="login-error hidden"></div>
+
+      <button id="login-btn" class="btn btn-primary btn-block" type="button">Sign in</button>
+
+      <p class="login-foot">Local-only · synthetic data · no egress</p>
+    </div>
+  </div>
 </div>
 
-<div class="shell">
-
-  <header class="topbar">
-    <button class="icon-btn" id="rail-toggle" aria-label="Toggle navigation" aria-expanded="true">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div class="brand">
+<!-- ================= APP (post-login) ================= -->
+<div id="view-app" class="view hidden">
+  <header class="app-header">
+    <div class="app-brand">
       <span class="mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
-          <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#00ff88"/>
-          <path d="M8.5 15.5l2.2-4.6 2.2 2.3 2.6-5.2" stroke="#22d3ee"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#6366f1"/>
         </svg>
       </span>
       <div>
-        <h1>ZODIAC&nbsp;BANK</h1>
-        <span class="sub">AI SECURITY LABS</span>
+        <span class="name">Zodiac Bank</span>
+        <span class="sub">AI Security Lab</span>
       </div>
     </div>
-    <div class="badges">
-      <span class="badge accent live" id="mode-badge"><span class="dot"></span>LOADING…</span>
-      <span class="badge holo" id="scope-badge"><span class="dot"></span>SCOPE: LOCALHOST-ONLY</span>
-      <span class="badge warn"><span class="dot"></span>SYNTHETIC DATA</span>
+    <nav class="app-nav" aria-label="Primary">
+      <a href="#/dashboard" data-nav="dashboard">Dashboard</a>
+      <a href="#/labs" data-nav="labs">Labs</a>
+    </nav>
+    <div class="app-user">
+      <span class="mode-pill" id="mode-badge">…</span>
+      <span class="user-chip" id="header-learner">—</span>
+      <button id="logout-btn" class="btn btn-ghost" type="button">Sign out</button>
     </div>
   </header>
 
-  <section class="hero">
-    <div class="hero-copy">
-      <p class="hero-kicker">Offensive AI Security Range · L00 → L09</p>
-      <h2 class="hero-title">
-        <span class="w w1">Train.</span>
-        <span class="w w2">Attack.</span>
-        <span class="w w3">Detect.</span>
-        <span class="w w4">Harden.</span>
-      </h2>
-      <p class="hero-sub">A gated, hands-on command center that takes AI security operatives from scratch to APT-level capability — reconnaissance, prompt &amp; RAG injection, agent-protocol abuse, supply-chain tampering, detection evasion, and full incident-response.</p>
-    </div>
-    <div class="kpi-grid">
-      <div class="kpi">
-        <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m6 14V9m6 10v-6m4 6H2"/></svg>
-        <b data-count="10">10</b><span>stages</span>
+  <!-- Dashboard -->
+  <section id="view-dashboard" class="view">
+    <div class="page">
+      <div class="page-head">
+        <h1 id="dash-greeting">Welcome back</h1>
+        <p id="dash-sub">Your synthetic bank security range.</p>
       </div>
-      <div class="kpi">
-        <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z"/></svg>
-        <b class="acc" data-count="100">100</b><span>scenarios</span>
-      </div>
-      <div class="kpi">
-        <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
-        <b class="acc" data-count="50">50</b><span>hard gates</span>
-      </div>
-      <div class="kpi">
-        <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        <b class="acc">LIVE</b><span>no-egress range</span>
+      <div class="stats" id="dash-stats"></div>
+      <div class="two-col">
+        <div class="panel">
+          <h2>Progress</h2>
+          <div id="progress-body"><p class="muted">Loading…</p></div>
+        </div>
+        <div class="panel">
+          <h2>Continue</h2>
+          <div id="continue-body"><p class="muted">—</p></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="controls">
-    <div class="hint-lock">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      End-to-end authenticated session · localhost only
+  <!-- Labs -->
+  <section id="view-labs" class="view">
+    <div class="page">
+      <div class="page-head">
+        <h1>Labs</h1>
+        <p>10 stages · 100 scenarios · 50 hard gates</p>
+      </div>
+      <div id="range-list" class="labs-grid"></div>
     </div>
-    <div class="float-field">
-      <svg class="f-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <input id="learner-id" placeholder=" " autocomplete="off" spellcheck="false" />
-      <label for="learner-id">Learner ID</label>
-    </div>
-    <div class="float-field">
-      <svg class="f-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      <input id="learner-token" type="password" placeholder=" " autocomplete="off" />
-      <label for="learner-token">Learner token (private)</label>
-      <button class="reveal" id="password-toggle" type="button" aria-label="Toggle token visibility" aria-pressed="false">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>
-    </div>
-    <div class="float-field">
-      <svg class="f-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-      <input id="gate-url" value="http://127.0.0.1:5050" placeholder=" " autocomplete="off" spellcheck="false" />
-      <label for="gate-url">Training Gate URL</label>
-    </div>
-    <button id="load-btn" class="primary btn-xl" type="button">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3z"/></svg>
-      Initialize Range
-    </button>
   </section>
 
-  <div class="dashboard">
-    <aside class="rail">
-      <nav class="nav-rail" aria-label="Primary">
-        <button class="nav-item active" data-target="range-panel" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Range Map</button>
-        <button class="nav-item" data-target="scenario-panel" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Scenarios</button>
-        <button class="nav-item" data-target="progress-panel" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Progression</button>
-        <button class="nav-item" data-target="posture-panel" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z"/></svg>Bank Posture</button>
-      </nav>
-
-      <section class="panel" id="range-panel">
-        <h2>Range map <span class="count" id="range-count">10 stages · 100 scenarios</span></h2>
-        <div id="range-list"><p class="muted">Enter a learner ID and token, then press <em>Initialize Range</em>.</p></div>
-      </section>
-
-      <section class="panel" id="progress-panel">
-        <h2>Progression</h2>
-        <div id="progress-body"><p class="muted">Load a range to see learner progression.</p></div>
-      </section>
-
-      <section class="panel profile">
-        <h2>Operative</h2>
-        <div class="p-row"><span>learner</span><b id="profile-learner">—</b></div>
-        <div class="p-row"><span>stage</span><b id="profile-stage">—</b></div>
-        <div class="p-row"><span>clearance</span><b id="profile-mode">—</b></div>
-      </section>
-    </aside>
-
-    <main class="content">
-      <section class="panel" id="mission-panel">
-        <h2>Mission briefing &amp; hints</h2>
-        <div id="mission-body"><p class="muted">The current stage mission and safe hints appear after the gate connects.</p></div>
-      </section>
-
-      <section class="panel" id="scenario-panel">
-        <h2>Scenario</h2>
-        <div id="scenario-detail"><p class="muted">Select a scenario in the range map. Only scenarios in the learner's current stage can be started and advanced.</p></div>
-      </section>
-
-      <section class="panel" id="synthesis-panel">
-        <h2>Hard-gate synthesis &amp; flag</h2>
-        <div id="synthesis-detail"><p class="muted">Complete every required scenario in the current stage to unlock synthesis.</p></div>
-      </section>
-    </main>
-
-    <aside class="context">
-      <section class="panel" id="posture-panel">
-        <h2>Bank posture</h2>
-        <div id="posture-body"><p class="muted">Dynamic bank profile appears after load.</p></div>
-      </section>
-
-      <section class="panel">
-        <h2>Activity feed</h2>
-        <div id="activity-feed"></div>
-      </section>
-    </aside>
-  </div>
-
-  <footer class="statusbar">
-    <span id="status-mode">mode: —</span>
-    <span id="status-profile">bank posture: —</span>
-    <span id="status-stage">current stage: —</span>
-    <span id="status-gate">gate: —</span>
-    <span id="status-range">range: —</span>
-    <span class="live-tag">CHANNEL ACTIVE</span>
-  </footer>
-
-  <div id="toast" role="status" aria-live="polite"></div>
+  <!-- Lab detail -->
+  <section id="view-lab" class="view">
+    <div class="page">
+      <a href="#/labs" class="back-link">← Back to labs</a>
+      <div id="lab-head"></div>
+      <div class="lab-layout">
+        <aside class="lab-side">
+          <div class="panel">
+            <h2>Scenarios</h2>
+            <div id="lab-scenarios" class="scenario-list"></div>
+          </div>
+        </aside>
+        <main class="lab-main">
+          <div class="panel">
+            <h2>Mission</h2>
+            <div id="mission-body"><p class="muted">—</p></div>
+          </div>
+          <div class="panel">
+            <h2>Scenario</h2>
+            <div id="scenario-detail"><p class="muted">Select a scenario to begin.</p></div>
+          </div>
+          <div class="panel">
+            <h2>Hard-gate synthesis &amp; flag</h2>
+            <div id="synthesis-detail"><p class="muted">Complete every required scenario to unlock synthesis.</p></div>
+          </div>
+        </main>
+        <aside class="lab-side">
+          <div class="panel">
+            <h2>Bank posture</h2>
+            <div id="posture-body"><p class="muted">—</p></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
 </div>
+
+<footer class="app-footer">
+  <span id="status-mode">mode: —</span>
+  <span id="status-profile">bank posture: —</span>
+  <span id="status-stage">current stage: —</span>
+  <span id="status-gate">gate: —</span>
+  <span id="status-range">range: —</span>
+  <span class="foot-right">Zodiac Bank · AI Security Lab</span>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 "use strict";
@@ -721,6 +580,7 @@ const state = {
   gates: [],          // current stage hard gates (from /api/gates)
   gateMeta: null,
   curriculum: null,   // gate /api/curriculum (stage status + hints)
+  currentLab: null,   // lab (stage) being viewed on the lab page
 };
 
 function toast(message, kind) {
@@ -830,47 +690,47 @@ function findRun(scenarioId) {
   return state.scenarios.find((s) => s.scenario_id === scenarioId) || null;
 }
 
-/* ---------- Range map ---------- */
+/* ---------- Helpers ---------- */
+
+function stageTitle(id) {
+  return (id || "").split("-").slice(1).join(" ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function minDifficulty(stage) {
+  return Math.min.apply(null, (stage.scenarios || []).map((s) => s.difficulty));
+}
+
+function maxDifficulty(stage) {
+  return Math.max.apply(null, (stage.scenarios || []).map((s) => s.difficulty));
+}
+
+/* ---------- Render: labs grid ---------- */
 
 function renderRange() {
   const list = $("range-list");
-  if (!state.range) { list.innerHTML = '<p class="muted">No range loaded.</p>'; return; }
+  if (!list) return;
+  if (!state.range) { list.innerHTML = '<p class="muted">No labs loaded.</p>'; return; }
+  const curriculumStages = (state.curriculum && state.curriculum.stages) || [];
   list.innerHTML = state.range.stages.map((stage) => {
+    const cur = curriculumStages.find((s) => s.id === stage.stage_id);
     const isCurrent = stage.stage_id === state.currentStageId;
-    const scenarios = stage.scenarios.map((sc) => {
-      const run = findRun(sc.scenario_id);
-      const status = run ? run.status : "not-started";
-      const cls = state.selected && state.selected.scenario_id === sc.scenario_id ? "active" : "";
-      return `<div class="scenario-item ${cls}" data-scenario="${esc(sc.scenario_id)}" role="button" tabindex="0">
-        <span class="diff">D${String(sc.difficulty).padStart(2, "0")}</span>
-        <span class="title">${esc(sc.title)}</span>
-        <span class="state ${status}">${status}</span>
-      </div>`;
-    }).join("");
-    return `<div class="stage ${isCurrent ? "current open" : ""}">
-      <div class="stage-head" data-stage="${esc(stage.stage_id)}" role="button" tabindex="0" aria-expanded="${isCurrent}">
-        <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-        <span class="num">${esc(stage.stage_id.split("-")[0])}</span>
-        <span class="name">${esc(stage.stage_id)}</span>
-        <span class="meta">${stage.scenarios.length} scenarios${isCurrent ? " · current" : ""}</span>
+    const isCompleted = cur && cur.status === "completed";
+    const status = isCompleted ? "Completed" : isCurrent ? "In progress" : "Locked";
+    const statusClass = isCompleted ? "ok" : isCurrent ? "accent" : "muted";
+    const code = stage.stage_id.split("-")[0];
+    return `<a class="lab-card" href="#/lab/${encodeURIComponent(stage.stage_id)}">
+      <div class="lab-card-top">
+        <span class="lab-code">${esc(code)}</span>
+        <span class="lab-status ${statusClass}">${status}</span>
       </div>
-      <div class="stage-body">${scenarios}</div>
-    </div>`;
+      <h3 class="lab-card-title">${esc(stageTitle(stage.stage_id))}</h3>
+      <p class="lab-card-sub">${stage.scenarios.length} scenarios${isCurrent ? " · current lab" : ""}</p>
+      <div class="lab-card-foot">
+        <span>D${minDifficulty(stage)}–D${maxDifficulty(stage)} · ${stage.scenarios.length} exercises</span>
+        <span class="lab-arrow">→</span>
+      </div>
+    </a>`;
   }).join("");
-  list.querySelectorAll(".stage-head").forEach((head) => {
-    const activate = () => {
-      const stage = head.parentElement;
-      const open = stage.classList.toggle("open");
-      head.setAttribute("aria-expanded", String(open));
-    };
-    head.addEventListener("click", activate);
-    head.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); } });
-  });
-  list.querySelectorAll(".scenario-item").forEach((item) => {
-    const select = () => selectScenario(item.dataset.scenario);
-    item.addEventListener("click", select);
-    item.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(); } });
-  });
 }
 
 /* ---------- Stage / gates / synthesis ---------- */
@@ -906,20 +766,25 @@ function renderPosture(profile) {
   const domains = (profile.data_domains || []).join(", ");
   const controls = (profile.controls || []).join(", ");
   $("status-profile").innerHTML = `bank posture: <b>L${esc(profile.level)}</b> · ${esc(profile.security_tier)} · ${esc(profile.operating_mode)}`;
-  $("posture-body").innerHTML = `
-    <div class="hint" style="margin-bottom:8px"><b style="color:var(--text)">${esc(profile.label)}</b> — only this profile's synthetic data and controls are active after the last accepted flag.</div>
+  const body = $("posture-body");
+  if (!body) return;
+  body.innerHTML = `
+    <div class="hint" style="margin-bottom:10px"><b style="color:var(--text)">${esc(profile.label)}</b> — only this profile's synthetic data and controls are active after the last accepted flag.</div>
     <div class="chip-grid">
       <span class="chip">security: ${esc(profile.security_tier)}</span>
       <span class="chip">mode: ${esc(profile.operating_mode)}</span>
       <span class="chip">staff: ${esc(profile.staff_access)}</span>
       <span class="chip">customer: ${esc(profile.customer_access)}</span>
     </div>
-    <div class="hint" style="margin-top:9px">data domains: ${esc(domains)}</div>
-    <div class="hint">controls: ${esc(controls)}</div>`;
+    <div class="kv" style="margin-top:14px"><span>Data domains</span></div>
+    <div class="hint" style="font-size:12px">${esc(domains)}</div>
+    <div class="kv" style="margin-top:12px"><span>Controls</span></div>
+    <div class="hint" style="font-size:12px">${esc(controls)}</div>`;
 }
 
 function renderProgression() {
   const body = $("progress-body");
+  if (!body) return;
   const stages = (state.curriculum && state.curriculum.stages) || [];
   const completed = stages.filter((s) => s.status === "completed").length;
   const pct = stages.length ? Math.round((completed / stages.length) * 100) : 0;
@@ -934,19 +799,22 @@ function renderProgression() {
       </div>`).join("");
   }
   body.innerHTML = `
-    <div class="kv"><span>Stage progress</span><b>${completed} / ${stages.length || 10}</b></div>
+    <div class="prog-row"><span>Stage progress</span><b>${completed} / ${stages.length || 10}</b></div>
     <div class="progress-bar"><span style="width:${pct}%"></span></div>
-    <div class="kv" style="margin-top:12px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 50)}</b></div>
-    ${meta.current_gate_id ? `<div class="kv"><span>Current gate</span><b style="color:var(--green)">${esc(meta.current_gate_id)}</b></div>` : ""}
+    <div class="prog-row" style="margin-top:16px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 50)}</b></div>
+    ${meta.current_gate_id ? `<div class="prog-row"><span>Current gate</span><b class="accent">${esc(meta.current_gate_id)}</b></div>` : ""}
     <div style="margin-top:12px">${gatesHtml}</div>`;
 }
 
-function renderMission() {
+function renderMission(stageId) {
   const body = $("mission-body");
+  if (!body) return;
   const stages = (state.curriculum && state.curriculum.stages) || [];
-  const stage = stages.find((s) => s.status === "unlocked") || stages.find((s) => s.status === "completed") || null;
+  const stage = stageId
+    ? stages.find((s) => s.id === stageId)
+    : (stages.find((s) => s.status === "unlocked") || stages.find((s) => s.status === "completed") || null);
   if (!stage) {
-    body.innerHTML = '<p class="muted">Connect the gate to load the current mission and safe hints.</p>';
+    body.innerHTML = '<p class="muted">No mission data for this lab yet.</p>';
     return;
   }
   const hints = (stage.hints || []).map((h) => `
@@ -957,23 +825,19 @@ function renderMission() {
   const services = (stage.target_services || []).map((s) => `<span class="chip">${esc(s)}</span>`).join("");
   const skills = (stage.skills || []).map((s) => `<span class="chip">${esc(s)}</span>`).join("");
   body.innerHTML = `
-    <div class="scenario-head">
-      <span class="badge accent">${esc(stage.id)}</span>
-      <span class="badge">${esc(stage.status)}</span>
-      ${stage.attempts != null ? `<span class="badge warn">${stage.attempts} attempts</span>` : ""}
-    </div>
     <p class="mission-text">${esc(stage.mission || stage.title || "")}</p>
-    ${services ? `<div class="chip-grid" style="margin-bottom:9px">${services}</div>` : ""}
-    ${skills ? `<div class="chip-grid" style="margin-bottom:9px">${skills}</div>` : ""}
-    <div class="hint" style="margin-bottom:6px">Safe progressive hints (reveal only what you need):</div>
-    ${hints || '<p class="muted">No hints available for this stage.</p>'}`;
+    ${services ? `<div class="chip-grid" style="margin-bottom:8px">${services}</div>` : ""}
+    ${skills ? `<div class="chip-grid" style="margin-bottom:8px">${skills}</div>` : ""}
+    <div class="hint-label">Safe progressive hints</div>
+    ${hints || '<p class="muted">No hints available.</p>'}`;
 }
 
 /* ---------- Scenario detail ---------- */
 
 function renderScenario() {
   const detail = $("scenario-detail");
-  if (!state.selected) { detail.innerHTML = '<p class="muted">Select a scenario in the range map.</p>'; return; }
+  if (!detail) return;
+  if (!state.selected) { detail.innerHTML = '<p class="muted">Select a scenario to begin.</p>'; return; }
   const sc = state.selected;
   const run = findRun(sc.scenario_id);
   const status = run ? run.status : "not-started";
@@ -1001,9 +865,9 @@ function renderScenario() {
       <div class="chip-grid" style="margin-top:9px">${(sc.required_controls || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("")}</div>
     </details>
     <div class="row">
-      <button id="start-btn" class="primary" type="button" ${status === "active" || status === "complete" ? "disabled" : ""}>Start scenario</button>
-      <button id="hint-btn" type="button">Next-step hint</button>
-      <button id="reset-btn" class="danger" type="button" style="display:${status === "active" ? "inline-flex" : "none"}">Reset run</button>
+      <button id="start-btn" class="btn btn-primary" type="button" ${status === "active" || status === "complete" ? "disabled" : ""}>Start scenario</button>
+      <button id="hint-btn" class="btn" type="button">Next-step hint</button>
+      <button id="reset-btn" class="btn btn-danger" type="button" style="display:${status === "active" ? "inline-flex" : "none"}">Reset run</button>
     </div>
     <div id="hint-box"></div>
     <div id="event-box"></div>`;
@@ -1012,6 +876,7 @@ function renderScenario() {
   const resetBtn = $("reset-btn");
   if (resetBtn) resetBtn.addEventListener("click", resetRun);
   if (status === "active") showHint();
+  renderLabScenarios();
 }
 
 async function selectScenario(scenarioId) {
@@ -1020,11 +885,11 @@ async function selectScenario(scenarioId) {
   const sc = stage && stage.scenarios.find((s) => s.scenario_id === scenarioId);
   if (!sc) return;
   if (stage.stage_id !== state.currentStageId) {
-    toast("Only the current stage's scenarios can be opened.", "error");
+    toast("This lab is locked — only the current stage's scenarios can be opened.", "error");
     return;
   }
   state.selected = sc;
-  renderRange();
+  renderLabScenarios();
   renderScenario();
 }
 
@@ -1056,7 +921,7 @@ async function showHint() {
         <div class="obs">observation: ${esc(hint.observation)}</div>
         <div class="keys">required evidence keys: ${(hint.required_evidence_keys || []).map((k) => `<code>${esc(k)}</code>`).join(" ") || "none"}</div>
       </div>
-      <div class="row"><button id="fill-btn" class="primary" type="button">Build evidence form</button></div>`;
+      <div class="row"><button id="fill-btn" class="btn btn-primary" type="button">Build evidence form</button></div>`;
     $("fill-btn").addEventListener("click", () => buildEvidenceForm(hint));
   } catch (error) {
     box.innerHTML = `<div class="step-box"><span class="hint">hint unavailable: ${esc(error.message)}</span></div>`;
@@ -1090,7 +955,7 @@ function buildEvidenceForm(hint) {
       <div class="event">${esc(hint.event)}</div>
       ${rows || '<p class="muted">No evidence keys required for this step.</p>'}
       <div class="row">
-        <button id="submit-event" class="primary" type="button">Submit evidence event</button>
+        <button id="submit-event" class="btn btn-primary" type="button">Submit evidence event</button>
       </div>
     </div>`;
   box.querySelectorAll(".candidate-chip").forEach((chip) => {
@@ -1148,6 +1013,7 @@ async function resetRun() {
 
 function renderSynthesis() {
   const panel = $("synthesis-detail");
+  if (!panel) return;
   if (!state.synthesis) { panel.innerHTML = '<p class="muted">The next hard gate appears after the previous gate is accepted.</p>'; return; }
   const req = state.synthesis;
   const runs = state.scenarios || [];
@@ -1182,7 +1048,7 @@ function renderSynthesis() {
         <textarea id="syn-timeline" placeholder="T1 …&#10;T2 …"></textarea>
       </div>
       <div class="row">
-        <button id="syn-btn" class="primary" type="button">Run hard-gate synthesis</button>
+        <button id="syn-btn" class="btn btn-primary" type="button">Run hard-gate synthesis</button>
       </div>
       <div id="syn-result"></div>` : ""}`;
   const btn = $("syn-btn");
@@ -1218,8 +1084,8 @@ async function runSynthesis() {
         <div class="hint">Hard-gate flag (submit to unlock the next gate):</div>
         <div class="token-line">${esc(flag)}</div>
         <div class="row">
-          <button id="copy-flag" type="button">Copy</button>
-          <button id="submit-gate" class="primary" type="button">Submit to gate</button>
+          <button id="copy-flag" class="btn" type="button">Copy</button>
+          <button id="submit-gate" class="btn btn-primary" type="button">Submit to gate</button>
         </div>
       </div>`;
     $("copy-flag").addEventListener("click", () => {
@@ -1247,182 +1113,227 @@ async function submitFlagToGate(flag) {
   }
 }
 
+/* ---------- Lab page ---------- */
+
+function renderLabScenarios() {
+  const box = $("lab-scenarios");
+  if (!box) return;
+  const stage = state.range && state.range.stages.find((s) => s.stage_id === state.currentLab);
+  if (!stage) { box.innerHTML = '<p class="muted">No scenarios.</p>'; return; }
+  box.innerHTML = stage.scenarios.map((sc) => {
+    const run = findRun(sc.scenario_id);
+    const status = run ? run.status : "not-started";
+    const active = state.selected && state.selected.scenario_id === sc.scenario_id;
+    return `<button type="button" class="scenario-row ${active ? "active" : ""}" data-scenario="${esc(sc.scenario_id)}">
+      <span class="sc-diff">D${String(sc.difficulty).padStart(2, "0")}</span>
+      <span class="sc-title">${esc(sc.title)}</span>
+      <span class="state ${status}">${status}</span>
+    </button>`;
+  }).join("");
+  box.querySelectorAll(".scenario-row").forEach((row) => {
+    row.addEventListener("click", () => selectScenario(row.dataset.scenario));
+  });
+}
+
+function renderLab(stageId) {
+  state.currentLab = stageId;
+  const stage = state.range && state.range.stages.find((s) => s.stage_id === stageId);
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  const cur = stages.find((s) => s.id === stageId);
+  const isCurrent = stageId === state.currentStageId;
+  const isCompleted = cur && cur.status === "completed";
+  const status = isCompleted ? "Completed" : isCurrent ? "In progress" : "Locked";
+  const statusClass = isCompleted ? "ok" : isCurrent ? "accent" : "muted";
+  const head = $("lab-head");
+  if (head) {
+    head.innerHTML = `
+      <div class="lab-head-top">
+        <span class="lab-code">${esc(stageId.split("-")[0])}</span>
+        <div>
+          <h1 class="lab-title">${esc(stageTitle(stageId))}</h1>
+          <div class="lab-meta">${esc(stageId)} · ${stage ? stage.scenarios.length : 0} scenarios · <span class="${statusClass}">${status}</span></div>
+        </div>
+      </div>`;
+  }
+  renderMission(stageId);
+  renderLabScenarios();
+  renderScenario();
+  renderSynthesis();
+}
+
+/* ---------- Dashboard ---------- */
+
+function renderDashboard() {
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  const completed = stages.filter((s) => s.status === "completed").length;
+  const meta = state.gateMeta || {};
+  const profile = (state.range && state.range.bank_profile) || (state.curriculum && state.curriculum.bank_profile) || null;
+  const greeting = $("dash-greeting");
+  const sub = $("dash-sub");
+  if (greeting) greeting.textContent = `Welcome back, ${state.learner}`;
+  if (sub) sub.textContent = profile ? `${esc(profile.label)} — ${esc(profile.security_tier)} · ${esc(profile.operating_mode)}` : "Your synthetic bank security range.";
+  const stats = $("dash-stats");
+  if (stats) {
+    const gatesDone = meta.completed_gate_count ?? 0;
+    const gatesTotal = meta.total_hard_gates ?? 50;
+    stats.innerHTML = `
+      <div class="stat"><b>${completed}</b><span>/ ${stages.length || 10} stages</span></div>
+      <div class="stat"><b>${esc(gatesDone)}</b><span>/ ${esc(gatesTotal)} hard gates</span></div>
+      <div class="stat"><b>100</b><span>scenarios</span></div>
+      <div class="stat"><b>L${profile ? esc(profile.level) : "—"}</b><span>current level</span></div>`;
+  }
+  renderProgression();
+  const cont = $("continue-body");
+  if (cont) {
+    if (state.currentStageId) {
+      cont.innerHTML = `
+        <p class="muted" style="margin:0 0 12px">Pick up where you left off.</p>
+        <div class="continue-card">
+          <div>
+            <div class="label">Current lab</div>
+            <div class="title">${esc(stageTitle(state.currentStageId))}</div>
+          </div>
+          <a class="btn btn-primary" href="#/lab/${encodeURIComponent(state.currentStageId)}">Continue</a>
+        </div>`;
+    } else {
+      cont.innerHTML = `<p class="muted">Course complete — review any lab from the Labs page.</p>`;
+    }
+  }
+}
+
+function updateHeader() {
+  const el = $("header-learner");
+  if (el) el.textContent = state.learner || "—";
+}
+
+/* ---------- Router ---------- */
+
+function router() {
+  const hash = location.hash.replace(/^#\/?/, "") || "login";
+  const seg = hash.split("/");
+  const path = seg[0] || "login";
+  const param = seg[1] || null;
+
+  if (!state.range && path !== "login") {
+    location.hash = "#/login";
+    return;
+  }
+
+  const viewApp = $("view-app");
+  if (viewApp) viewApp.classList.toggle("hidden", path === "login");
+
+  const views = { login: "view-login", dashboard: "view-dashboard", labs: "view-labs", lab: "view-lab" };
+  Object.keys(views).forEach((k) => {
+    const el = $(views[k]);
+    if (el) el.classList.toggle("hidden", k !== path);
+  });
+
+  document.querySelectorAll(".app-nav a").forEach((a) => {
+    a.classList.toggle("active", a.dataset.nav === path);
+  });
+
+  if (path === "dashboard") renderDashboard();
+  if (path === "labs") renderRange();
+  if (path === "lab") { state.currentLab = param || state.currentStageId; renderLab(state.currentLab); }
+
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Auth actions ---------- */
+
+function setLoading(btn, on) {
+  if (!btn) return;
+  if (on) {
+    btn.dataset.label = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Signing in…';
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = btn.dataset.label || "Sign in";
+    btn.disabled = false;
+  }
+}
+
+function showLoginError(msg) {
+  const el = $("login-error");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+
+function hideLoginError() {
+  $("login-error").classList.add("hidden");
+}
+
+async function login() {
+  const learnerInput = $("learner-id").value.trim();
+  const tokenInput = $("learner-token").value.trim();
+  const gateInput = $("gate-url").value.trim();
+  if (!learnerInput || !tokenInput) {
+    showLoginError("Enter your learner ID and token.");
+    return;
+  }
+  state.learner = learnerInput;
+  state.token = tokenInput;
+  state.gateUrl = gateInput || "http://127.0.0.1:5050";
+  saveSettings();
+  hideLoginError();
+  setLoading($("login-btn"), true);
+  await loadAll();
+  setLoading($("login-btn"), false);
+  if (state.range) {
+    updateHeader();
+    location.hash = "#/dashboard";
+    renderDashboard();
+  } else {
+    showLoginError("Could not load the range — check your token and gate URL.");
+  }
+}
+
+function logout() {
+  state.range = null;
+  state.curriculum = null;
+  state.scenarios = [];
+  state.gates = [];
+  state.synthesis = null;
+  state.gateMeta = null;
+  state.currentStageId = null;
+  state.currentLab = null;
+  state.selected = null;
+  location.hash = "#/login";
+  router();
+}
+
+function togglePassword() {
+  const pw = $("learner-token");
+  const show = pw.type === "password";
+  pw.type = show ? "text" : "password";
+  this.classList.toggle("on", show);
+  this.setAttribute("aria-pressed", String(show));
+}
+
 /* ---------- Init ---------- */
 
-$("load-btn").addEventListener("click", () => {
-  const btn = $("load-btn");
-  const original = btn.innerHTML;
-  btn.classList.add("loading");
-  btn.disabled = true;
-  btn.innerHTML = `<span class="spinner" aria-hidden="true"></span> INITIALIZING…`;
-  loadAll().finally(() => {
-    btn.classList.remove("loading");
-    btn.disabled = false;
-    btn.innerHTML = original;
-  });
-});
 loadSettings();
 $("learner-id").value = state.learner;
 $("learner-token").value = state.token;
 $("gate-url").value = state.gateUrl;
+$("login-btn").addEventListener("click", login);
+$("logout-btn").addEventListener("click", logout);
+$("password-toggle").addEventListener("click", togglePassword);
 
 fetch("/health")
   .then((r) => r.json())
   .then((health) => {
     const mode = health.mode || "unknown";
-    $("mode-badge").innerHTML = `<span class="dot"></span>MODE: ${esc(mode).toUpperCase()}`;
+    $("mode-badge").textContent = String(mode).toUpperCase();
     $("status-mode").innerHTML = `mode: <b>${esc(mode)}</b>`;
-    const pm = $("profile-mode");
-    if (pm) pm.textContent = String(mode).toUpperCase();
   })
   .catch(() => {
-    $("mode-badge").innerHTML = `<span class="dot"></span>MODE: OFFLINE`;
+    $("mode-badge").textContent = "OFFLINE";
     $("status-mode").textContent = "mode: offline";
-    const pm = $("profile-mode");
-    if (pm) pm.textContent = "OFFLINE";
-  });
-</script>
-
-<script>
-/* ============================================================
-   UI POLISH — counters, password reveal, rail collapse, nav,
-   profile sync, activity feed, particle network.
-   (Additive only; no API logic lives here.)
-   ============================================================ */
-(function () {
-  "use strict";
-  const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /* 1) Animated stat counters */
-  document.querySelectorAll("[data-count]").forEach((el) => {
-    const target = parseInt(el.getAttribute("data-count"), 10);
-    if (reduced || !target) { el.textContent = target; return; }
-    let start = null; const dur = 1200;
-    const step = (ts) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / dur, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(target * eased);
-      if (p < 1) requestAnimationFrame(step); else el.textContent = target;
-    };
-    requestAnimationFrame(step);
   });
 
-  /* 2) Password reveal */
-  const pw = document.getElementById("learner-token");
-  const pt = document.getElementById("password-toggle");
-  if (pw && pt) {
-    pt.addEventListener("click", () => {
-      const show = pw.type === "password";
-      pw.type = show ? "text" : "password";
-      pt.classList.toggle("on", show);
-      pt.setAttribute("aria-pressed", String(show));
-      pw.focus();
-    });
-  }
-
-  /* 3) Rail collapse */
-  const rt = document.getElementById("rail-toggle");
-  if (rt) {
-    rt.addEventListener("click", () => {
-      document.body.classList.toggle("rail-collapsed");
-      rt.setAttribute("aria-expanded", String(!document.body.classList.contains("rail-collapsed")));
-    });
-  }
-
-  /* 4) Nav items scroll to their panel */
-  document.querySelectorAll(".nav-item").forEach((item) => {
-    item.addEventListener("click", () => {
-      document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
-      item.classList.add("active");
-      const target = document.getElementById(item.dataset.target);
-      if (target) target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
-    });
-  });
-
-  /* 5) Profile + activity feed sync */
-  const feed = document.getElementById("activity-feed");
-  const seen = {};
-  const log = (el, kind) => {
-    let txt = (el.textContent || "").trim();
-    if (!txt) return;
-    if (el.id === "toast" && el.style.display !== "block") return;
-    if (/:—$/.test(txt) || /: —$/.test(txt)) return;          // skip placeholder "x: —"
-    if (seen[el.id] === txt) return;
-    seen[el.id] = txt;
-    if (el.id === "status-mode" && txt.includes("learner")) {
-      const m = txt.match(/learner <b>([^<]+)<\/b>/);
-      const pl = document.getElementById("profile-learner");
-      if (pl && m) pl.textContent = m[1];
-    }
-    if (el.id === "status-stage") {
-      const m = txt.match(/<b>([^<]+)<\/b>/);
-      const ps = document.getElementById("profile-stage");
-      if (ps) ps.textContent = m ? m[1] : txt.replace("current stage: ", "");
-    }
-    if (!feed) return;
-    const t = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    const row = document.createElement("div");
-    row.className = "act " + (el.id === "toast" ? (el.className === "error" ? "err" : el.className === "ok" ? "ok" : "info") : kind);
-    row.innerHTML = '<span class="act-t">' + t + '</span><span class="act-dot"></span><span class="act-msg">' + escHtml(txt) + "</span>";
-    feed.insertBefore(row, feed.firstChild);
-    while (feed.children.length > 30) feed.removeChild(feed.lastChild);
-  };
-
-  const watched = [
-    ["status-gate", "info"],
-    ["status-stage", "info"],
-    ["status-range", "ok"],
-    ["status-mode", "info"],
-    ["toast", "info"],
-  ];
-  watched.forEach((pair) => {
-    const el = document.getElementById(pair[0]);
-    if (!el) return;
-    new MutationObserver(() => log(el, pair[1])).observe(el, { childList: true, characterData: true, subtree: true, attributes: true });
-    log(el, pair[1]);
-  });
-
-  /* 6) Particle network */
-  const canvas = document.getElementById("particles");
-  if (canvas && !reduced) {
-    const ctx = canvas.getContext("2d");
-    let W = 0, H = 0, pts = [];
-    const resize = () => {
-      W = canvas.width = canvas.offsetWidth;
-      H = canvas.height = canvas.offsetHeight;
-      const n = Math.min(72, Math.floor((W * H) / 26000));
-      pts = [];
-      for (let i = 0; i < n; i++) pts.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.32, vy: (Math.random() - 0.5) * 0.32 });
-    };
-    const draw = () => {
-      ctx.clearRect(0, 0, W, H);
-      for (let i = 0; i < pts.length; i++) {
-        const p = pts[i];
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > W) p.vx *= -1;
-        if (p.y < 0 || p.y > H) p.vy *= -1;
-        ctx.fillStyle = "rgba(0,255,136,.34)";
-        ctx.beginPath(); ctx.arc(p.x, p.y, 1.1, 0, 6.283); ctx.fill();
-        for (let j = i + 1; j < pts.length; j++) {
-          const q = pts[j];
-          const dx = p.x - q.x, dy = p.y - q.y;
-          const d = dx * dx + dy * dy;
-          if (d < 11000) {
-            ctx.strokeStyle = "rgba(0,255,136," + (0.09 * (1 - d / 11000)) + ")";
-            ctx.lineWidth = 0.6;
-            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
-          }
-        }
-      }
-      requestAnimationFrame(draw);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-    draw();
-  }
-})();
+window.addEventListener("hashchange", router);
+router();
 </script>
 </body>
 </html>
