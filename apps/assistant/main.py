@@ -5,10 +5,12 @@ from __future__ import annotations
 import os
 import time
 import uuid
+from pathlib import Path
 from typing import Any
 
 import requests
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Zodiac Bank Assistant", version="2.0")
@@ -34,6 +36,11 @@ def call_backend(messages: list[dict[str, Any]], request: ChatCompletionRequest)
     response = requests.post(f"{OPENAI_BASE_URL}/chat/completions", json=payload, timeout=300)
     response.raise_for_status()
     return response.json()
+
+
+@app.get("/")
+async def index() -> FileResponse:
+    return FileResponse(Path(__file__).with_name("index.html"))
 
 
 @app.post("/v1/chat/completions")

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Assistant · Zodiac Bank API Playground</title>
+<style>
+  /* ZODIAC BANK — ASSISTANT · OPENAI-COMPATIBLE API CONSOLE (shared Zodiac design language) */
+  :root {
+    --bg-0: #02040a; --bg-1: #05080f; --bg-2: #070b15;
+    --panel: #0a0f1b; --panel-2: #0e1524; --panel-3: #131c31;
+    --line: #1a2438; --line-2: #24304c; --line-3: #31406a;
+    --text: #e9eef7; --muted: #8b98b4; --faint: #71809e;
+    --green: #34d399; --green-2: #10b981; --mint: #2dd4bf; --cyan: #22d3ee;
+    --indigo: #818cf8; --amber: #fbbf24; --danger: #fb7185;
+    --mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --display: "Space Grotesk", "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px;
+    --shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 12px 34px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: dark; }
+  body {
+    margin: 0; background: var(--bg-0); color: var(--text);
+    font: 15px/1.6 var(--sans); min-height: 100vh; display: flex; flex-direction: column;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  ::selection { background: rgba(52,211,153,.3); color: #fff; }
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: var(--bg-1); }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 8px; border: 2px solid var(--bg-1); }
+
+  .bg-fx { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(52,211,153,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(1100px 640px at 50% 0%, #000 30%, transparent 80%);
+    mask-image: radial-gradient(1100px 640px at 50% 0%, #000 30%, transparent 80%);
+  }
+  .bg-aurora {
+    position: absolute; inset: 0;
+    background: radial-gradient(820px 460px at 10% -10%, rgba(16,185,129,.12), transparent 60%),
+                radial-gradient(720px 420px at 96% 0%, rgba(129,140,248,.12), transparent 55%);
+  }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 13px 22px; background: rgba(4,7,13,.84);
+    backdrop-filter: blur(14px) saturate(140%); border-bottom: 1px solid var(--line);
+  }
+  .topbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(52,211,153,.5), rgba(129,140,248,.4), transparent); opacity: .7; }
+  .brand { display: flex; align-items: center; gap: 13px; }
+  .brand .mark { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center;
+    border-radius: 11px; background: linear-gradient(150deg, rgba(129,140,248,.16), rgba(13,23,42,.6));
+    border: 1px solid rgba(129,140,248,.35); box-shadow: 0 0 24px rgba(129,140,248,.16); }
+  .brand .mark svg { width: 22px; height: 22px; }
+  .brand h1 { margin: 0; font: 800 16px/1.1 var(--display); letter-spacing: 3px; }
+  .brand h1 .as { color: var(--indigo); }
+  .brand .sub { display: block; margin-top: 3px; color: var(--green); font: 600 10px var(--mono); letter-spacing: 2.6px; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .badge { display: inline-flex; align-items: center; gap: 7px; font: 600 10.5px var(--mono); letter-spacing: 1px;
+    padding: 5px 11px; border: 1px solid var(--line-2); border-radius: 999px; color: var(--muted);
+    background: rgba(10,15,27,.6); white-space: nowrap; }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 9px currentColor; }
+  .badge.ok { color: var(--green); border-color: rgba(52,211,153,.4); }
+  .badge.accent { color: var(--cyan); border-color: rgba(34,211,238,.4); }
+  .badge.indigo { color: var(--indigo); border-color: rgba(129,140,248,.4); }
+  .badge .dot.blink { animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+
+  .layout { flex: 1 1 auto; width: 100%; max-width: 1280px; margin: 0 auto; padding: 18px 22px;
+    display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 16px; align-items: start; }
+  @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel { position: relative; min-width: 0; background: linear-gradient(180deg, var(--panel), rgba(9,14,25,.9));
+    border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow); }
+  .panel::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(52,211,153,.28), transparent); border-radius: var(--r-lg) var(--r-lg) 0 0; opacity: .7; }
+  .panel > h2 { display: flex; align-items: center; gap: 9px; margin: 0 0 15px; padding-bottom: 11px;
+    border-bottom: 1px solid var(--line); font: 700 11px var(--mono); letter-spacing: 2.4px; text-transform: uppercase; color: var(--green); }
+  .panel > h2::before { content: ""; width: 8px; height: 8px; border-radius: 2px; flex: 0 0 auto;
+    background: linear-gradient(135deg, var(--green), var(--cyan)); box-shadow: 0 0 10px rgba(52,211,153,.5); }
+
+  /* chat */
+  .chat { display: flex; flex-direction: column; gap: 14px; min-height: 320px; }
+  .msg { display: flex; gap: 11px; max-width: 100%; }
+  .msg.user { flex-direction: row-reverse; }
+  .avatar { flex: 0 0 auto; width: 34px; height: 34px; display: grid; place-items: center;
+    border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel-2); }
+  .msg.assistant .avatar { border-color: rgba(129,140,248,.4); box-shadow: 0 0 16px rgba(129,140,248,.14); }
+  .msg.user .avatar { border-color: rgba(52,211,153,.4); }
+  .avatar svg { width: 18px; height: 18px; }
+  .bubble { max-width: min(80%, 640px); padding: 12px 15px; border-radius: 14px;
+    background: linear-gradient(180deg, var(--panel), rgba(10,15,27,.9)); border: 1px solid var(--line);
+    font-size: 14.5px; line-height: 1.62; overflow-wrap: anywhere; }
+  .msg.assistant .bubble { border-top-left-radius: 4px; border-left: 3px solid var(--indigo); }
+  .msg.user .bubble { border-top-right-radius: 4px; border-right: 3px solid var(--green); background: linear-gradient(180deg, var(--panel-3), var(--panel-2)); }
+  .bubble .body code { font: 12.5px var(--mono); background: var(--panel-3); color: var(--cyan);
+    border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px; }
+  .bubble .body pre { margin: 8px 0; padding: 11px 13px; overflow-x: auto; background: var(--bg-1);
+    border: 1px solid var(--line); border-radius: var(--r-sm); font: 12.5px/1.55 var(--mono); color: #c9d4e8; }
+  .bubble .body pre code { background: none; border: 0; padding: 0; color: inherit; }
+  .bubble .body strong { color: var(--text); }
+  .msg-meta { display: flex; align-items: center; gap: 12px; margin-top: 9px; flex-wrap: wrap;
+    font: 600 10.5px var(--mono); color: var(--faint); }
+  .cursor { display: inline-block; width: 9px; margin-left: 2px; color: var(--indigo); animation: caret .9s steps(2,start) infinite; }
+  @keyframes caret { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+
+  .composer { margin-top: 14px; }
+  .composer form { display: flex; gap: 10px; align-items: flex-end;
+    background: rgba(7,11,21,.92); border: 1px solid var(--line-2); border-radius: var(--r-md);
+    padding: 10px 10px 10px 14px; box-shadow: var(--shadow); }
+  .composer textarea { flex: 1 1 auto; min-height: 42px; max-height: 150px; resize: none;
+    background: transparent; border: 0; padding: 7px 4px; font-size: 14.5px; line-height: 1.5; }
+  .composer textarea:focus { outline: none; box-shadow: none; border-color: transparent; }
+  .composer button.send { flex: 0 0 auto; min-height: 42px; padding: 0 18px; }
+  .composer .hint { margin: 7px 2px 0; font: 600 10.5px var(--mono); color: var(--faint); }
+
+  input, textarea, button { font: inherit; color: var(--text); }
+  button { cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text);
+    border-radius: var(--r-sm); padding: 9px 14px; font-weight: 600; font-size: 13.5px;
+    transition: border-color .15s, background .15s, transform .05s, color .15s; }
+  button:hover:not(:disabled) { border-color: var(--indigo); background: var(--panel-3); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+  button.primary { background: linear-gradient(180deg, #10b981, #0a7d5c); border-color: rgba(52,211,153,.6);
+    color: #03130d; font-weight: 700; box-shadow: 0 0 0 1px rgba(52,211,153,.22), 0 0 22px rgba(52,211,153,.14); }
+  button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #12c18b, #0c8f68); }
+  button.ghost { background: transparent; border-color: var(--line-2); color: var(--muted); }
+
+  /* api surface */
+  .kv { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 600 12px var(--mono);
+    color: var(--muted); padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .kv:last-child { border-bottom: 0; }
+  .kv b { color: var(--text); font-weight: 700; }
+  .kv code { color: var(--cyan); min-width: 0; word-break: break-all; }
+  .curl { margin-top: 14px; max-width: 100%; background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--r-sm);
+    padding: 12px 14px; font: 12px/1.6 var(--mono); color: #c9d4e8; overflow-x: auto; }
+  .curl .c1 { color: var(--green); } .curl .c2 { color: var(--cyan); }
+  .note { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+
+  .statusbar { display: flex; gap: 10px 26px; flex-wrap: wrap; padding: 12px 22px;
+    border-top: 1px solid var(--line); background: var(--bg-1); color: var(--muted);
+    font: 600 11.5px var(--mono); }
+  .statusbar b { color: var(--text); font-weight: 700; }
+  .statusbar .ok-text { color: var(--green); }
+
+  #toast { position: fixed; right: 20px; bottom: 20px; z-index: 60; max-width: 460px;
+    padding: 13px 17px; border-radius: var(--r-md); border: 1px solid var(--line-2);
+    background: var(--panel-2); box-shadow: var(--shadow); display: none;
+    font: 600 13px var(--mono); color: var(--text); white-space: pre-wrap; }
+  #toast.error { border-color: rgba(251,113,133,.55); color: var(--danger); }
+  #toast.ok { border-color: rgba(52,211,153,.55); color: var(--green); }
+
+  @media (max-width: 560px) { .topbar, .layout { padding-left: 14px; padding-right: 14px; } .bubble { max-width: 88%; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"><div class="bg-grid"></div><div class="bg-aurora"></div></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6l6 6-6 6" stroke="#818cf8"/><path d="M13 18h7" stroke="#34d399"/>
+      </svg>
+    </span>
+    <div>
+      <h1>ZODIAC&nbsp;BANK <span class="as">· ASSISTANT</span></h1>
+      <span class="sub">OPENAI-COMPATIBLE API</span>
+    </div>
+  </div>
+  <div class="badges">
+    <span class="badge accent" id="model-badge"><span class="dot blink"></span>CONNECTING…</span>
+    <span class="badge indigo"><span class="dot"></span>/v1/chat/completions</span>
+    <span class="badge ok"><span class="dot"></span>SYNTHETIC · LOCAL-ONLY</span>
+  </div>
+</header>
+
+<div class="layout">
+  <section class="panel">
+    <h2>Playground</h2>
+    <div class="chat" id="messages" aria-live="polite">
+      <div class="msg assistant">
+        <div class="avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l6 6-6 6"/><path d="M13 18h7"/></svg>
+        </div>
+        <div class="bubble"><div class="body">OpenAI-compatible chat facade. Send a message to exercise <code>POST /v1/chat/completions</code> against the local Bonsai backend.</div></div>
+      </div>
+    </div>
+    <div class="composer">
+      <form id="chat-form">
+        <textarea id="query" rows="1" placeholder="Type a message…" autocomplete="off" required></textarea>
+        <button id="send-btn" class="primary send" type="submit">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Send
+        </button>
+      </form>
+      <div class="hint">Enter to send · <button id="reset-btn" class="ghost" type="button" style="padding:0 6px">Reset conversation</button></div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <h2>API surface</h2>
+    <div class="kv"><span>Endpoint</span><code>POST /v1/chat/completions</code></div>
+    <div class="kv"><span>Models</span><code>GET /v1/models</code></div>
+    <div class="kv"><span>Provider</span><b>llama.cpp</b></div>
+    <div class="kv"><span>Backend</span><code id="backend-url">—</code></div>
+    <div class="curl"><span class="c1">curl</span> <span class="c2">http://127.0.0.1:5002/v1/chat/completions</span> \<br>&nbsp;&nbsp;-H <span class="c2">"Content-Type: application/json"</span> \<br>&nbsp;&nbsp;-d <span class="c2">'{"messages":[{"role":"user","content":"hello"}]}'</span></div>
+    <div class="note">OpenAI-compatible request/response shape. This facade is intentionally used by the lab's reconnaissance exercises — it exposes <code>backend</code>, <code>provider</code>, and usage metadata in responses.</div>
+  </aside>
+</div>
+
+<footer class="statusbar">
+  <span id="status-model">model: —</span>
+  <span id="status-provider">provider: llama.cpp</span>
+  <span id="status-tokens">last usage: —</span>
+  <span id="status-service">service: assistant</span>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const messagesEl = $("messages");
+const form = $("chat-form");
+const queryEl = $("query");
+let history = [];
+let busy = false;
+
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+function md(raw) {
+  const chunks = String(raw).split("```");
+  let html = "";
+  chunks.forEach((chunk, i) => {
+    if (i % 2 === 1) html += `<pre><code>${esc(chunk.replace(/^\s*\n/, "").replace(/\n\s*$/, ""))}</code></pre>`;
+    else {
+      let t = esc(chunk);
+      t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
+      t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      t = t.replace(/^#{1,4}\s+(.+)$/gm, "<strong>$1</strong>");
+      t = t.replace(/^\s*[-*]\s+(.+)$/gm, "• $1");
+      t = t.replace(/\n/g, "<br>");
+      html += t;
+    }
+  });
+  return html;
+}
+
+function toast(message, kind) {
+  const box = $("toast"); box.textContent = message; box.className = kind || ""; box.style.display = "block";
+  clearTimeout(toast._t); toast._t = setTimeout(() => { box.style.display = "none"; }, 6000);
+}
+
+const AVATAR_ASSISTANT = `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l6 6-6 6"/><path d="M13 18h7"/></svg>`;
+const AVATAR_USER = `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z"/><path d="M8.5 15.5l2.2-4.6 2.2 2.3 2.6-5.2"/></svg>`;
+
+function scrollBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+function addMsg(role, html) {
+  const wrap = document.createElement("div");
+  wrap.className = "msg " + role;
+  wrap.innerHTML = `<div class="avatar" aria-hidden="true">${role === "user" ? AVATAR_USER : AVATAR_ASSISTANT}</div><div class="bubble">${html}</div>`;
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+  return wrap.querySelector(".bubble");
+}
+
+function addAssistantStream() {
+  const wrap = document.createElement("div");
+  wrap.className = "msg assistant";
+  wrap.innerHTML = `<div class="avatar" aria-hidden="true">${AVATAR_ASSISTANT}</div>
+    <div class="bubble"><div class="body"><span class="cursor" aria-hidden="true">▍</span></div><div class="msg-meta"></div></div>`;
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+  return { body: wrap.querySelector(".body"), meta: wrap.querySelector(".msg-meta") };
+}
+
+async function send() {
+  const q = queryEl.value.trim();
+  if (!q || busy) return;
+  busy = true;
+  queryEl.value = "";
+  history.push({ role: "user", content: q });
+  addMsg("user", `<div class="body">${esc(q).replace(/\n/g, "<br>")}</div>`);
+  const view = addAssistantStream();
+
+  try {
+    const res = await fetch("/v1/chat/completions", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: history, model: "bonsai-27b", stream: false }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (data.error) {
+      view.body.innerHTML = `<strong style="color:var(--danger)">${esc(data.error.message || data.error.type || "Backend error")}</strong>${data.error.detail ? "<br>" + esc(data.error.detail) : ""}`;
+      return;
+    }
+    const choice = (data.choices || [{}])[0];
+    const content = (choice.message && choice.message.content) || "";
+    history.push({ role: "assistant", content });
+    const usage = data.usage || {};
+    view.body.innerHTML = md(content) || '<em style="color:var(--muted)">(empty response)</em>';
+    view.meta.innerHTML =
+      `<span>tokens: ${esc(usage.total_tokens ?? "—")} (${esc(usage.prompt_tokens ?? "—")} + ${esc(usage.completion_tokens ?? "—")})</span>` +
+      `<span>model: ${esc(data.model || "—")}</span>` +
+      `<span>finish: ${esc(choice.finish_reason || "—")}</span>`;
+    $("status-tokens").innerHTML = `last usage: <b>${esc(usage.total_tokens ?? "—")}</b> tokens`;
+  } catch (err) {
+    view.body.innerHTML = `<strong style="color:var(--danger)">Request failed</strong><br>${esc(err.message)}`;
+  } finally {
+    busy = false;
+    queryEl.focus();
+  }
+}
+
+form.addEventListener("submit", (e) => { e.preventDefault(); send(); });
+queryEl.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+queryEl.addEventListener("input", () => { queryEl.style.height = "auto"; queryEl.style.height = Math.min(queryEl.scrollHeight, 150) + "px"; });
+$("reset-btn").addEventListener("click", () => {
+  history = [];
+  messagesEl.innerHTML = `<div class="msg assistant"><div class="avatar" aria-hidden="true">${AVATAR_ASSISTANT}</div><div class="bubble"><div class="body">Conversation reset. Send a message to exercise <code>POST /v1/chat/completions</code>.</div></div></div>`;
+  $("status-tokens").innerHTML = "last usage: —";
+});
+
+fetch("/health").then((r) => r.json()).then((h) => {
+  $("model-badge").innerHTML = `<span class="dot blink"></span>MODEL: ${esc(h.model || "—").toUpperCase()}`;
+  $("backend-url").textContent = h.backend || "—";
+  $("status-model").innerHTML = `model: <b>${esc(h.model || "—")}</b>`;
+}).catch(() => { $("model-badge").innerHTML = `<span class="dot"></span>MODEL: OFFLINE`; });
+</script>
+</body>
+</html>

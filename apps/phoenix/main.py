@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import os
 import re
+from pathlib import Path
 from typing import Any
 
 import requests
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Zodiac Bank Phoenix Code Reviewer", version="1.0")
@@ -61,6 +63,11 @@ def enforce_review_guardrail(review: str) -> str:
             "The code requires human review; inspect the findings and validate the changes manually."
         )
     return review
+
+
+@app.get("/")
+async def index() -> FileResponse:
+    return FileResponse(Path(__file__).with_name("index.html"))
 
 
 @app.post("/api/review")
