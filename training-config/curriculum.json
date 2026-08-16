@@ -30,7 +30,7 @@
     "agentic_detection": {"ruleset": "detection-config/zodiac-bank-rules.json", "bounded_campaign_planner": true, "side_effects": false},
     "apt_simulation": {"campaign": "ai-apt-campaign", "phases": 9, "human_approval_checkpoints": ["scope", "identity", "collection", "containment"]},
     "attack_flow": {"formats": ["synthetic-event", "mitre-attack", "mitre-atlas", "agentic-risk"], "immutable_evidence": true},
-    "hard_scenario_range": {"pack": "training-config/scenarios.json", "multi_step": true, "stage_synthesis": true, "evidence_tokens": true, "wrong_order_rejected": true, "replay_rejected": true},
+    "hard_scenario_range": {"pack": "training-config/scenarios.json", "scenario_count": 100, "hard_gate_count": 50, "multi_step": true, "stage_synthesis": true, "gate_synthesis": true, "evidence_tokens": true, "wrong_order_rejected": true, "replay_rejected": true},
     "dynamic_bank_profiles": {"pack": "training-config/bank-profiles.json", "promotion_trigger": "accepted-stage-flag", "state_store": "shared-training-sqlite", "future_profiles_hidden": true, "external_egress": false}
   },
   "stages": [
@@ -43,7 +43,7 @@
       "target_services": ["training-challenges", "training-gate", "aurora"],
       "mission": "Map the local Zodiac Bank AI attack surface, identify the authorized scope, and document the difference between model, application, data, and control-plane assets.",
       "skills": ["scope validation", "asset inventory", "trust-boundary mapping"],
-      "success_criteria": ["scope recorded", "local services identified", "first stage synthesis accepted"],
+      "success_criteria": ["scope recorded", "local services identified", "first hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Start with the lab health and scope endpoints; keep all requests on 127.0.0.1."},
         {"level": 2, "text": "Compare the response body and headers for the same scope resource."},
@@ -60,7 +60,7 @@
       "target_services": ["training-challenges", "aurora", "phoenix", "assistant"],
       "mission": "Enumerate the synthetic customer-support, code-review, and assistant interfaces without leaving localhost.",
       "skills": ["endpoint discovery", "metadata analysis", "model fingerprinting"],
-      "success_criteria": ["service inventory completed", "inference backend identified", "second stage synthesis accepted"],
+      "success_criteria": ["service inventory completed", "inference backend identified", "second hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Begin with the documented localhost health and model-listing endpoints."},
         {"level": 2, "text": "Compare normal inventory output with a verbose or diagnostic request."},
@@ -77,7 +77,7 @@
       "target_services": ["training-challenges", "aurora"],
       "mission": "Demonstrate direct and indirect prompt-injection paths against a synthetic banking support assistant while preserving evidence and impact boundaries.",
       "skills": ["instruction hierarchy", "indirect injection", "evidence capture", "goal-hijack detection", "safe output validation"],
-      "success_criteria": ["injection path reproduced", "impact classified", "third stage synthesis accepted"],
+      "success_criteria": ["injection path reproduced", "impact classified", "third hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Establish a normal support response before testing instruction priority."},
         {"level": 2, "text": "Test whether user-controlled text can change the assistant's higher-priority instructions."},
@@ -94,7 +94,7 @@
       "target_services": ["training-challenges", "aurora", "a2a-knowledge", "chromadb", "lightrag"],
       "mission": "Trace retrieval provenance, test poisoned synthetic policy content, and distinguish retrieval corruption from model hallucination.",
       "skills": ["RAG provenance", "vector retrieval", "graph retrieval", "graph engineering", "context engineering", "corpus poisoning", "memory and evidence quarantine"],
-      "success_criteria": ["source identified", "retrieval path demonstrated", "fourth stage synthesis accepted"],
+      "success_criteria": ["source identified", "retrieval path demonstrated", "fourth hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Record which published source answers the baseline credit-policy question."},
         {"level": 2, "text": "Compare retrieval behavior when a draft-document option is explicitly requested."},
@@ -111,7 +111,7 @@
       "target_services": ["training-challenges", "a2a-router", "a2a-knowledge", "mcp-server", "mcp-wrapper"],
       "mission": "Follow a synthetic support request across agent cards, delegation, and tool schemas; prove where identity and authorization boundaries fail.",
       "skills": ["A2A discovery", "MCP schema analysis", "delegation abuse", "tool poisoning", "tool shadowing", "rug-pull detection", "graph traversal", "context boundaries", "provenance"],
-      "success_criteria": ["delegation graph mapped", "tool boundary tested", "fifth stage synthesis accepted"],
+      "success_criteria": ["delegation graph mapped", "tool boundary tested", "fifth hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Map the router, delegated agent, and tool names before sending a test request."},
         {"level": 2, "text": "Check whether the caller can select a tool that the support role should not control."},
@@ -128,7 +128,7 @@
       "target_services": ["training-challenges", "mem0", "aurora", "mcp-memory"],
       "mission": "Test synthetic memory poisoning, cross-run access, cross-user isolation, and extraction attempts without using real customer data.",
       "skills": ["memory provenance", "tenant isolation", "session boundaries", "extraction detection"],
-      "success_criteria": ["poisoning path documented", "negative authorization test run", "sixth stage synthesis accepted"],
+      "success_criteria": ["poisoning path documented", "negative authorization test run", "sixth hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Start with a memory lookup scoped to one synthetic customer and run."},
         {"level": 2, "text": "Change only the user or run scope and verify whether isolation still holds."},
@@ -145,7 +145,7 @@
       "target_services": ["training-challenges", "kong", "aurora", "a2a-router", "mem0"],
       "mission": "Analyze synthetic gateway routes, worker identity, API-key boundaries, and confused-deputy chains around privileged banking AI actions.",
       "skills": ["authorization", "API gateway analysis", "identity binding", "post-compromise discovery", "role anomaly detection", "least privilege"],
-      "success_criteria": ["privileged route identified", "identity boundary tested", "seventh stage synthesis accepted"],
+      "success_criteria": ["privileged route identified", "identity boundary tested", "seventh hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Inventory the gateway and approval routes without attempting a real privileged action."},
         {"level": 2, "text": "Compare the response when identity comes from a trusted context versus a request header."},
@@ -162,7 +162,7 @@
       "target_services": ["training-challenges", "dependency-sweeper", "orchestrator", "filebeat"],
       "mission": "Trace synthetic dependency, model, artifact, and CI trust relationships; demonstrate how an untrusted update could reach an AI control plane.",
       "skills": ["dependency provenance", "artifact integrity", "model manifest pinning", "CI/CD poisoning", "agentic supply chain", "review gates"],
-      "success_criteria": ["supply-chain path modeled", "approval boundary tested", "eighth stage synthesis accepted"],
+      "success_criteria": ["supply-chain path modeled", "approval boundary tested", "eighth hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Trace the synthetic dependency report from source through artifact storage to the worker."},
         {"level": 2, "text": "Test whether artifact names are validated before path normalization."},
@@ -179,7 +179,7 @@
       "target_services": ["training-challenges", "aurora", "elasticsearch", "kibana", "filebeat"],
       "mission": "Compare noisy and stealthy synthetic attack paths, identify telemetry blind spots, and produce a detection improvement without disabling controls.",
       "skills": ["telemetry analysis", "behavioral baselines", "adaptive evasion", "high-volume anomaly detection", "SIEM detection", "canary design"],
-      "success_criteria": ["baseline established", "evasion delta measured", "ninth stage synthesis accepted"],
+      "success_criteria": ["baseline established", "evasion delta measured", "ninth hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Run the same benign search in normal mode first and record the telemetry result."},
         {"level": 2, "text": "Compare how URL decoding and whitespace normalization affect the detector."},
@@ -196,7 +196,7 @@
       "target_services": ["training-challenges", "all-local-services"],
       "mission": "Chain reconnaissance, prompt injection, RAG poisoning, agent delegation, memory abuse, identity escalation, supply-chain access, and detection evasion into one synthetic campaign, then produce a complete incident timeline and containment plan.",
       "skills": ["attack chaining", "AI-assisted APT modeling", "agentic orchestration", "campaign planning", "context integrity", "incident response", "containment", "hardening"],
-      "success_criteria": ["multi-stage chain reproduced", "evidence timeline complete", "containment plan reviewed", "final stage synthesis accepted"],
+      "success_criteria": ["multi-stage chain reproduced", "evidence timeline complete", "containment plan reviewed", "final hard-gate synthesis accepted"],
       "hints": [
         {"level": 1, "text": "Build a timeline from the evidence and flags already earned; do not start a new external action."},
         {"level": 2, "text": "Submit the exact prior hard flags as campaign evidence in the order the stages were completed."},

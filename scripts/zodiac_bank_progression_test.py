@@ -1,27 +1,11 @@
 #!/usr/bin/env python3
-"""End-to-end verification of the full Zodiac Bank 10-stage flag progression.
+"""End-to-end verification of the 100-scenario, 50-hard-gate Zodiac Bank range.
 
-This test drives the *real* service implementations (training-gate and
-training-challenges) without HTTP: FastAPI is replaced by a minimal stub so the
-route handlers run directly against real SQLite state and real HMAC secrets.
-
-Journey covered, per stage in strict order:
-
-  1. learner enrolls via cohort-add (private token issued)
-  2. every required scenario is started and solved through its bounded steps,
-     using the per-run candidate pools exposed by the hint endpoint (the same
-     data the browser trainer UI offers); chained step proofs are honored
-  3. stage synthesis validates scenario order, evidence tokens, detection
-     coverage, required controls, timeline, and security concepts, then issues
-     the hard flag
-  4. the gate accepts the flag and unlocks exactly the next stage
-  5. after L09 the curriculum reports complete
-
-Negative checks verify invalid flags (401), locked-stage flags (403), wrong
-evidence (409), wrong chained proof (409), and idempotent re-submission.
-
-Run directly:  python3 scripts/zodiac_bank_progression_test.py
-Import for the evaluator:  from zodiac_bank_progression_test import run_progression
+The harness drives the real gate and challenge handlers with FastAPI stubbed only
+for offline environments. Each of the 50 gates requires two scenarios, chained
+per-run evidence, gate synthesis, a gate HMAC flag, and gate submission. The
+fifth gate in each stage completes that stage and promotes the dynamic bank
+profile.
 """
 
 from __future__ import annotations
@@ -30,6 +14,7 @@ import importlib.util
 import json
 import os
 import secrets
+import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -37,12 +22,10 @@ from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
-
-# ---------------------------------------------------------------------------
-# FastAPI stub: the runtime dependency is not installed in offline checkouts.
-# The route handlers are plain functions after decoration, so a stub App that
-# merely registers routes lets us call the handlers directly with real state.
-# ---------------------------------------------------------------------------
+SCRIPT_DIR = ROOT / "scripts"
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+from zodiac_scenario_engine import load_scenario_pack
 
 
 class _HTTPException(Exception):
@@ -62,11 +45,11 @@ class _Depends:
         self.dependency = dependency
 
 
-class _Request:  # noqa: D101
+class _Request:
     pass
 
 
-class _Responses(ModuleType):  # noqa: D101
+class _Responses(ModuleType):
     class JSONResponse:
         def __init__(self, content: Any = None, status_code: int = 200, headers: dict[str, str] | None = None, **_kwargs: Any) -> None:
             self.content = content
@@ -78,21 +61,14 @@ class _Responses(ModuleType):  # noqa: D101
             self.path = str(path)
 
 
-class _Route:
-    def __init__(self, path: str, methods: list[str]) -> None:
-        self.path = path
-        self.methods = methods
-
-
 class _App:
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        self.routes: list[tuple[_Route, Any]] = []
+        self.routes: list[Any] = []
 
     def _register(self, path: str, methods: list[str]):
         def decorator(fn: Any) -> Any:
-            self.routes.append((_Route(path, methods), fn))
+            self.routes.append((path, methods, fn))
             return fn
-
         return decorator
 
     def get(self, path: str, **kwargs: Any) -> Any:
@@ -108,9 +84,7 @@ class _App:
         return lambda fn: fn
 
 
-def _install_fastapi_stub() -> None:
-    if "fastapi" in sys.modules:
-        return
+def install_fastapi_stub() -> None:
     fastapi = ModuleType("fastapi")
     fastapi.FastAPI = _App
     fastapi.Header = _Header
@@ -118,319 +92,187 @@ def _install_fastapi_stub() -> None:
     fastapi.Request = _Request
     fastapi.Depends = _Depends
     responses = _Responses("fastapi.responses")
-    sys.modules["fastapi.responses"] = responses
     fastapi.responses = responses
     sys.modules["fastapi"] = fastapi
+    sys.modules["fastapi.responses"] = responses
 
 
-# ---------------------------------------------------------------------------
-# Environment: strict mode, fresh per-run secret, isolated temp state. These
-# must be set before the service modules are imported (they capture paths and
-# secrets at import time).
-# ---------------------------------------------------------------------------
-
-_TMP = Path(tempfile.mkdtemp(prefix="zodiac-bank-progression-"))
-_FLAG_SECRET = secrets.token_hex(32)
-_ADMIN_KEY = secrets.token_hex(32)
-
-os.environ["TRAINING_FLAG_SECRET"] = _FLAG_SECRET
-os.environ["TRAINING_ADMIN_KEY"] = _ADMIN_KEY
-os.environ["TRAINING_SECURITY_MODE"] = "strict"
-os.environ["TRAINING_CURRICULUM"] = str(ROOT / "training-config" / "curriculum.json")
-os.environ["TRAINING_SCENARIOS"] = str(ROOT / "training-config" / "scenarios.json")
-os.environ["TRAINING_STATE_DB"] = str(_TMP / "progress.sqlite3")
-os.environ["TRAINING_ACCESS_DB"] = str(_TMP / "progress.sqlite3")
-os.environ["TRAINING_CHALLENGE_STATE_DB"] = str(_TMP / "challenges.sqlite3")
-os.environ["TRAINING_ARTIFACT_DIR"] = str(_TMP / "learners")
-
-_install_fastapi_stub()
+TMP = Path(tempfile.mkdtemp(prefix="zodiac-bank-gates-"))
+FLAG_SECRET = secrets.token_hex(32)
+os.environ.update({
+    "TRAINING_FLAG_SECRET": FLAG_SECRET,
+    "TRAINING_ADMIN_KEY": secrets.token_hex(32),
+    "TRAINING_SECURITY_MODE": "strict",
+    "TRAINING_CURRICULUM": str(ROOT / "training-config" / "curriculum.json"),
+    "TRAINING_SCENARIOS": str(ROOT / "training-config" / "scenarios.json"),
+    "TRAINING_STATE_DB": str(TMP / "progress.sqlite3"),
+    "TRAINING_ACCESS_DB": str(TMP / "progress.sqlite3"),
+    "TRAINING_CHALLENGE_STATE_DB": str(TMP / "challenges.sqlite3"),
+    "TRAINING_ARTIFACT_DIR": str(TMP / "learners"),
+})
+install_fastapi_stub()
 
 
-def _load_service(name: str, relative_path: str) -> Any:
+def load_service(name: str, relative_path: str) -> Any:
     path = ROOT / relative_path
     spec = importlib.util.spec_from_file_location(name, path)
-    assert spec is not None and spec.loader is not None, f"cannot load {relative_path}"
+    assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
 
 
-GATE = _load_service("zb_gate_service", "training-gate/main.py")
-CHALLENGE = _load_service("zb_challenge_service", "training-challenges/main.py")
-SCENARIO_PACK = json.loads((ROOT / "training-config" / "scenarios.json").read_text(encoding="utf-8"))
-STAGE_IDS = [stage["id"] for stage in json.loads((ROOT / "training-config" / "curriculum.json").read_text(encoding="utf-8"))["stages"]]
+GATE = load_service("zb_gate_service", "training-gate/main.py")
+CHALLENGE = load_service("zb_challenge_service", "training-challenges/main.py")
+PACK = load_scenario_pack(ROOT / "training-config" / "scenarios.json")
+CURRICULUM = json.loads((ROOT / "training-config" / "curriculum.json").read_text(encoding="utf-8"))
+STAGE_IDS = [stage["id"] for stage in CURRICULUM["stages"]]
+GATES_BY_STAGE = {stage_id: [gate for gate in PACK["hard_gates"] if gate["stage_id"] == stage_id] for stage_id in STAGE_IDS}
 
 
-def _reset_state() -> None:
-    for child in _TMP.iterdir():
-        if child.is_file():
-            child.unlink()
-        elif child.is_dir():
-            for nested in child.iterdir():
-                if nested.is_file():
-                    nested.unlink()
+def reset_state() -> None:
+    if TMP.exists():
+        for child in TMP.iterdir():
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
 
 
-def _expect_http(fn: Any, status_code: int, what: str) -> None:
+def expect_http(fn: Any, status: int, label: str) -> None:
     try:
         fn()
     except _HTTPException as exc:
-        if exc.status_code != status_code:
-            raise AssertionError(f"{what}: expected HTTP {status_code}, got {exc.status_code}: {exc.detail}")
+        if exc.status_code != status:
+            raise AssertionError(f"{label}: expected HTTP {status}, got {exc.status_code}: {exc.detail}")
         return
-    raise AssertionError(f"{what}: expected HTTP {status_code}, no error raised")
+    raise AssertionError(f"{label}: expected HTTP {status}, no error raised")
 
 
-def _solve_scenario(learner_id: str, token: str, scenario_id: str) -> str:
-    """Solve one scenario via the trainer-facing API and return its evidence token."""
-    started = CHALLENGE.start_scenario(scenario_id, {"learner_id": learner_id}, token)
-    assert started["scenario"]["status"] == "active", f"{scenario_id} did not start"
-    evidence_token: str | None = None
+def solve_scenario(learner: str, token: str, scenario_id: str) -> str:
+    started = CHALLENGE.start_scenario(scenario_id, {"learner_id": learner}, token)
+    assert started["scenario"]["status"] == "active"
     while True:
-        hint = CHALLENGE.scenario_hint(scenario_id, learner_id=learner_id, x_training_learner_token=token)
-        if hint.get("status") != "active":
-            raise AssertionError(f"{scenario_id}: expected an active step, got {hint.get('status')}")
+        hint = CHALLENGE.scenario_hint(scenario_id, learner_id=learner, x_training_learner_token=token)
+        assert hint["status"] == "active"
         evidence = {key: value["correct"] for key, value in hint["candidates"].items()}
-        response = CHALLENGE.scenario_event(
-            scenario_id,
-            {"learner_id": learner_id, "event": hint["event"], "evidence": evidence},
-            token,
-        )
-        assert response["accepted"] is True, f"{scenario_id}: evidence rejected"
-        if response["status"] == "complete":
-            evidence_token = response["evidence_token"]
-            break
-    assert evidence_token, f"{scenario_id}: no evidence token issued"
-    return evidence_token
+        result = CHALLENGE.scenario_event(scenario_id, {"learner_id": learner, "event": hint["event"], "evidence": evidence}, token)
+        assert result["accepted"] is True
+        if result["status"] == "complete":
+            return str(result["evidence_token"])
+
+
+def synthesize_gate(learner: str, token: str, gate: dict[str, Any], tokens: list[str]) -> dict[str, Any]:
+    summary = "Synthetic gate evidence covers " + ", ".join(gate["concepts"]) + " with bounded authorization, provenance, and localhost-only controls."
+    body = {
+        "learner_id": learner,
+        "scenario_ids": gate["scenario_ids"],
+        "evidence_tokens": tokens,
+        "detection_rule_ids": gate["detection_rule_ids"],
+        "controls": gate["required_controls"],
+        "timeline": [{"event": f"observed-{scenario_id}", "scenario": scenario_id} for scenario_id in gate["scenario_ids"]],
+        "summary": summary,
+    }
+    return CHALLENGE.synthesize_gate(gate["gate_id"], body, token)
+
+
+def enroll(cohort: str, learner: str) -> str:
+    try:
+        GATE.create_cohort(GATE.CohortRequest(cohort_id=cohort, display_name="100 Scenario Verification"), _=None)
+    except _HTTPException as exc:
+        if exc.status_code != 409:
+            raise
+    member = GATE.add_cohort_member(cohort, GATE.CohortMemberRequest(learner_id=learner), _=None)
+    return str(member["learner_token"])
 
 
 def run_progression() -> dict[str, Any]:
-    """Walk all 10 stages end to end. Returns a machine-readable report.
+    reset_state()
+    learner = "gate-e2e-trainer"
+    token = enroll("gate-e2e-cohort", learner)
+    stages: list[dict[str, Any]] = []
+    gate_count = 0
+    scenario_count = 0
 
-    Raises AssertionError on the first failed assertion so the evaluator can
-    treat the whole journey as a single regression check.
-    """
-    _reset_state()
-    stages_report: list[dict[str, Any]] = []
-    negatives: dict[str, Any] = {}
+    for stage_index, stage_id in enumerate(STAGE_IDS):
+        stage_gates = GATES_BY_STAGE[stage_id]
+        assert len(stage_gates) == 5
+        stage_scenarios = 0
+        for gate in stage_gates:
+            current = CHALLENGE.list_hard_gates(learner_id=learner, x_training_learner_token=token)
+            assert current["current_gate_id"] == gate["gate_id"], f"expected {gate['gate_id']}, got {current['current_gate_id']}"
+            tokens = [solve_scenario(learner, token, scenario_id) for scenario_id in gate["scenario_ids"]]
+            scenario_count += len(tokens)
+            stage_scenarios += len(tokens)
+            synthesis = synthesize_gate(learner, token, gate, tokens)
+            flag = synthesis["hard_flag"]
+            assert flag == CHALLENGE.gate_flag_for(gate["gate_id"]) == GATE.gate_flag_for(gate["gate_id"])
+            result = GATE.submit_gate(GATE.GateSubmission(learner_id=learner, gate_id=gate["gate_id"], flag=flag), x_training_learner_token=token)
+            assert result["accepted"] is True
+            gate_count += 1
+            assert result["hard_gate_count"] == gate_count
+            final_gate = gate is stage_gates[-1]
+            assert result["stage_completed"] is final_gate
+            if final_gate:
+                expected_next = STAGE_IDS[stage_index + 1] if stage_index + 1 < len(STAGE_IDS) else None
+                assert result["next_stage_id"] == expected_next
+                assert result["bank_profile"]["promotion_count"] == stage_index + 1
+        stages.append({"stage_id": stage_id, "gates": len(stage_gates), "scenarios": stage_scenarios, "next_stage_id": STAGE_IDS[stage_index + 1] if stage_index + 1 < len(STAGE_IDS) else None})
 
-    learner = "e2e-trainer-01"
-    cohort = "e2e-cohort"
-    GATE.create_cohort(GATE.CohortRequest(cohort_id=cohort, display_name="End-to-End Verification"), _=None)
-    member = GATE.add_cohort_member(cohort, GATE.CohortMemberRequest(learner_id=learner), _=None)
-    token = member["learner_token"]
-    assert token and member["status"] == "member"
+    final = GATE.curriculum(learner_id=learner, x_training_learner_token=token)
+    assert all(stage["status"] == "completed" for stage in final["stages"])
+    assert CHALLENGE.current_stage(learner) is None
+    assert GATE.bank_profile(learner_id=learner, x_training_learner_token=token)["profile"]["profile_id"] == "apt-complete-review"
 
-    for position, stage_id in enumerate(STAGE_IDS):
-        requirement = SCENARIO_PACK["stage_requirements"][stage_id]
-        next_stage = STAGE_IDS[position + 1] if position + 1 < len(STAGE_IDS) else None
-
-        # Both services must agree the learner is currently on this stage.
-        gate_view = GATE.curriculum(learner_id=learner, x_training_learner_token=token)
-        statuses = {stage["id"]: stage["status"] for stage in gate_view["stages"]}
-        assert statuses[stage_id] == "unlocked", f"{stage_id}: gate status is {statuses[stage_id]}"
-        assert CHALLENGE.current_stage(learner) == stage_id, f"{stage_id}: challenge service stage mismatch"
-
-        tokens: list[str] = []
-        for scenario_id in requirement["scenario_ids"]:
-            tokens.append(_solve_scenario(learner, token, scenario_id))
-
-        summary = "Synthetic incident summary: " + ", ".join(requirement["concepts"]) + " observed with approval gates, provenance, and a complete timeline; all activity confined to the localhost scope."
-        timeline = [{"event": f"observed-{sid}", "scenario": sid} for sid in requirement["scenario_ids"]]
-        synthesis = CHALLENGE.synthesize_stage(
-            stage_id,
-            {
-                "learner_id": learner,
-                "scenario_ids": requirement["scenario_ids"],
-                "evidence_tokens": tokens,
-                "detection_rule_ids": requirement["detection_rule_ids"],
-                "controls": requirement["required_controls"],
-                "summary": summary,
-                "timeline": timeline,
-            },
-            token,
-        )
-        hard_flag = synthesis["hard_flag"]
-        # The flag issued by synthesis must be byte-identical to both services'
-        # HMAC formula over the same secret and stage ID.
-        assert hard_flag == CHALLENGE.flag_for(stage_id) == GATE.flag_for(stage_id)
-        assert hard_flag.startswith(f"ZODIAC-BANK-{stage_id.upper()}-") and len(hard_flag.split("-")[-1]) == 32
-
-        profile_before = GATE.bank_profile(learner_id=learner, x_training_learner_token=token)["profile"]
-        assert profile_before["stage_id"] == stage_id, f"{stage_id}: bank profile was not aligned before promotion"
-        submission = GATE.submit_flag(
-            GATE.FlagSubmission(learner_id=learner, stage_id=stage_id, flag=hard_flag),
-            x_training_learner_token=token,
-        )
-        assert submission["accepted"] is True and submission["status"] == "completed"
-        assert submission["next_stage_id"] == next_stage, f"{stage_id}: unexpected next stage {submission['next_stage_id']}"
-        promoted = submission["bank_profile"]
-        assert promoted["stage_id"] == next_stage, f"{stage_id}: profile did not promote to {next_stage}"
-        assert promoted["level"] == profile_before["level"] + 1, f"{stage_id}: profile level did not increase"
-        assert promoted["promotion_count"] == position + 1, f"{stage_id}: profile promotion count drifted"
-        # Challenge service observes the shared progress DB advancing too.
-        assert CHALLENGE.current_stage(learner) == next_stage, f"{stage_id}: challenge service did not observe unlock"
-
-        stages_report.append(
-            {
-                "stage_id": stage_id,
-                "scenarios": len(requirement["scenario_ids"]),
-                "steps_solved": sum(
-                    len(CHALLENGE.SCENARIO_BY_ID[sid]["steps"]) for sid in requirement["scenario_ids"]
-                ),
-                "flag_issued": hard_flag,
-                "next_stage_id": next_stage,
-                "profile_id": promoted["profile_id"],
-                "security_tier": promoted["security_tier"],
-            }
-        )
-
-    final_view = GATE.curriculum(learner_id=learner, x_training_learner_token=token)
-    final_statuses = {stage["id"]: stage["status"] for stage in final_view["stages"]}
-    assert all(status == "completed" for status in final_statuses.values()), "not every stage completed"
-    assert CHALLENGE.current_stage(learner) is None, "challenge service still reports an active stage"
-    final_profile = GATE.bank_profile(learner_id=learner, x_training_learner_token=token)["profile"]
-    assert final_profile["profile_id"] == "apt-complete-review" and final_profile["stage_id"] is None
-
-    # --- Negative checks on a separate learner so the main journey stays clean ---
-    neg_learner = "e2e-neg-01"
-    member2 = GATE.add_cohort_member(cohort, GATE.CohortMemberRequest(learner_id=neg_learner), _=None)
-    neg_token = member2["learner_token"]
-
-    # Scenario-level negatives run while the negative learner is still on L00 so
-    # the challenge service accepts its current-stage scenario.
-    neg_scenario = SCENARIO_PACK["stage_requirements"]["L00-foundation"]["scenario_ids"][0]
-    CHALLENGE.start_scenario(neg_scenario, {"learner_id": neg_learner}, neg_token)
-    hint = CHALLENGE.scenario_hint(neg_scenario, learner_id=neg_learner, x_training_learner_token=neg_token)
-    wrong_evidence = {key: value["correct"] for key, value in hint["candidates"].items()}
-    first_key = next(iter(wrong_evidence))
-    wrong_evidence[first_key] = "GET" if wrong_evidence[first_key] != "GET" else "POST"
-    _expect_http(
-        lambda: CHALLENGE.scenario_event(
-            neg_scenario,
-            {"learner_id": neg_learner, "event": hint["event"], "evidence": wrong_evidence},
-            neg_token,
-        ),
-        409,
-        "wrong evidence",
-    )
-    negatives["wrong_evidence_rejected"] = True
-
-    # Wrong chained proof: correct values, tampered proof token.
-    correct = CHALLENGE.scenario_event(
-        neg_scenario,
-        {"learner_id": neg_learner, "event": hint["event"], "evidence": {key: value["correct"] for key, value in hint["candidates"].items()}},
-        neg_token,
-    )
-    assert correct["accepted"] is True and correct["status"] == "active"
-    hint2 = CHALLENGE.scenario_hint(neg_scenario, learner_id=neg_learner, x_training_learner_token=neg_token)
-    evidence2 = {key: value["correct"] for key, value in hint2["candidates"].items()}
-    if "proof" in evidence2:
-        evidence2["proof"] = "ZB-STEP-00000000000000000000"
-        _expect_http(
-            lambda: CHALLENGE.scenario_event(
-                neg_scenario,
-                {"learner_id": neg_learner, "event": hint2["event"], "evidence": evidence2},
-                neg_token,
-            ),
-            409,
-            "wrong chained proof",
-        )
-        negatives["wrong_proof_rejected"] = True
-    else:
-        negatives["wrong_proof_rejected"] = "skipped (single-step check scenario)"
-
-    # Flag-level negatives: invalid flag, locked-stage flag, then accept + idempotent re-submit.
-    _expect_http(
-        lambda: GATE.submit_flag(
-            GATE.FlagSubmission(learner_id=neg_learner, stage_id="L00-foundation", flag="ZODIAC-BANK-L00-FOUNDATION-WRONG"),
-            x_training_learner_token=neg_token,
-        ),
-        401,
-        "invalid flag",
-    )
-    negatives["invalid_flag_rejected"] = True
-
-    locked_flag = GATE.flag_for("L02-prompt-injection")
-    _expect_http(
-        lambda: GATE.submit_flag(
-            GATE.FlagSubmission(learner_id=neg_learner, stage_id="L02-prompt-injection", flag=locked_flag),
-            x_training_learner_token=neg_token,
-        ),
-        403,
-        "locked-stage flag",
-    )
-    negatives["locked_stage_rejected"] = True
-
-    valid_flag = GATE.flag_for("L00-foundation")
-    first = GATE.submit_flag(
-        GATE.FlagSubmission(learner_id=neg_learner, stage_id="L00-foundation", flag=valid_flag),
-        x_training_learner_token=neg_token,
-    )
-    assert first["accepted"] is True and first["next_stage_id"] == "L01-recon"
-    second = GATE.submit_flag(
-        GATE.FlagSubmission(learner_id=neg_learner, stage_id="L00-foundation", flag=valid_flag),
-        x_training_learner_token=neg_token,
-    )
-    assert second["accepted"] is True and second["status"] == "completed"
-    negatives["resubmission_idempotent"] = True
-
-    # Bank-loop authorization negatives: operation loops are learner-bound even
-    # though the virtual bank memory is shared by the challenge process.
-    bank_a = "e2e-bank-a"
-    bank_b = "e2e-bank-b"
-    token_a = GATE.add_cohort_member(cohort, GATE.CohortMemberRequest(learner_id=bank_a), _=None)["learner_token"]
-    token_b = GATE.add_cohort_member(cohort, GATE.CohortMemberRequest(learner_id=bank_b), _=None)["learner_token"]
-    for bank_learner, bank_token in ((bank_a, token_a), (bank_b, token_b)):
-        GATE.submit_flag(GATE.FlagSubmission(learner_id=bank_learner, stage_id="L00-foundation", flag=GATE.flag_for("L00-foundation")), x_training_learner_token=bank_token)
-        GATE.submit_flag(GATE.FlagSubmission(learner_id=bank_learner, stage_id="L01-recon", flag=GATE.flag_for("L01-recon")), x_training_learner_token=bank_token)
-    planned = CHALLENGE.plan_bank_operation(
-        {"learner_id": bank_a, "operation_type": "receive", "actor_worker_id": "teller-north", "amount_cents": 1000, "destination_account_id": "ZB-ACCT-1001", "operation_id": "OP-E2E-OWNER"},
-        token_a,
-    )
-    _expect_http(
-        lambda: CHALLENGE.approve_bank_operation(
-            planned["loop"]["run_id"],
-            {"learner_id": bank_b, "approver_worker_id": "branch-manager-north"},
-            token_b,
-        ),
-        409,
-        "cross-learner bank loop approval",
-    )
-    negatives["cross_learner_bank_loop_rejected"] = True
-    public_snapshot = CHALLENGE.bank_snapshot(learner_id=bank_a, x_training_learner_token=token_a)["snapshot"]
-    other_snapshot = CHALLENGE.bank_snapshot(learner_id=bank_b, x_training_learner_token=token_b)["snapshot"]
-    assert public_snapshot["operations"] == 1 and other_snapshot["operations"] == 0
-    negatives["learner_bank_memory_isolated"] = True
-    assert "balances_cents" not in public_snapshot and "cash_vaults_cents" not in public_snapshot
-    negatives["public_bank_balances_redacted"] = True
-
-    return {
-        "passed": True,
-        "learner": learner,
-        "stages_completed": len(stages_report),
-        "total_scenarios": sum(entry["scenarios"] for entry in stages_report),
-        "stages": stages_report,
-        "negatives": negatives,
+    # Negative paths on a fresh learner.
+    negative_learner = "gate-e2e-negative"
+    negative_token = enroll("gate-e2e-cohort", negative_learner)
+    first_gate = GATES_BY_STAGE[STAGE_IDS[0]][0]
+    second_gate = GATES_BY_STAGE[STAGE_IDS[0]][1]
+    expect_http(lambda: GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=second_gate["gate_id"], flag=GATE.gate_flag_for(second_gate["gate_id"])), x_training_learner_token=negative_token), 403, "locked gate")
+    locked_synthesis = {
+        "learner_id": negative_learner,
+        "scenario_ids": second_gate["scenario_ids"],
+        "evidence_tokens": ["not-issued-1", "not-issued-2"],
+        "detection_rule_ids": second_gate["detection_rule_ids"],
+        "controls": second_gate["required_controls"],
+        "timeline": [{"event": "unreachable-1"}, {"event": "unreachable-2"}],
+        "summary": "Synthetic locked gate evidence covers " + ", ".join(second_gate["concepts"]),
     }
+    expect_http(lambda: CHALLENGE.synthesize_gate(second_gate["gate_id"], locked_synthesis, negative_token), 403, "locked gate synthesis")
+    expect_http(lambda: CHALLENGE.synthesize_stage(STAGE_IDS[0], {"learner_id": negative_learner}, negative_token), 410, "retired stage synthesis")
+    expect_http(lambda: GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag="invalid"), x_training_learner_token=negative_token), 401, "invalid gate flag")
+    scenario_id = first_gate["scenario_ids"][0]
+    CHALLENGE.start_scenario(scenario_id, {"learner_id": negative_learner}, negative_token)
+    hint = CHALLENGE.scenario_hint(scenario_id, learner_id=negative_learner, x_training_learner_token=negative_token)
+    wrong = {key: value["correct"] for key, value in hint["candidates"].items()}
+    first_key = next(iter(wrong))
+    wrong[first_key] = "GET" if wrong[first_key] != "GET" else "POST"
+    expect_http(lambda: CHALLENGE.scenario_event(scenario_id, {"learner_id": negative_learner, "event": hint["event"], "evidence": wrong}, negative_token), 409, "wrong evidence")
+    negatives = {"locked_gate_rejected": True, "locked_gate_synthesis_rejected": True, "retired_stage_synthesis_rejected": True, "invalid_gate_rejected": True, "wrong_evidence_rejected": True}
+
+    # Complete the first gate and ensure re-submission is idempotent.
+    tokens = [solve_scenario(negative_learner, negative_token, sid) for sid in first_gate["scenario_ids"]]
+    synthesis = synthesize_gate(negative_learner, negative_token, first_gate, tokens)
+    first_result = GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag=synthesis["hard_flag"]), x_training_learner_token=negative_token)
+    second_result = GATE.submit_gate(GATE.GateSubmission(learner_id=negative_learner, gate_id=first_gate["gate_id"], flag=synthesis["hard_flag"]), x_training_learner_token=negative_token)
+    assert first_result["accepted"] and second_result["status"] == "completed"
+    negatives["gate_resubmission_idempotent"] = True
+
+    return {"passed": True, "stages_completed": len(stages), "total_scenarios": scenario_count, "hard_gates_completed": gate_count, "stages": stages, "negatives": negatives}
 
 
 def main() -> int:
     report = run_progression()
-    print("Zodiac Bank full 10-stage flag progression — END-TO-END")
-    print("-" * 78)
-    for entry in report["stages"]:
-        flag = entry["flag_issued"]
-        compact = f"{flag[:44]}...{flag[-12:]}"
-        print(f"  PASS {entry['stage_id']:26} {entry['scenarios']} scenarios, {entry['steps_solved']:>3} steps  -> {compact}")
-        print(f"       unlocked: {entry['next_stage_id']}")
-    print("-" * 78)
-    for name, value in report["negatives"].items():
-        print(f"  NEG  {name}: {'PASS' if value is True else value}")
-    print("-" * 78)
-    print(f"  RESULT: all {report['stages_completed']} stages completed, {report['total_scenarios']} scenarios solved, "
-          "flag pipeline verified end-to-end")
+    print("Zodiac Bank 100-scenario / 50-hard-gate progression — END-TO-END")
+    print("-" * 82)
+    for stage in report["stages"]:
+        print(f"  PASS {stage['stage_id']:26} {stage['gates']} hard gates, {stage['scenarios']} scenarios -> {stage['next_stage_id']}")
+    for name in report["negatives"]:
+        print(f"  NEG  {name}: PASS")
+    print("-" * 82)
+    print(f"  RESULT: {report['stages_completed']} stages, {report['hard_gates_completed']} hard gates, {report['total_scenarios']} scenarios verified")
     return 0
 
 

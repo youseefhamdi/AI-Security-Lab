@@ -211,7 +211,7 @@
 
 <div class="wrap">
   <aside class="panel" id="range-panel">
-    <h2>Range map · 10 stages · 51 scenarios</h2>
+    <h2>Range map · 10 stages · 100 scenarios · 50 hard gates</h2>
     <div id="range-list"><p class="muted">Enter a learner ID and token, then press <em>Load range</em>.</p></div>
   </aside>
 
@@ -222,7 +222,7 @@
     </section>
 
     <section class="panel" id="synthesis-panel">
-      <h2>Stage synthesis &amp; flag</h2>
+      <h2>Hard-gate synthesis &amp; flag</h2>
       <div id="synthesis-detail"><p class="muted">Complete every required scenario in the current stage to unlock synthesis.</p></div>
     </section>
   </main>
@@ -250,7 +250,7 @@ const state = {
   currentStageId: null,
   scenarios: [],          // current stage scenario list from /api/scenarios
   selected: null,
-  synthesis: null,        // requirement for current stage
+  synthesis: null,        // currently unlocked hard-gate requirement
 };
 
 function toast(message, kind) {
@@ -394,7 +394,8 @@ async function refreshStage() {
   }
   state.currentStageId = data.stage_id;
   state.scenarios = data.scenarios;
-  state.synthesis = data.required;
+  const gates = await api(`/api/gates?learner_id=${encodeURIComponent(state.learner)}`);
+  state.synthesis = (gates.gates || []).find((gate) => gate.status === "unlocked") || null;
   renderRange();
   renderScenario();
   renderSynthesis();
@@ -631,7 +632,7 @@ async function resetRun() {
 
 function renderSynthesis() {
   const panel = $("synthesis-detail");
-  if (!state.synthesis) { panel.innerHTML = '<p class="muted">Stage synthesis unlocks after every required scenario is complete.</p>'; return; }
+  if (!state.synthesis) { panel.innerHTML = '<p class="muted">The next hard gate appears after the previous gate is accepted.</p>'; return; }
   const req = state.synthesis;
   const runs = state.scenarios || [];
   const completeMap = {};
@@ -653,7 +654,7 @@ function renderSynthesis() {
     <div class="grid" style="margin:8px 0">${controlChips}</div>
     <div class="hint">Concepts that must appear in the summary:</div>
     <div class="grid" style="margin:8px 0">${concepts}</div>
-    <div class="row"><span class="badge ${allComplete ? "ok" : ""}">${allComplete ? "All scenarios complete — synthesis unlocked" : "Pending: " + missingTokens.join(", ")}</span></div>
+    <div class="row"><span class="badge ${allComplete ? "ok" : ""}">${allComplete ? "Gate scenarios complete — synthesis unlocked" : "Pending: " + missingTokens.join(", ")}</span></div>
     ${allComplete ? `
       <div class="field" style="margin-top:10px">
         <label for="syn-summary">Incident summary (must contain all concepts above)</label>
@@ -664,7 +665,7 @@ function renderSynthesis() {
         <textarea id="syn-timeline" placeholder="T1 …\nT2 …"></textarea>
       </div>
       <div class="row">
-        <button id="syn-btn" class="primary">Run stage synthesis</button>
+        <button id="syn-btn" class="primary">Run hard-gate synthesis</button>
       </div>
       <div id="syn-result"></div>` : ""}`;
   const btn = $("syn-btn");
@@ -688,7 +689,7 @@ async function runSynthesis() {
     summary,
   };
   try {
-    const result = await api(`/api/stages/${encodeURIComponent(state.currentStageId)}/synthesize`, {
+    const result = await api(`/api/gates/${encodeURIComponent(req.gate_id)}/synthesize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -697,7 +698,7 @@ async function runSynthesis() {
     $("syn-result").innerHTML = `
       <div class="step-box">
         <div class="badge ok" style="margin-bottom:8px">Synthesis accepted</div>
-        <div class="hint">Stage hard flag (submit to the gate to unlock the next stage):</div>
+        <div class="hint">Hard-gate flag (submit to unlock the next gate):</div>
         <div class="token-line">${esc(flag)}</div>
         <div class="row">
           <button id="copy-flag">Copy</button>
@@ -718,10 +719,10 @@ async function submitFlagToGate(flag) {
     const result = await gateApi("/api/flags/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ learner_id: state.learner, stage_id: state.currentStageId, flag }),
+      body: JSON.stringify({ learner_id: state.learner, gate_id: state.synthesis.gate_id, flag }),
     });
     toast(result.message || "flag accepted", "ok");
-    $("syn-result").innerHTML = `<div class="step-box"><div class="badge ok">Flag accepted — ${esc(result.next_stage_id || "curriculum complete")}</div></div>`;
+    $("syn-result").innerHTML = `<div class="step-box"><div class="badge ok">Gate accepted — ${esc(result.next_gate_id || result.next_stage_id || "curriculum complete")}</div></div>`;
     await refreshStage();
     await loadAll();
   } catch (error) {

@@ -17,7 +17,7 @@ from typing import Any, Callable
 from context_engineering import assemble_context, render_for_model
 from zodiac_graph import build_graph, neighborhood, validate_graph
 from zodiac_bank_threats import load as load_threat_document, validate as validate_threat_model
-from zodiac_scenario_engine import validate_scenarios
+from zodiac_scenario_engine import load_scenario_pack, validate_scenarios
 
 ROOT = Path(__file__).resolve().parent.parent
 BANK_PATH = ROOT / "bank-data" / "zodiac-bank.json"
@@ -249,14 +249,17 @@ def check_ai_threat_model() -> dict[str, Any]:
 
 
 def check_hard_scenario_range() -> dict[str, Any]:
-    scenarios = load_threat_document(SCENARIO_PATH)
+    scenarios = load_scenario_pack(SCENARIO_PATH)
     curriculum = load(CURRICULUM_PATH)
     result = validate_scenarios(scenarios, curriculum)
     challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
     dockerfile = (ROOT / "training-challenges" / "Dockerfile").read_text(encoding="utf-8")
     trainer_ui = (ROOT / "training-challenges" / "index.html").read_text(encoding="utf-8")
     scenario_pack = SCENARIO_PATH.read_text(encoding="utf-8")
+    assert result["scenarios"] == 100 and result["hard_gates"] == 50
     assert "scenario_event" in challenge and "synthesize_stage" in challenge
+    assert "stage synthesis is retired in strict mode" in challenge
+    assert "current hard gate" in challenge
     assert "scenario_runs" in challenge and "BEGIN IMMEDIATE" in challenge
     assert "validate_evidence" in challenge and "MAX_ACTIVE_SCENARIOS" in challenge
     assert "expected_for_step" in challenge and "candidates_for_step" in challenge and "secrets.token_hex" in challenge
@@ -265,6 +268,7 @@ def check_hard_scenario_range() -> dict[str, Any]:
     assert "X-Training-Learner-Token" in challenge
     assert "zodiac_scenario_engine.py" in dockerfile and "index.html" in dockerfile
     assert "synthesize" in trainer_ui and "api/range" in trainer_ui and "evidence_token" in trainer_ui and "candidate-chip" in trainer_ui
+    assert "100" in trainer_ui and "50" in trainer_ui
     assert '"evidence"' in scenario_pack and '"match"' not in scenario_pack
     assert '"proof"' in scenario_pack
     return result
@@ -286,7 +290,7 @@ def check_flag_progression() -> dict[str, Any]:
     report = run_progression()
     assert report["passed"], "full 10-stage flag progression failed"
     assert report["stages_completed"] == 10, "expected exactly 10 completed stages"
-    assert report["total_scenarios"] == 51, "expected all 51 scenarios solved"
+    assert report["total_scenarios"] == 100, "expected all 100 scenarios solved"
     assert all(value is True for value in report["negatives"].values()), "a negative path check failed"
     last = report["stages"][-1]
     assert last["stage_id"] == "L09-apt-capstone" and last["next_stage_id"] is None, "capstone did not complete the curriculum"

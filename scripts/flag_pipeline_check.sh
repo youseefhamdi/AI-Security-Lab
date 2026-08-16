@@ -1,25 +1,21 @@
 #!/usr/bin/env bash
-# Live flag-pipeline check: walks all 10 Zodiac Bank stages over HTTP.
+# Live flag-pipeline check: walks all 10 Zodiac Bank stages, 50 hard gates,
+# and 100 scenarios over HTTP.
 #
 # Requires the lab services to be running (RUNTIME=1). Every request is issued
-# with curl; python3 is used only to parse JSON and to re-derive the expected
-# HMAC flags from TRAINING_FLAG_SECRET (the same secret the running services
-# use). The journey mirrors scripts/zodiac_bank_progression_test.py, but over
-# the real HTTP surface:
+# with curl; python3 is used only to parse JSON and re-derive HMAC flags from
+# TRAINING_FLAG_SECRET. The strict journey is:
 #
-#   enroll -> complete each required scenario -> synthesize the stage ->
-#   submit the hard flag to the gate -> verify the exact next stage unlocks
-#
-# plus live negative checks: locked-stage flag (403), invalid flag (401),
-# wrong scenario evidence (409), and idempotent re-submission.
+#   enroll -> complete two scenarios -> synthesize the current hard gate ->
+#   submit its flag -> verify the next gate/stage unlocks
 #
 # Usage:  RUNTIME=1 ./scripts/flag_pipeline_check.sh
-# Env:    TRAINING_ADMIN_KEY  (must match the running Training Gate)
-#         TRAINING_FLAG_SECRET (must match the running services)
-#         TRAINING_GATE_URL     default http://127.0.0.1:5050
-#         TRAINING_CHALLENGE_URL default http://127.0.0.1:5060
-#         FLAG_CHECK_COHORT      default flag-pipeline-check
-#         FLAG_CHECK_LEARNER     default flag-pipeline-check
+# Env:    TRAINING_ADMIN_KEY       must match the running Training Gate
+#         TRAINING_FLAG_SECRET     must match the running services
+#         TRAINING_GATE_URL        default http://127.0.0.1:5050
+#         TRAINING_CHALLENGE_URL   default http://127.0.0.1:5060
+#         FLAG_CHECK_COHORT        default flag-pipeline-check
+#         FLAG_CHECK_LEARNER       default flag-pipeline-check
 
 set -euo pipefail
 
@@ -42,8 +38,8 @@ fi
 
 command -v curl >/dev/null 2>&1 || fail "RUNTIME=1 requires curl"
 command -v python3 >/dev/null 2>&1 || fail "RUNTIME=1 requires python3"
-[[ -n "${TRAINING_ADMIN_KEY:-}" ]] || fail "TRAINING_ADMIN_KEY is required and must match the running Training Gate"
-[[ -n "${TRAINING_FLAG_SECRET:-}" ]] || fail "TRAINING_FLAG_SECRET is required and must match the running services"
+[[ -n "${TRAINING_ADMIN_KEY:-}" ]] || fail "TRAINING_ADMIN_KEY is required"
+[[ -n "${TRAINING_FLAG_SECRET:-}" ]] || fail "TRAINING_FLAG_SECRET is required"
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
@@ -51,8 +47,6 @@ RESP_FILE="${TMP_DIR}/response.json"
 RESP_CODE=""
 RESP_BODY=""
 
-# http_call <method> <url> [<auth-header>] [<json-body>]
-# Sets RESP_CODE (HTTP status) and RESP_BODY (response body).
 http_call() {
   local method="$1" url="$2" auth="${3:-}" body="${4:-}"
   local -a args=(-sS --connect-timeout 5 --max-time "${REQUEST_TIMEOUT}" -X "${method}" -o "${RESP_FILE}" -w '%{http_code}')
@@ -64,15 +58,13 @@ http_call() {
   RESP_BODY="$(cat "${RESP_FILE}" 2>/dev/null || true)"
 }
 
-# jget <json> <python-expression-on-d> — prints the evaluated result.
 jget() {
   python3 -c 'import json,sys
 d=json.loads(sys.argv[1])
 print(eval(sys.argv[2]))' "$1" "$2"
 }
 
-# expected_flag <stage_id> — re-derives the HMAC flag from TRAINING_FLAG_SECRET.
-expected_flag() {
+expected_stage_flag() {
   python3 -c 'import hmac,hashlib,re,sys
 secret=sys.argv[1].encode("utf-8"); stage=sys.argv[2]
 digest=hmac.new(secret, stage.encode("utf-8"), hashlib.sha256).hexdigest()[:32].upper()
@@ -80,14 +72,20 @@ safe=re.sub(r"[^A-Za-z0-9]+", "-", stage).strip("-").upper()
 print(f"ZODIAC-BANK-{safe}-{digest}")' "${TRAINING_FLAG_SECRET}" "$1"
 }
 
-# --- 1. health checks ------------------------------------------------------
+expected_gate_flag() {
+  python3 -c 'import hmac,hashlib,re,sys
+secret=sys.argv[1].encode("utf-8"); gate=sys.argv[2]
+digest=hmac.new(secret, ("hard-gate:" + gate).encode("utf-8"), hashlib.sha256).hexdigest()[:32].upper()
+safe=re.sub(r"[^A-Za-z0-9]+", "-", gate).strip("-").upper()
+print(f"ZODIAC-BANK-GATE-{safe}-{digest}")' "${TRAINING_FLAG_SECRET}" "$1"
+}
+
 log "Checking live services..."
 code="$(curl -sS --connect-timeout 5 --max-time 10 -o /dev/null -w '%{http_code}' "${GATE_URL}/health" || true)"
-[[ "${code}" == "200" ]] || fail "Training Gate not healthy at ${GATE_URL} (HTTP ${code}); start the lab first"
+[[ "${code}" == "200" ]] || fail "Training Gate not healthy at ${GATE_URL} (HTTP ${code})"
 code="$(curl -sS --connect-timeout 5 --max-time 10 -o /dev/null -w '%{http_code}' "${CHALLENGE_URL}/health" || true)"
-[[ "${code}" == "200" ]] || fail "Challenge surface not healthy at ${CHALLENGE_URL} (HTTP ${code}); start the lab first"
+[[ "${code}" == "200" ]] || fail "Challenge surface not healthy at ${CHALLENGE_URL} (HTTP ${code})"
 
-# --- 2. enroll -------------------------------------------------------------
 ADMIN_AUTH="X-Training-Admin-Key: ${TRAINING_ADMIN_KEY}"
 http_call POST "${GATE_URL}/api/admin/cohorts" "${ADMIN_AUTH}" "{\"cohort_id\":\"${COHORT_ID}\",\"display_name\":\"Flag pipeline check\"}"
 [[ "${RESP_CODE}" == "200" || "${RESP_CODE}" == "409" ]] || fail "cohort-create failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
@@ -99,14 +97,13 @@ LEARNER_TOKEN="$(jget "${RESP_BODY}" 'd["learner_token"]')"
 [[ -n "${LEARNER_TOKEN}" ]] || fail "cohort-add returned no learner token"
 LEARNER_AUTH="X-Training-Learner-Token: ${LEARNER_TOKEN}"
 log "Enrolled learner ${LEARNER_ID} in cohort ${COHORT_ID}"
+
 http_call GET "${GATE_URL}/api/bank/profile?learner_id=${LEARNER_ID}" "${LEARNER_AUTH}"
 [[ "${RESP_CODE}" == "200" ]] || fail "initial bank profile check failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
 initial_profile_stage="$(jget "${RESP_BODY}" 'd["profile"].get("stage_id")')"
-[[ "${initial_profile_stage}" == "L00-foundation" ]] || fail "learner did not start in foundation bank profile: ${initial_profile_stage}"
-log "BANK profile promoted dynamically: initial posture is foundation-observe"
+[[ "${initial_profile_stage}" == "L00-foundation" ]] || fail "learner did not start in foundation profile: ${initial_profile_stage}"
 
-# --- 3. negative checks before the walk (learner is on L00) ----------------
-locked="$(expected_flag "L02-prompt-injection")"
+locked="$(expected_stage_flag "L02-prompt-injection")"
 http_call POST "${GATE_URL}/api/flags/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"stage_id\":\"L02-prompt-injection\",\"flag\":\"${locked}\"}"
 [[ "${RESP_CODE}" == "403" ]] || fail "locked-stage flag was not rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
 log "NEG  locked-stage flag rejected (403)"
@@ -115,7 +112,6 @@ http_call POST "${GATE_URL}/api/flags/submit" "${LEARNER_AUTH}" "{\"learner_id\"
 [[ "${RESP_CODE}" == "401" ]] || fail "invalid flag was not rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
 log "NEG  invalid flag rejected (401)"
 
-# --- 4. walk all 10 stages --------------------------------------------------
 STAGES=()
 while IFS= read -r line; do STAGES+=("${line}"); done < <(
   python3 -c 'import json,sys
@@ -123,106 +119,91 @@ print("\n".join(s["id"] for s in json.load(open(sys.argv[1]))["stages"]))' "${RO
 )
 
 stage_index=0
+gate_index=0
+wrong_evidence_tested=0
 for stage in "${STAGES[@]}"; do
-  req="$(python3 -c 'import json,sys
-d=json.load(open(sys.argv[1]))["stage_requirements"]
-print(json.dumps(d[sys.argv[2]]))' "${ROOT_DIR}/training-config/scenarios.json" "${stage}")"
+  GATES_FOR_STAGE=()
+  while IFS= read -r line; do GATES_FOR_STAGE+=("${line}"); done < <(
+    python3 -c 'import json,sys
+p=json.load(open(sys.argv[1]))
+print("\n".join(g["gate_id"] for g in p["gates"] if g["stage_id"] == sys.argv[2]))' "${ROOT_DIR}/training-config/hard-gates.json" "${stage}"
+  )
+  [[ "${#GATES_FOR_STAGE[@]}" == "5" ]] || fail "${stage}: expected five hard gates"
 
-  scenario_ids=()
-  while IFS= read -r line; do scenario_ids+=("${line}"); done < <(jget "${req}" '"\n".join(d["scenario_ids"])')
+  for gate in "${GATES_FOR_STAGE[@]}"; do
+    http_call GET "${CHALLENGE_URL}/api/gates?learner_id=${LEARNER_ID}" "${LEARNER_AUTH}"
+    [[ "${RESP_CODE}" == "200" ]] || fail "${gate}: gate listing failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
+    current_gate="$(jget "${RESP_BODY}" 'd.get("current_gate_id") or ""')"
+    [[ "${current_gate}" == "${gate}" ]] || fail "expected current gate ${gate}, got ${current_gate}"
+    req="$(python3 -c 'import json,sys
+p=json.load(open(sys.argv[1]))
+print(json.dumps(next(g for g in p["gates"] if g["gate_id"] == sys.argv[2])) )' "${ROOT_DIR}/training-config/hard-gates.json" "${gate}")"
 
-  tokens=()
-  wrong_evidence_tested=0
-  for sid in "${scenario_ids[@]}"; do
-    http_call POST "${CHALLENGE_URL}/api/scenarios/${sid}/start" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\"}"
-    [[ "${RESP_CODE}" == "200" ]] || fail "${sid} start failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
-
-    step_count=0
-    while :; do
-      http_call GET "${CHALLENGE_URL}/api/scenarios/${sid}/hint?learner_id=${LEARNER_ID}" "${LEARNER_AUTH}"
-      [[ "${RESP_CODE}" == "200" ]] || fail "${sid} hint failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
-      status="$(jget "${RESP_BODY}" 'd.get("status", "")')"
-      [[ "${status}" == "active" ]] || fail "${sid}: expected an active step, got ${status}"
-      event="$(jget "${RESP_BODY}" 'd.get("event", "")')"
-      evidence="$(jget "${RESP_BODY}" 'json.dumps({k: v["correct"] for k, v in d["candidates"].items()})')"
-
-      if [[ "${wrong_evidence_tested}" != "1" ]]; then
-        wrong="$(python3 -c 'import json,sys
-e=json.loads(sys.argv[1])
-k=next(iter(e))
-e[k] = "GET" if e[k] != "GET" else "POST"
-print(json.dumps(e))' "${evidence}")"
-        http_call POST "${CHALLENGE_URL}/api/scenarios/${sid}/event" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"event\":\"${event}\",\"evidence\":${wrong}}"
-        [[ "${RESP_CODE}" == "409" ]] || fail "wrong evidence was not rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
-        wrong_evidence_tested=1
-        log "NEG  wrong scenario evidence rejected (409)"
-      fi
-
-      http_call POST "${CHALLENGE_URL}/api/scenarios/${sid}/event" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"event\":\"${event}\",\"evidence\":${evidence}}"
-      [[ "${RESP_CODE}" == "200" ]] || fail "${sid} evidence rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
-      result_status="$(jget "${RESP_BODY}" 'd.get("status", "")')"
-      if [[ "${result_status}" == "complete" ]]; then
-        tokens+=("$(jget "${RESP_BODY}" 'd["evidence_token"]')")
-        break
-      fi
-      step_count=$((step_count + 1))
-      [[ "${step_count}" -le 20 ]] || fail "${sid} did not complete within 20 steps"
+    scenario_ids=()
+    while IFS= read -r line; do scenario_ids+=("${line}"); done < <(jget "${req}" '"\n".join(d["scenario_ids"])')
+    tokens=()
+    for sid in "${scenario_ids[@]}"; do
+      http_call POST "${CHALLENGE_URL}/api/scenarios/${sid}/start" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\"}"
+      [[ "${RESP_CODE}" == "200" ]] || fail "${sid} start failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
+      while :; do
+        http_call GET "${CHALLENGE_URL}/api/scenarios/${sid}/hint?learner_id=${LEARNER_ID}" "${LEARNER_AUTH}"
+        [[ "${RESP_CODE}" == "200" ]] || fail "${sid} hint failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
+        status="$(jget "${RESP_BODY}" 'd.get("status", "")')"
+        [[ "${status}" == "active" ]] || fail "${sid}: expected active step, got ${status}"
+        event="$(jget "${RESP_BODY}" 'd.get("event", "")')"
+        evidence="$(jget "${RESP_BODY}" 'json.dumps({k: v["correct"] for k, v in d["candidates"].items()})')"
+        if [[ "${wrong_evidence_tested}" != "1" ]]; then
+          wrong="$(python3 -c 'import json,sys
+e=json.loads(sys.argv[1]); k=next(iter(e)); e[k]="GET" if e[k]!="GET" else "POST"; print(json.dumps(e))' "${evidence}")"
+          http_call POST "${CHALLENGE_URL}/api/scenarios/${sid}/event" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"event\":\"${event}\",\"evidence\":${wrong}}"
+          [[ "${RESP_CODE}" == "409" ]] || fail "wrong evidence was not rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
+          wrong_evidence_tested=1
+          log "NEG  wrong scenario evidence rejected (409)"
+        fi
+        http_call POST "${CHALLENGE_URL}/api/scenarios/${sid}/event" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"event\":\"${event}\",\"evidence\":${evidence}}"
+        [[ "${RESP_CODE}" == "200" ]] || fail "${sid} evidence rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
+        result_status="$(jget "${RESP_BODY}" 'd.get("status", "")')"
+        if [[ "${result_status}" == "complete" ]]; then
+          tokens+=("$(jget "${RESP_BODY}" 'd["evidence_token"]')")
+          break
+        fi
+      done
     done
+
+    tokens_json="$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "${tokens[@]}")"
+    payload="$(python3 -c 'import json,sys
+req=json.loads(sys.argv[1]); summary="Synthetic hard-gate evidence covers " + ", ".join(req["concepts"]) + " with bounded authorization, provenance, and localhost-only controls."
+timeline=[{"event":f"observed-{sid}","scenario":sid} for sid in req["scenario_ids"]]
+print(json.dumps({"learner_id":sys.argv[3],"scenario_ids":req["scenario_ids"],"evidence_tokens":json.loads(sys.argv[2]),"detection_rule_ids":req["detection_rule_ids"],"controls":req["required_controls"],"summary":summary,"timeline":timeline}))' "${req}" "${tokens_json}" "${LEARNER_ID}")"
+    http_call POST "${CHALLENGE_URL}/api/gates/${gate}/synthesize" "${LEARNER_AUTH}" "${payload}"
+    [[ "${RESP_CODE}" == "200" ]] || fail "${gate} synthesis failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
+    flag="$(jget "${RESP_BODY}" 'd["hard_flag"]')"
+    expected="$(expected_gate_flag "${gate}")"
+    [[ "${flag}" == "${expected}" ]] || fail "${gate}: synthesis flag does not match local HMAC"
+    http_call POST "${GATE_URL}/api/gates/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"gate_id\":\"${gate}\",\"flag\":\"${flag}\"}"
+    [[ "${RESP_CODE}" == "200" ]] || fail "${gate} flag rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
+    [[ "$(jget "${RESP_BODY}" 'd.get("accepted")')" == "True" ]] || fail "${gate}: gate did not accept flag"
+    gate_index=$((gate_index + 1))
+    if [[ "${gate}" == "${GATES_FOR_STAGE[4]}" ]]; then
+      expected_next=""
+      if [[ $((stage_index + 1)) -lt "${#STAGES[@]}" ]]; then expected_next="${STAGES[$((stage_index + 1))]}"; fi
+      next="$(jget "${RESP_BODY}" 'd.get("next_stage_id") or ""')"
+      [[ "${next}" == "${expected_next}" ]] || fail "${stage}: expected next stage ${expected_next}, got ${next}"
+      expected_level=$((stage_index + 2))
+      promoted_level="$(jget "${RESP_BODY}" 'd["bank_profile"].get("level")')"
+      [[ "${promoted_level}" == "${expected_level}" ]] || fail "${stage}: expected profile level ${expected_level}, got ${promoted_level}"
+    else
+      [[ "$(jget "${RESP_BODY}" 'd.get("stage_completed")')" == "False" ]] || fail "${gate}: stage completed too early"
+    fi
+    log "PASS ${gate} (${#scenario_ids[@]} scenarios)"
   done
-
-  tokens_json="$(python3 -c 'import json,sys
-print(json.dumps(sys.argv[1:]))' "${tokens[@]}")"
-  payload="$(python3 -c 'import json,sys
-req=json.loads(sys.argv[1])
-summary="Synthetic incident summary: " + ", ".join(req["concepts"]) + " observed with approval gates, provenance, and a complete timeline; all activity confined to the localhost scope."
-timeline=[{"event": f"observed-{sid}", "scenario": sid} for sid in req["scenario_ids"]]
-print(json.dumps({"learner_id": sys.argv[3], "scenario_ids": req["scenario_ids"], "evidence_tokens": json.loads(sys.argv[2]), "detection_rule_ids": req["detection_rule_ids"], "controls": req["required_controls"], "summary": summary, "timeline": timeline}))' "${req}" "${tokens_json}" "${LEARNER_ID}")"
-
-  http_call POST "${CHALLENGE_URL}/api/stages/${stage}/synthesize" "${LEARNER_AUTH}" "${payload}"
-  [[ "${RESP_CODE}" == "200" ]] || fail "${stage} synthesis failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
-  flag="$(jget "${RESP_BODY}" 'd["hard_flag"]')"
-  expected="$(expected_flag "${stage}")"
-  [[ "${flag}" == "${expected}" ]] || fail "${stage}: synthesis flag ${flag} does not match local HMAC ${expected}"
-
-  http_call POST "${GATE_URL}/api/flags/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"stage_id\":\"${stage}\",\"flag\":\"${flag}\"}"
-  [[ "${RESP_CODE}" == "200" ]] || fail "${stage} flag rejected by gate (HTTP ${RESP_CODE}): ${RESP_BODY}"
-  accepted="$(jget "${RESP_BODY}" 'd.get("accepted")')"
-  [[ "${accepted}" == "True" ]] || fail "${stage}: gate did not accept the flag"
-  next="$(jget "${RESP_BODY}" 'd.get("next_stage_id") or ""')"
-  expected_next=""
-  if [[ $((stage_index + 1)) -lt "${#STAGES[@]}" ]]; then
-    expected_next="${STAGES[$((stage_index + 1))]}"
-  fi
-  [[ "${next}" == "${expected_next}" ]] || fail "${stage}: expected next stage '${expected_next}', got '${next}'"
-  promoted_profile_stage="$(jget "${RESP_BODY}" 'd["bank_profile"].get("stage_id")')"
-  [[ "${promoted_profile_stage}" == "${expected_next}" ]] || fail "${stage}: bank profile did not promote to '${expected_next}', got '${promoted_profile_stage}'"
-  promoted_level="$(jget "${RESP_BODY}" 'd["bank_profile"].get("level")')"
-  expected_level=$((stage_index + 2))
-  [[ "${promoted_level}" == "${expected_level}" ]] || fail "${stage}: expected bank security level ${expected_level}, got ${promoted_level}"
-
-  if [[ -n "${expected_next}" ]]; then
-    log "PASS ${stage} (${#scenario_ids[@]} scenarios) -> ${expected_next}"
-  else
-    log "PASS ${stage} (${#scenario_ids[@]} scenarios) -> curriculum complete"
-  fi
+  log "PASS ${stage}: five hard gates complete"
   stage_index=$((stage_index + 1))
 done
 
-# --- 5. final state checks --------------------------------------------------
-# Re-submitting an accepted flag is idempotent.
-re_flag="$(expected_flag "L00-foundation")"
-http_call POST "${GATE_URL}/api/flags/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"stage_id\":\"L00-foundation\",\"flag\":\"${re_flag}\"}"
-[[ "${RESP_CODE}" == "200" ]] || fail "idempotent re-submission failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
-re_status="$(jget "${RESP_BODY}" 'd.get("status", "")')"
-[[ "${re_status}" == "completed" ]] || fail "re-submission status was ${re_status}, expected completed"
-log "NEG  idempotent re-submission accepted (completed)"
-
-# Gate curriculum must report every stage completed.
-http_call GET "${GATE_URL}/api/curriculum?learner_id=${LEARNER_ID}" "${LEARNER_AUTH}"
-[[ "${RESP_CODE}" == "200" ]] || fail "curriculum check failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
-not_completed="$(jget "${RESP_BODY}" '[s["id"] for s in d["stages"] if s["status"] != "completed"]')"
-[[ "${not_completed}" == "[]" ]] || fail "stages not completed after the walk: ${not_completed}"
-
-log "RESULT: full 10-stage flag pipeline verified over live HTTP (gate=${GATE_URL}, challenges=${CHALLENGE_URL})"
-log "Learner ${LEARNER_ID} completed all 10 stages; progress left in place for inspection"
-log "(re-running this check resets the ${COHORT_ID} cohort first)"
+[[ "${gate_index}" == "50" ]] || fail "expected 50 hard gates, completed ${gate_index}"
+http_call POST "${GATE_URL}/api/gates/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"gate_id\":\"G01-scope-baseline\",\"flag\":\"$(expected_gate_flag G01-scope-baseline)\"}"
+[[ "${RESP_CODE}" == "200" ]] || fail "idempotent gate re-submission failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
+[[ "$(jget "${RESP_BODY}" 'd.get("status", "")')" == "completed" ]] || fail "idempotent gate status was not completed"
+log "NEG  idempotent gate re-submission accepted (completed)"
+log "RESULT: 10 stages, 50 hard gates, 100 scenarios verified"

@@ -11,6 +11,8 @@ COPY scripts/context_engineering.py .
 COPY scripts/zodiac_bank_simulator.py .
 COPY scripts/zodiac_bank_orchestrator.py .
 COPY training-config/scenarios.json /app/config/scenarios.json
+COPY training-config/scenario-expansion.json /app/config/scenario-expansion.json
+COPY training-config/hard-gates.json /app/config/hard-gates.json
 COPY training-config/bank-profiles.json /app/config/bank-profiles.json
 COPY bank-data/zodiac-bank.json /app/bank-data/zodiac-bank.json
 COPY bank-data/financial-operations.json /app/bank-data/financial-operations.json

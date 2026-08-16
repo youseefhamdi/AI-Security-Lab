@@ -14,6 +14,7 @@ import hashlib
 import hmac
 import json
 import re
+from pathlib import Path
 from typing import Any
 
 SCHEMA_VERSION = 2
@@ -50,6 +51,92 @@ VOCABULARY: dict[str, list[str]] = {
     "chained-proof": ["chained-proof"],
 }
 
+
+
+def _generated_scenario(spec: dict[str, Any]) -> dict[str, Any]:
+    """Materialize a research scenario from a safe, answer-free specification."""
+    scenario_id = str(spec["id"])
+    prefix = re.sub(r"[^a-z0-9]+", "_", scenario_id.lower()).strip("_")
+    tags = ", ".join(spec.get("threat_tags", []))
+    return {
+        "id": scenario_id,
+        "stage_id": spec["stage_id"],
+        "difficulty": spec["difficulty"],
+        "branch": spec["branch"],
+        "title": spec["title"],
+        "objective": spec["objective"],
+        "clues": [
+            f"Treat this as a localhost-only synthetic exercise focused on {tags or 'the declared control boundary'}.",
+            "Capture the baseline before changing one trust, identity, retrieval, or workflow variable.",
+            "The expected result is evidence of a control decision, not a real side effect.",
+        ],
+        "detection_rule_ids": spec["detection_rule_ids"],
+        "required_controls": spec["required_controls"],
+        "concepts": spec.get("concepts", []),
+        "threat_tags": spec.get("threat_tags", []),
+        "steps": [
+            {
+                "id": "s1",
+                "event": f"{prefix}_baseline"[:64],
+                "observation": f"The synthetic baseline for {spec['title']} is recorded before the adversarial variation.",
+                "evidence": {"surface": "marker", "trust": "trust-class", "decision": "decision"},
+            },
+            {
+                "id": "s2",
+                "event": f"{prefix}_test"[:64],
+                "observation": f"The declared {spec.get('threat_tags', ['security'])[0]} boundary is tested without contacting an external target.",
+                "evidence": {"signal": "marker", "control": "control", "proof": "chained-proof"},
+            },
+            {
+                "id": "s3",
+                "event": f"{prefix}_contain"[:64],
+                "observation": "The learner records the detection, authorization, quarantine, or recovery decision as bounded evidence.",
+                "evidence": {"finding": "result", "response": "decision", "proof": "chained-proof"},
+            },
+        ],
+    }
+
+
+def load_scenario_pack(path: Path) -> dict[str, Any]:
+    """Load the canonical pack plus the research expansion and hard-gate manifest.
+
+    The original pack remains readable and answer-free. The expansion is kept in
+    a separate reviewed manifest so curriculum additions can be audited without
+    hand-editing a very large generated JSON document.
+    """
+    document = json.loads(path.read_text(encoding="utf-8"))
+    expansion_path = path.with_name("scenario-expansion.json")
+    gates_path = path.with_name("hard-gates.json")
+    existing_ids = {str(item["id"]) for item in document.get("scenarios", [])}
+    if expansion_path.is_file():
+        expansion = json.loads(expansion_path.read_text(encoding="utf-8"))
+        for spec in expansion.get("scenarios", []):
+            scenario_id = str(spec.get("id", ""))
+            if scenario_id in existing_ids:
+                raise ValueError(f"duplicate expanded scenario ID: {scenario_id}")
+            existing_ids.add(scenario_id)
+            document.setdefault("scenarios", []).append(_generated_scenario(spec))
+            requirement = document.setdefault("stage_requirements", {}).setdefault(spec["stage_id"], {})
+            requirement.setdefault("scenario_ids", []).append(scenario_id)
+        document["expansion_pack_id"] = expansion.get("pack_id")
+        document["research_basis"] = expansion.get("research_basis", [])
+    if gates_path.is_file():
+        gates = json.loads(gates_path.read_text(encoding="utf-8")).get("gates", [])
+        document["hard_gates"] = gates
+        by_stage: dict[str, list[str]] = {}
+        gate_by_scenario: dict[str, str] = {}
+        for gate in gates:
+            by_stage.setdefault(str(gate["stage_id"]), []).append(str(gate["gate_id"]))
+            for scenario_id in gate.get("scenario_ids", []):
+                if scenario_id in gate_by_scenario:
+                    raise ValueError(f"scenario belongs to multiple hard gates: {scenario_id}")
+                gate_by_scenario[str(scenario_id)] = str(gate["gate_id"])
+        for scenario in document.get("scenarios", []):
+            if scenario["id"] in gate_by_scenario:
+                scenario["gate_id"] = gate_by_scenario[scenario["id"]]
+        for stage_id, requirement in document.get("stage_requirements", {}).items():
+            requirement["hard_gate_ids"] = by_stage.get(stage_id, [])
+    return document
 
 
 def validate_scenarios(document: dict[str, Any], curriculum: dict[str, Any]) -> dict[str, Any]:
@@ -119,9 +206,43 @@ def validate_scenarios(document: dict[str, Any], curriculum: dict[str, Any]) -> 
             errors.append(f"stage {stage_id} lacks synthesis requirements")
     if referenced_scenarios != scenario_ids:
         errors.append("every scenario must be required by exactly one stage")
+
+    gates = document.get("hard_gates", [])
+    gate_ids: set[str] = set()
+    gated_scenarios: set[str] = set()
+    gates_by_stage: dict[str, list[str]] = {}
+    for gate in gates:
+        gate_id = str(gate.get("gate_id", ""))
+        gate_stage = str(gate.get("stage_id", ""))
+        gate_scenario_ids = [str(value) for value in gate.get("scenario_ids", [])]
+        if not gate_id or gate_id in gate_ids or gate_stage not in curriculum_ids:
+            errors.append(f"invalid or duplicate hard gate: {gate_id}")
+        gate_ids.add(gate_id)
+        gates_by_stage.setdefault(gate_stage, []).append(gate_id)
+        if len(gate_scenario_ids) != 2 or not set(gate_scenario_ids).issubset(scenario_ids):
+            errors.append(f"hard gate {gate_id} must cover exactly two known scenarios")
+        if gated_scenarios.intersection(gate_scenario_ids):
+            errors.append(f"hard gate scenario is assigned more than once: {gate_id}")
+        gated_scenarios.update(gate_scenario_ids)
+        if not gate.get("detection_rule_ids") or not gate.get("required_controls") or not gate.get("concepts"):
+            errors.append(f"hard gate {gate_id} lacks detection, control, or concept requirements")
+    # Gate IDs carry readable suffixes, so validate order/rank and count
+    # separately rather than requiring opaque IDs.
+    if len(gates) != 50:
+        errors.append(f"expected exactly 50 hard gates, found {len(gates)}")
+    ranks = [gate.get("rank") for gate in gates]
+    if ranks != list(range(1, len(gates) + 1)):
+        errors.append("hard gate ranks must be contiguous and ordered")
+    if set(gates_by_stage) != curriculum_ids or any(len(values) != 5 for values in gates_by_stage.values()):
+        errors.append("each curriculum stage must contain exactly five hard gates")
+    if gated_scenarios != scenario_ids:
+        errors.append("every scenario must belong to exactly one hard gate")
+    for stage_id, requirement in requirements.items():
+        if requirement.get("hard_gate_ids") != gates_by_stage.get(stage_id, []):
+            errors.append(f"stage {stage_id} hard_gate_ids do not match the ordered hard-gate manifest")
     if errors:
         raise ValueError("; ".join(errors))
-    return {"scenarios": len(scenarios), "stages_with_requirements": len(requirements), "scenario_ids": sorted(scenario_ids), "by_stage": by_stage}
+    return {"scenarios": len(scenarios), "hard_gates": len(gates), "stages_with_requirements": len(requirements), "scenario_ids": sorted(scenario_ids), "by_stage": by_stage}
 
 
 def scenario_map(document: dict[str, Any]) -> dict[str, dict[str, Any]]:

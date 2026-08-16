@@ -58,7 +58,7 @@ The lab models a complete training environment: branches, employees, staff roles
 
 ### What makes it different
 
-- **Progressive by design:** 10 hard-gated stages and 51 multi-step scenarios require evidence discovery before advancement.
+- **Progressive by design:** 10 hard-gated stages, 50 sequential hard gates, and 100 multi-step scenarios require evidence discovery before advancement.
 - **System-level AI security:** prompt injection, retrieval poisoning, memory persistence, tool misuse, identity, orchestration, fraud, and APT response are tested as connected attack paths.
 - **Operationally realistic:** deterministic intent → authorization → virtual settlement boundaries, maker/checker controls, branch isolation, risk escalation, receipts, and audit evidence.
 - **Research-to-control mapping:** current agentic, financial-services, payment-fraud, and AI supply-chain risks become reproducible exercises and machine-checked controls.
@@ -447,7 +447,7 @@ The bank is dynamic rather than a static lesson list. Each accepted flag atomica
 python3 scripts/zodiac_bank_progression_test.py
 ```
 
-The walkthrough solves all 51 scenarios, confirms each synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
+The walkthrough solves all 100 scenarios across 50 hard gates, confirms each hard-gate synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
 
 Once the core profile is running, a real learner walks the same journey in the browser:
 
@@ -917,7 +917,7 @@ The nine-phase campaign produces synthetic events, expected detection rules, tra
 
 Strict mode now uses a real multi-step range instead of one-request flag discovery:
 
-- **51 scenarios** across all 10 stages (including employee-loop and virtual-settlement paths);
+- **100 scenarios** across all 10 stages, organized into **50 hard gates** (including employee-loop and virtual-settlement paths);
 - **dynamic bank posture**: each accepted stage flag promotes a persistent learner profile with stricter controls, narrower synthetic data scope, changing branch visibility, smaller agent budgets, and a new active service surface;
 - **per-run evidence**: every run derives its expected values server-side from the flag secret, learner, scenario, step, and a fresh nonce — the repository contains **no literal answers**, and each learner/run sees different values;
 - **candidate pools**: each step exposes the correct value among distractors from a bounded vocabulary; static values from another run are rejected;
@@ -925,17 +925,17 @@ Strict mode now uses a real multi-step range instead of one-request flag discove
 - **attempt caps**: 20 failed evidence attempts per step force a reset to a fresh run;
 - ordered evidence events with replay and wrong-order rejection;
 - per-learner persistent state bound to the instructor-issued learner token;
-- stage synthesis requiring scenario evidence tokens, exact detection coverage, required controls, a timeline, and a security explanation;
+- hard-gate synthesis requiring scenario evidence tokens, exact detection coverage, required controls, a timeline, and a security explanation;
 - no hard flag returned by legacy challenge routes in strict mode.
 
 ### Browser trainer UI
 
 The challenge service serves a browser-based trainer console at `http://127.0.0.1:5060` (no extra dependencies). The console provides:
 
-- a full 51-scenario range map across all 10 stages with per-stage status;
+- a full 100-scenario / 50-hard-gate range map across all 10 stages with per-stage status;
 - progressive objective clues, detection rules, and required controls per scenario;
 - start, next-step hint, candidate-chip evidence picker, and reset controls for the current stage;
-- stage synthesis with required evidence tokens, detection coverage, controls, timeline, and concept checks;
+- hard-gate synthesis with required evidence tokens, detection coverage, controls, timeline, and concept checks;
 - one-click hard-flag submission to the Training Gate to unlock the next stage;
 - gate progression status and mission summaries.
 
@@ -971,16 +971,16 @@ curl --fail -X POST http://127.0.0.1:5060/api/scenarios/direct-goal-hijack/event
   -d '{"learner_id":"analyst-01","event":"<discovered-event>","evidence":{}}'
 ```
 
-After every required scenario is complete, the learner submits a synthesis. The hard flag is issued only when all required evidence, detection rules, controls, concepts, and timeline entries validate:
+After both scenarios in the currently unlocked hard gate are complete, the learner submits a gate synthesis. The hard-gate flag is issued only when all required evidence, detection rules, controls, concepts, and timeline entries validate:
 
 ```bash
-curl --fail -X POST http://127.0.0.1:5060/api/stages/L02-prompt-injection/synthesize \\
+curl --fail -X POST http://127.0.0.1:5060/api/gates/G11-direct-injection/synthesize \\
   -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
   -H 'Content-Type: application/json' \\
   -d '{"learner_id":"analyst-01","scenario_ids":[],"evidence_tokens":[],"detection_rule_ids":[],"controls":[],"timeline":[],"summary":""}'
 ```
 
-The example intentionally contains placeholders and is expected to be rejected until the learner has real local evidence. Scenario definitions are stored in `training-config/scenarios.json` as **evidence value types only**; the service derives the per-run expected values from the flag secret and a fresh run nonce, so reading the repository never reveals an answer.
+The example intentionally contains placeholders and is expected to be rejected until the learner has real local evidence. In strict mode, the retired stage-synthesis route is unavailable; only the currently unlocked hard-gate synthesis route can issue a flag. Scenario definitions are stored in `training-config/scenarios.json` as **evidence value types only**; the service derives the per-run expected values from the flag secret and a fresh run nonce, so reading the repository never reveals an answer.
 
 ## 🛡️ Security audit status
 
@@ -1004,7 +1004,7 @@ python3 scripts/validate_zodiac_bank.py
 python3 scripts/zodiac_bank_progression_test.py
 ```
 
-The suite validates 11 evaluator checks, all 10 hard-gated stages, 51 scenarios, financial ledger invariants, negative authorization paths, RAG/memory tenant boundaries, and concurrency controls. It is offline-safe and does not require an inference model. n8n is intentionally not part of this stage; if added later, it must remain an optional event-routing or approval UI layer and never become the ledger or authorization authority.
+The suite validates 11 evaluator checks, all 10 hard-gated stages, 100 scenarios and 50 hard gates, financial ledger invariants, negative authorization paths, RAG/memory tenant boundaries, and concurrency controls. It is offline-safe and does not require an inference model. n8n is intentionally not part of this stage; if added later, it must remain an optional event-routing or approval UI layer and never become the ledger or authorization authority.
 
 ## 🧪 Run the training exercises
 
@@ -1105,7 +1105,7 @@ docs/
 ```text
 apps/                  Aurora, Phoenix, and Assistant
 training-gate/         Zodiac Bank hard-flag progression service
-training-challenges/   Hard-range API and browser trainer UI (51 scenarios + dynamic bank state)
+training-challenges/   Hard-range API and browser trainer UI (100 scenarios / 50 gates + dynamic bank state)
 bank-data/             Canonical branches, employees, customers, accounts, cases, operations, and workflows
 mcp-server/            Deliberately vulnerable MCP server
 mcp-wrapper/           HTTP wrapper for MCP tools
@@ -1119,7 +1119,7 @@ docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
 loop-config/           Synthetic workflow inputs for Loop Engineering
 mem0-config/           Optional Mem0 configuration
-training-config/       Zodiac Bank curriculum, gate, threat model, profiles, and 51 hard scenarios (evidence types only)
+training-config/       Zodiac Bank curriculum, gate, threat model, profiles, 100 scenarios, and 50 hard gates (evidence types only)
 detection-config/       Synthetic Sigma-like AI/APT detection rules
 scripts/zodiac_scenario_engine.py  Shared scenario validation and evidence primitives
 models/                Local GGUF files; ignored by Git
@@ -1299,7 +1299,7 @@ This project is for **authorized local training only**. It intentionally contain
 - Memory and retrieval attack fixtures
 - Multi-step scenario state and evidence-token challenges
 
-Strict mode intentionally withholds stage flags from legacy one-request routes; use the hard scenario range and stage synthesis API. Never expose the service outside localhost, reuse its credentials, place real secrets in `sensitive-data/`, or commit model weights.
+Strict mode intentionally withholds stage flags from legacy one-request routes; use the hard scenario range and hard-gate synthesis API. Never expose the service outside localhost, reuse its credentials, place real secrets in `sensitive-data/`, or commit model weights.
 
 <div align="center">
 

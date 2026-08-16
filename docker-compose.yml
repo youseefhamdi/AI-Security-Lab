@@ -41,6 +41,7 @@ services:
       - "127.0.0.1:5050:5050"
     environment:
       TRAINING_CURRICULUM: /app/config/curriculum.json
+      TRAINING_SCENARIOS: /app/config/scenarios.json
       TRAINING_STATE_DB: /var/lib/training/progress.sqlite3
       TRAINING_FLAG_SECRET: ${TRAINING_FLAG_SECRET:-zodiac-bank-change-this-training-secret}
       TRAINING_ADMIN_KEY: ${TRAINING_ADMIN_KEY:-zodiac-bank-admin-change-me}

@@ -103,7 +103,7 @@ Use [`docs/ai-threat-research-2026.md`](ai-threat-research-2026.md) for the rese
 
 ## Hard scenario range
 
-The strict challenge surface is defined by `training-config/scenarios.json`. It contains **51 scenarios** across the 10 stages, including:
+The strict challenge surface is defined by `training-config/scenarios.json`. It contains **100 scenarios** across the 10 stages, organized into **50 hard gates** (two scenarios per gate), including:
 
 - web-based indirect injection, operationalized indirect-injection feeds, and browser-origin confusion;
 - multimodal, split, hidden, and obfuscated prompt content;
@@ -125,7 +125,7 @@ Every scenario step declares **evidence value types** (for example `http-method`
 4. issues a chained step token after each accepted step, which the next step requires as `proof`;
 5. counts failed attempts (20 per step) and forces a reset to a fresh run when exhausted.
 
-Reading `training-config/scenarios.json` or another learner's solution therefore never yields a usable answer: values differ per learner, per run, and per step, and later steps cannot be reached without the chained token from the previous step. Wrong order, replay, unknown events, and incomplete evidence are rejected. Completing scenarios is not enough: stage synthesis must include the exact required scenario set, evidence tokens, detection-rule coverage, controls, timeline entries, and a security explanation. In strict mode, the legacy one-request routes never issue hard flags.
+Reading `training-config/scenarios.json` or another learner's solution therefore never yields a usable answer: values differ per learner, per run, and per step, and later steps cannot be reached without the chained token from the previous step. Wrong order, replay, unknown events, and incomplete evidence are rejected. Completing scenarios is not enough: hard-gate synthesis must include the exact required scenario pair, evidence tokens, detection-rule coverage, controls, timeline entries, and a security explanation. In strict mode, the legacy one-request routes never issue hard flags.
 
 List the current stage's scenarios after enrollment:
 
@@ -143,11 +143,11 @@ curl --fail -X POST http://127.0.0.1:5060/api/scenarios/scope-integrity/start \
   -d '{"learner_id":"analyst-01"}'
 ```
 
-The API deliberately does not expose step matchers or future steps. The step hint returns the current event name, the required evidence keys, and a candidate pool containing the correct per-run value among distractors. A completed scenario returns an opaque evidence token. Stage synthesis is the only strict-mode path that returns that stage's flag after all controls and reasoning requirements pass.
+The API deliberately does not expose step matchers or future steps. The step hint returns the current event name, the required evidence keys, and a candidate pool containing the correct per-run value among distractors. A completed scenario returns an opaque evidence token. Hard-gate synthesis is the only strict-mode path that returns a flag after all controls and reasoning requirements pass; the retired stage-synthesis route is unavailable in strict mode.
 
 ### Browser trainer console
 
-The challenge service also serves a trainer console at `http://127.0.0.1:5060`. It renders the full 51-scenario range map, per-stage status, progressive clues, next-step hints with candidate-chip evidence picking, chained-proof handling, stage synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
+The challenge service also serves a trainer console at `http://127.0.0.1:5060`. It renders the full 100-scenario / 50-hard-gate range map, per-stage status, progressive clues, next-step hints with candidate-chip evidence picking, chained-proof handling, gate synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
 
 ## API examples
 
@@ -204,7 +204,7 @@ The CLI refuses non-local Training Gate URLs unless `ALLOW_REMOTE_ADMIN=1` is ex
 
 Changing `TRAINING_FLAG_SECRET` invalidates all generated flags. Use `reset-cohort` for a scoped reset; removing the `training_data` volume is the destructive all-cohort reset and deletes all learner progress and generated training artifacts.
 
-Each lesson has a hard scenario surface under `http://127.0.0.1:5060`. In strict mode, legacy one-request routes never issue hard flags. Learners must complete the stage's required multi-step scenarios, preserve ordered evidence tokens, cover detections and controls, and pass stage synthesis before submitting the returned HMAC-backed flag to the Training Gate. Scenario state is persistent and token-bound; responses are synthetic training findings and must not be cached or copied outside the lab.
+Each lesson has a hard scenario surface under `http://127.0.0.1:5060`. In strict mode, legacy one-request routes never issue hard flags. Learners must complete the stage's required multi-step scenarios, preserve ordered evidence tokens, cover detections and controls, and pass the currently unlocked hard-gate synthesis before submitting the returned HMAC-backed flag to the Training Gate. Scenario state is persistent and token-bound; responses are synthetic training findings and must not be cached or copied outside the lab.
 
 ## Hint progression
 
@@ -214,7 +214,7 @@ In strict mode, learner progress and flag submission also require the instructor
 - **Hint 2 — technique:** narrows the comparison or trust boundary to test.
 - **Hint 3 — confirmation:** describes the safe synthetic condition that should confirm the finding.
 
-Hints are released only after the stage is unlocked. The next difficulty is not released by reading a hint; it requires valid scenario evidence and an accepted stage synthesis before the hard flag can be submitted.
+Hints are released only after the stage is unlocked. The next difficulty is not released by reading a hint; it requires valid scenario evidence and an accepted hard-gate synthesis before the hard flag can be submitted.
 
 ## Flag progression verification
 

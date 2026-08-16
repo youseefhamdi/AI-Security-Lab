@@ -24,17 +24,21 @@ if PROFILE_SCRIPT_DIR.is_dir() and str(PROFILE_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(PROFILE_SCRIPT_DIR))
 
 from zodiac_bank_profiles import load_profiles, profile_by_id, profile_for_stage, public_profile  # noqa: E402
+from zodiac_scenario_engine import load_scenario_pack, validate_scenarios  # noqa: E402
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 APP_TITLE = "Zodiac Bank AI Security Training Gate"
 CURRICULUM_PATH = Path(os.environ.get("TRAINING_CURRICULUM", "/app/config/curriculum.json"))
+SCENARIO_PATH = Path(os.environ.get("TRAINING_SCENARIOS", "/app/config/scenarios.json"))
 STATE_PATH = Path(os.environ.get("TRAINING_STATE_DB", "/var/lib/training/progress.sqlite3"))
 ARTIFACT_DIR = Path(os.environ.get("TRAINING_ARTIFACT_DIR", "/var/lib/training/learners"))
 PROFILE_PATH = Path(os.environ.get("TRAINING_BANK_PROFILES", "/app/config/bank-profiles.json"))
 if not PROFILE_PATH.is_file():
     PROFILE_PATH = Path(__file__).resolve().parent.parent / "training-config" / "bank-profiles.json"
+if not SCENARIO_PATH.is_file():
+    SCENARIO_PATH = Path(__file__).resolve().parent.parent / "training-config" / "scenarios.json"
 DEFAULT_FLAG_SECRET = "zodiac-bank-change-this-training-secret"
 FLAG_SECRET_VALUE = os.environ.get("TRAINING_FLAG_SECRET", DEFAULT_FLAG_SECRET)
 FLAG_SECRET = FLAG_SECRET_VALUE.encode("utf-8")
@@ -107,7 +111,12 @@ def load_curriculum() -> dict[str, Any]:
 
 CURRICULUM = load_curriculum()
 BANK_PROFILES = load_profiles(PROFILE_PATH)
+SCENARIO_PACK = load_scenario_pack(SCENARIO_PATH)
+validate_scenarios(SCENARIO_PACK, CURRICULUM)
+GATES: list[dict[str, Any]] = list(SCENARIO_PACK.get("hard_gates", []))
+GATES_BY_ID: dict[str, dict[str, Any]] = {str(gate["gate_id"]): gate for gate in GATES}
 STAGES: dict[str, dict[str, Any]] = {stage["id"]: stage for stage in CURRICULUM["stages"]}
+GATES_BY_STAGE = {stage_id: [gate for gate in GATES if gate["stage_id"] == stage_id] for stage_id in STAGES}
 INITIAL_PROFILE = BANK_PROFILES["profiles"][0]
 
 
@@ -115,6 +124,12 @@ def flag_for(stage_id: str) -> str:
     digest = hmac.new(FLAG_SECRET, stage_id.encode("utf-8"), hashlib.sha256).hexdigest()[:FLAG_HEX_LENGTH].upper()
     safe_stage = re.sub(r"[^A-Za-z0-9]+", "-", stage_id).strip("-").upper()
     return f"ZODIAC-BANK-{safe_stage}-{digest}"
+
+
+def gate_flag_for(gate_id: str) -> str:
+    digest = hmac.new(FLAG_SECRET, f"hard-gate:{gate_id}".encode("utf-8"), hashlib.sha256).hexdigest()[:FLAG_HEX_LENGTH].upper()
+    safe_gate = re.sub(r"[^A-Za-z0-9]+", "-", gate_id).strip("-").upper()
+    return f"ZODIAC-BANK-GATE-{safe_gate}-{digest}"
 
 
 def digest_flag(flag: str) -> str:
@@ -184,6 +199,24 @@ def connection() -> sqlite3.Connection:
             updated_at TEXT NOT NULL,
             FOREIGN KEY(learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE
         );
+        CREATE TABLE IF NOT EXISTS gate_completions (
+            learner_id TEXT NOT NULL,
+            gate_id TEXT NOT NULL,
+            completed_at TEXT NOT NULL,
+            PRIMARY KEY(learner_id, gate_id),
+            FOREIGN KEY(learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS gate_submissions (
+            submission_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            learner_id TEXT NOT NULL,
+            gate_id TEXT NOT NULL,
+            flag_digest TEXT NOT NULL,
+            accepted INTEGER NOT NULL,
+            reason TEXT NOT NULL,
+            submitted_at TEXT NOT NULL,
+            FOREIGN KEY(learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS gate_submissions_lookup ON gate_submissions(learner_id, gate_id, submitted_at);
         """
     )
     db.commit()
@@ -271,8 +304,29 @@ def completed_stages(db: sqlite3.Connection, learner_id: str) -> set[str]:
     return {str(row["stage_id"]) for row in rows}
 
 
+def completed_gates(db: sqlite3.Connection, learner_id: str) -> set[str]:
+    rows = db.execute("SELECT gate_id FROM gate_completions WHERE learner_id=?", (learner_id,)).fetchall()
+    return {str(row["gate_id"]) for row in rows}
+
+
 def current_stage(completed: set[str]) -> dict[str, Any] | None:
     return next((stage for stage in CURRICULUM["stages"] if stage["id"] not in completed), None)
+
+
+def current_gate(completed_stages_set: set[str], completed_gate_ids: set[str]) -> dict[str, Any] | None:
+    stage = current_stage(completed_stages_set)
+    if stage is None:
+        return None
+    return next((gate for gate in GATES_BY_STAGE.get(stage["id"], []) if gate["gate_id"] not in completed_gate_ids), None)
+
+
+def gate_status(gate: dict[str, Any], completed_stages_set: set[str], completed_gate_ids: set[str]) -> str:
+    if gate["gate_id"] in completed_gate_ids:
+        return "completed"
+    active = current_gate(completed_stages_set, completed_gate_ids)
+    if active is not None and active["gate_id"] == gate["gate_id"]:
+        return "unlocked"
+    return "locked"
 
 
 def stage_status(stage: dict[str, Any], completed: set[str]) -> str:
@@ -335,6 +389,12 @@ class FlagSubmission(BaseModel):
     flag: str = Field(..., min_length=1, max_length=256)
 
 
+class GateSubmission(BaseModel):
+    learner_id: str = Field(..., min_length=1, max_length=64)
+    gate_id: str = Field(..., min_length=1, max_length=100)
+    flag: str = Field(..., min_length=1, max_length=256)
+
+
 class CohortRequest(BaseModel):
     cohort_id: str = Field(..., min_length=1, max_length=64)
     display_name: str = Field(..., min_length=1, max_length=160)
@@ -351,7 +411,9 @@ def health() -> dict[str, Any]:
         "service": "training-gate",
         "lab": CURRICULUM["title"],
         "stages": len(STAGES),
-        "flags": "hmac-backed",
+        "scenarios": len(SCENARIO_PACK.get("scenarios", [])),
+        "hard_gates": len(GATES),
+        "flags": "hmac-backed-stage-and-gate",
     }
 
 
@@ -388,6 +450,117 @@ def bank_profile(learner_id: str = "default", x_training_learner_token: str = He
         require_learner_access(db, learner_id, x_training_learner_token)
         ensure_learner(db, learner_id)
         return {"learner_id": learner_id, "profile": bank_profile_view(db, learner_id)}
+    finally:
+        db.close()
+
+
+@app.get("/api/gates")
+def gates(learner_id: str = "default", x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = validate_learner(learner_id)
+    db = connection()
+    try:
+        require_learner_access(db, learner_id, x_training_learner_token)
+        ensure_learner(db, learner_id)
+        completed_stage_ids = completed_stages(db, learner_id)
+        completed_gate_ids = completed_gates(db, learner_id)
+        active_stage = current_stage(completed_stage_ids)
+        active_gates = GATES_BY_STAGE.get(active_stage["id"], []) if active_stage else []
+        visible = []
+        for gate in active_gates:
+            visible.append({
+                "gate_id": gate["gate_id"],
+                "stage_id": gate["stage_id"],
+                "rank": gate["rank"],
+                "title": gate["title"],
+                "scenario_ids": gate["scenario_ids"],
+                "detection_rule_ids": gate["detection_rule_ids"],
+                "required_controls": gate["required_controls"],
+                "concepts": gate["concepts"],
+                "status": gate_status(gate, completed_stage_ids, completed_gate_ids),
+                "flag_required": True,
+                "flag_format": f"ZODIAC-BANK-GATE-{gate['gate_id'].upper()}-<{FLAG_HEX_LENGTH} HEX CHARACTERS>",
+            })
+        active_gate = current_gate(completed_stage_ids, completed_gate_ids)
+        return {
+            "learner_id": learner_id,
+            "stage_id": active_stage["id"] if active_stage else None,
+            "current_gate_id": active_gate["gate_id"] if active_gate else None,
+            "completed_gate_count": len(completed_gate_ids),
+            "total_hard_gates": len(GATES),
+            "bank_profile": bank_profile_view(db, learner_id),
+            "gates": visible,
+        }
+    finally:
+        db.close()
+
+
+@app.post("/api/gates/submit")
+def submit_gate(submission: GateSubmission, x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = validate_learner(submission.learner_id)
+    gate = GATES_BY_ID.get(submission.gate_id)
+    if gate is None:
+        raise HTTPException(status_code=404, detail="unknown hard gate")
+    db = connection()
+    try:
+        require_learner_access(db, learner_id, x_training_learner_token)
+        ensure_learner(db, learner_id)
+        completed_stage_ids = completed_stages(db, learner_id)
+        completed_gate_ids = completed_gates(db, learner_id)
+        status = gate_status(gate, completed_stage_ids, completed_gate_ids)
+        if status == "locked":
+            raise HTTPException(status_code=403, detail="complete the previous hard gate first")
+        if status == "completed":
+            return {"accepted": True, "gate_id": gate["gate_id"], "status": "completed", "message": "hard gate already completed"}
+        db.execute("BEGIN IMMEDIATE")
+        completed_stage_ids = completed_stages(db, learner_id)
+        completed_gate_ids = completed_gates(db, learner_id)
+        status = gate_status(gate, completed_stage_ids, completed_gate_ids)
+        if status == "completed":
+            db.commit()
+            return {"accepted": True, "gate_id": gate["gate_id"], "status": "completed", "message": "hard gate already completed"}
+        if status == "locked":
+            db.rollback()
+            raise HTTPException(status_code=403, detail="complete the previous hard gate first")
+        attempts = db.execute("SELECT COUNT(*) AS count FROM gate_submissions WHERE learner_id=? AND gate_id=?", (learner_id, gate["gate_id"])).fetchone()["count"]
+        if attempts >= MAX_SUBMISSIONS_PER_STAGE:
+            db.rollback()
+            raise HTTPException(status_code=429, detail="hard-gate submission limit reached")
+        submitted_flag = submission.flag.strip()
+        accepted = hmac.compare_digest(submitted_flag, gate_flag_for(gate["gate_id"]))
+        db.execute(
+            "INSERT INTO gate_submissions(learner_id, gate_id, flag_digest, accepted, reason, submitted_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (learner_id, gate["gate_id"], digest_flag(submitted_flag), int(accepted), "accepted" if accepted else "invalid flag", utc_now()),
+        )
+        if not accepted:
+            db.commit()
+            raise HTTPException(status_code=401, detail="invalid hard-gate flag")
+        promoted_gates = completed_gate_ids | {gate["gate_id"]}
+        stage_gate_ids = {item["gate_id"] for item in GATES_BY_STAGE[gate["stage_id"]]}
+        stage_completed_now = stage_gate_ids.issubset(promoted_gates)
+        promoted_stages = set(completed_stage_ids)
+        promoted_profile = bank_profile_view(db, learner_id)
+        if stage_completed_now:
+            promoted_stages.add(gate["stage_id"])
+            db.execute("INSERT OR IGNORE INTO completions(learner_id, stage_id, completed_at) VALUES (?, ?, ?)", (learner_id, gate["stage_id"], utc_now()))
+            promoted_profile = promote_profile(db, learner_id, promoted_stages)
+        db.execute("INSERT OR IGNORE INTO gate_completions(learner_id, gate_id, completed_at) VALUES (?, ?, ?)", (learner_id, gate["gate_id"], utc_now()))
+        db.commit()
+        if stage_completed_now:
+            sync_active_artifact(learner_id, promoted_stages)
+        next_gate = current_gate(promoted_stages, promoted_gates)
+        next_stage = current_stage(promoted_stages)
+        return {
+            "accepted": True,
+            "gate_id": gate["gate_id"],
+            "stage_id": gate["stage_id"],
+            "status": "stage_completed" if stage_completed_now else "completed",
+            "stage_completed": stage_completed_now,
+            "next_gate_id": next_gate["gate_id"] if next_gate else None,
+            "next_stage_id": next_stage["id"] if next_stage else None,
+            "hard_gate_count": len(promoted_gates),
+            "bank_profile": promoted_profile,
+            "message": "hard gate accepted; next gate unlocked" if not stage_completed_now else "final hard gate accepted; next stage unlocked",
+        }
     finally:
         db.close()
 
@@ -521,6 +694,8 @@ def reset_cohort(cohort_id: str, _: None = Depends(require_admin)) -> dict[str, 
             learner_id = member["learner_id"]
             db.execute("DELETE FROM completions WHERE learner_id=?", (learner_id,))
             db.execute("DELETE FROM submissions WHERE learner_id=?", (learner_id,))
+            db.execute("DELETE FROM gate_completions WHERE learner_id=?", (learner_id,))
+            db.execute("DELETE FROM gate_submissions WHERE learner_id=?", (learner_id,))
             db.execute(
                 "UPDATE learner_profiles SET profile_id=?, promotion_count=0, updated_at=? WHERE learner_id=?",
                 (INITIAL_PROFILE["profile_id"], utc_now(), learner_id),
@@ -545,6 +720,10 @@ def submit_flag(submission: FlagSubmission, x_training_learner_token: str = Head
         completed = completed_stages(db, learner_id)
         sync_active_artifact(learner_id, completed)
         status = stage_status(stage, completed)
+        if SECURITY_MODE == "strict" and status == "unlocked":
+            completed_gate_ids = completed_gates(db, learner_id)
+            if not {gate["gate_id"] for gate in GATES_BY_STAGE.get(stage["id"], [])}.issubset(completed_gate_ids):
+                raise HTTPException(status_code=403, detail="complete all five hard gates in the current stage first")
         if status == "locked":
             raise HTTPException(status_code=403, detail="complete prerequisite stages first")
         if status == "completed":

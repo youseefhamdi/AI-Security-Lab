@@ -44,6 +44,7 @@ from zodiac_scenario_engine import (  # noqa: E402
     scenario_map,
     step_for,
     step_token,
+    load_scenario_pack,
     validate_scenarios,
 )
 
@@ -87,13 +88,16 @@ if SECURITY_MODE == "strict" and (FLAG_SECRET_VALUE == DEFAULT_FLAG_SECRET or le
 
 CURRICULUM = json.loads(CURRICULUM_PATH.read_text(encoding="utf-8"))
 BANK_PROFILES = load_profiles(PROFILE_PATH)
-SCENARIOS = json.loads(SCENARIO_PATH.read_text(encoding="utf-8"))
+SCENARIOS = load_scenario_pack(SCENARIO_PATH)
 validate_scenarios(SCENARIOS, CURRICULUM)
 MAX_ACTIVE_SCENARIOS = int(SCENARIOS.get("scope", {}).get("max_active_scenarios_per_learner", 2))
 MAX_BANK_LEARNERS = 64
 if MAX_ACTIVE_SCENARIOS < 1 or MAX_ACTIVE_SCENARIOS > 8:
     raise RuntimeError("max_active_scenarios_per_learner must be between 1 and 8")
 SCENARIO_BY_ID = scenario_map(SCENARIOS)
+GATES = list(SCENARIOS.get("hard_gates", []))
+GATES_BY_ID = {str(gate["gate_id"]): gate for gate in GATES}
+GATES_BY_STAGE = {stage_id: [gate for gate in GATES if gate["stage_id"] == stage_id] for stage_id in STAGES}
 BANK_ORCHESTRATORS: dict[str, BankOrchestrator] = {}
 BANK_ORCHESTRATORS_LOCK = threading.Lock()
 
@@ -146,6 +150,12 @@ def safe_stage(stage_id: str) -> str:
     if stage_id not in STAGES:
         raise HTTPException(status_code=404, detail="unknown stage")
     return stage_id
+
+
+def gate_flag_for(gate_id: str) -> str:
+    digest = hmac.new(FLAG_SECRET, f"hard-gate:{gate_id}".encode("utf-8"), hashlib.sha256).hexdigest()[:FLAG_HEX_LENGTH].upper()
+    safe_gate = re.sub(r"[^A-Za-z0-9]+", "-", gate_id).strip("-").upper()
+    return f"ZODIAC-BANK-GATE-{safe_gate}-{digest}"
 
 
 def digest_token(token: str) -> str:
@@ -211,6 +221,25 @@ def current_stage(learner_id: str) -> str | None:
     return next((stage_id for stage_id in STAGES if stage_id not in completed), None)
 
 
+def completed_gates(learner_id: str) -> set[str]:
+    db = training_db()
+    if db is None:
+        return set()
+    try:
+        rows = db.execute("SELECT gate_id FROM gate_completions WHERE learner_id=?", (learner_id,)).fetchall()
+        return {str(row["gate_id"]) for row in rows}
+    finally:
+        db.close()
+
+
+def current_gate(learner_id: str) -> dict[str, Any] | None:
+    stage_id = current_stage(learner_id)
+    if stage_id is None:
+        return None
+    completed = completed_gates(learner_id)
+    return next((gate for gate in GATES_BY_STAGE.get(stage_id, []) if gate["gate_id"] not in completed), None)
+
+
 def bank_profile(learner_id: str) -> dict[str, Any]:
     """Read the gate-promoted profile from the shared progress database."""
     db = training_db()
@@ -268,6 +297,12 @@ def challenge_db() -> sqlite3.Connection:
             recorded_at TEXT NOT NULL,
             PRIMARY KEY(learner_id, scenario_id, step_index)
         );
+        CREATE TABLE IF NOT EXISTS gate_completions (
+            learner_id TEXT NOT NULL,
+            gate_id TEXT NOT NULL,
+            completed_at TEXT NOT NULL,
+            PRIMARY KEY(learner_id, gate_id)
+        );
         """
     )
     # Migrate older runs to the v2 per-run nonce and attempts counter.
@@ -284,6 +319,7 @@ def scenario_view(scenario: dict[str, Any], run: sqlite3.Row | None = None) -> d
     return {
         "scenario_id": scenario["id"],
         "stage_id": scenario["stage_id"],
+        "gate_id": scenario.get("gate_id"),
         "difficulty": scenario["difficulty"],
         "branch": scenario["branch"],
         "title": scenario["title"],
@@ -303,10 +339,10 @@ def solved(stage_id: str, explanation: str, *, synthesis: bool = False) -> dict[
     result: dict[str, Any] = {
         "stage_id": stage_id,
         "finding": explanation,
-        "next_action": "Submit hard_flag to the Zodiac Bank Training Gate." if synthesis or SECURITY_MODE != "strict" else "Complete the required multi-step scenarios and stage synthesis before submitting a flag.",
+        "next_action": "Submit hard_flag to the Zodiac Bank Training Gate." if synthesis or SECURITY_MODE != "strict" else "Complete the required multi-step scenarios and hard-gate synthesis before submitting a flag.",
     }
     if SECURITY_MODE == "strict" and not synthesis:
-        result.update({"hard_range": True, "message": "Complete the required multi-step scenarios and stage synthesis before a hard flag is issued."})
+        result.update({"hard_range": True, "message": "Complete the required multi-step scenarios and hard-gate synthesis before a hard flag is issued."})
     else:
         result["hard_flag"] = flag_for(stage_id)
     return result
@@ -332,6 +368,8 @@ def trainer_range(x_training_learner_token: str = Header(default=""), learner_id
         "stages": [
             {
                 "stage_id": stage_id,
+                "hard_gate_ids": [gate["gate_id"] for gate in GATES_BY_STAGE.get(stage_id, [])],
+                "hard_gate_count": len(GATES_BY_STAGE.get(stage_id, [])),
                 "scenarios": [
                     {
                         "scenario_id": item["id"],
@@ -403,6 +441,84 @@ def bank_state(learner_id: str = "", x_training_learner_token: str = Header(defa
     }
 
 
+@app.get("/api/gates")
+def list_hard_gates(learner_id: str = "", x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    """Return the active stage's five hard-gate milestones without flags."""
+    learner_id = safe_learner(learner_id)
+    require_learner_access(learner_id, x_training_learner_token)
+    stage_id = current_stage(learner_id)
+    completed = completed_gates(learner_id)
+    visible = []
+    for gate in GATES_BY_STAGE.get(stage_id, []):
+        visible.append({
+            "gate_id": gate["gate_id"],
+            "stage_id": gate["stage_id"],
+            "rank": gate["rank"],
+            "title": gate["title"],
+            "scenario_ids": gate["scenario_ids"],
+            "detection_rule_ids": gate["detection_rule_ids"],
+            "required_controls": gate["required_controls"],
+            "concepts": gate["concepts"],
+            "status": "completed" if gate["gate_id"] in completed else ("unlocked" if current_gate(learner_id) and current_gate(learner_id)["gate_id"] == gate["gate_id"] else "locked"),
+            "flag_format": f"ZODIAC-BANK-GATE-{gate['gate_id'].upper()}-<{FLAG_HEX_LENGTH} HEX CHARACTERS>",
+        })
+    active = current_gate(learner_id)
+    return {
+        "learner_id": learner_id,
+        "stage_id": stage_id,
+        "current_gate_id": active["gate_id"] if active else None,
+        "completed_gate_count": len(completed),
+        "total_hard_gates": len(GATES),
+        "gates": visible,
+    }
+
+
+@app.post("/api/gates/{gate_id}/synthesize")
+def synthesize_gate(gate_id: str, body: dict[str, Any], x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = safe_learner(body.get("learner_id"))
+    require_learner_access(learner_id, x_training_learner_token)
+    gate = GATES_BY_ID.get(gate_id)
+    if gate is None:
+        raise HTTPException(status_code=404, detail="unknown hard gate")
+    require_current_stage(learner_id, gate["stage_id"])
+    active_gate = current_gate(learner_id)
+    if active_gate is None or active_gate["gate_id"] != gate_id:
+        raise HTTPException(status_code=403, detail="complete the previous hard gate first")
+    supplied_scenarios = body.get("scenario_ids")
+    supplied_tokens = body.get("evidence_tokens")
+    detections = body.get("detection_rule_ids")
+    controls = body.get("controls")
+    timeline = body.get("timeline")
+    summary = str(body.get("summary", "")).strip()
+    if not all(isinstance(value, list) for value in (supplied_scenarios, supplied_tokens, detections, controls, timeline)):
+        raise HTTPException(status_code=422, detail="hard-gate synthesis fields must be lists")
+    if supplied_scenarios != gate["scenario_ids"] or len(supplied_scenarios) != 2:
+        raise HTTPException(status_code=409, detail="hard gate requires its two declared scenarios in manifest order")
+    if len(detections) != len(set(detections)) or set(detections) != set(gate["detection_rule_ids"]):
+        raise HTTPException(status_code=409, detail="hard-gate detection coverage is incomplete")
+    if not set(gate["required_controls"]).issubset(set(controls)):
+        raise HTTPException(status_code=409, detail="hard-gate control coverage is incomplete")
+    if len(timeline) < 2 or not contains_concepts(summary, gate["concepts"]):
+        raise HTTPException(status_code=409, detail="hard-gate synthesis lacks timeline or required concepts")
+    db = challenge_db()
+    try:
+        rows = {str(row["scenario_id"]): row for row in db.execute("SELECT * FROM scenario_runs WHERE learner_id=? AND stage_id=?", (learner_id, gate["stage_id"])).fetchall()}
+        if any(scenario_id not in rows or rows[scenario_id]["status"] != "complete" for scenario_id in gate["scenario_ids"]):
+            raise HTTPException(status_code=409, detail="complete both hard-gate scenarios before synthesis")
+        expected_tokens = [str(rows[scenario_id]["completion_token"]) for scenario_id in gate["scenario_ids"]]
+        if supplied_tokens != expected_tokens:
+            raise HTTPException(status_code=409, detail="hard-gate evidence tokens are invalid or out of order")
+        return {
+            "gate_id": gate_id,
+            "stage_id": gate["stage_id"],
+            "hard_flag": gate_flag_for(gate_id),
+            "hard_gate": True,
+            "synthesis": {"scenario_ids": gate["scenario_ids"], "detections": gate["detection_rule_ids"], "controls": gate["required_controls"], "timeline_events": len(timeline)},
+        }
+    finally:
+        db.close()
+
+
 def require_financial_operations(learner_id: str) -> dict[str, Any]:
     profile = bank_profile(learner_id)
     if int(profile.get("level", 0)) < 3:
@@ -472,6 +588,7 @@ def health() -> dict[str, Any]:
         "service": "zodiac-bank-hard-challenge-range",
         "stages": len(STAGES),
         "scenarios": len(SCENARIO_BY_ID),
+        "hard_gates": len(GATES),
         "mode": "strict-scenario-synthesis" if SECURITY_MODE == "strict" else "development-legacy-compatible",
         "scope": "localhost-only",
     }
@@ -626,7 +743,7 @@ def scenario_event(scenario_id: str, body: dict[str, Any], x_training_learner_to
         db.commit()
         result: dict[str, Any] = {"accepted": True, "scenario_id": scenario_id, "progress": f"{next_index}/{len(scenario['steps'])}"}
         if complete:
-            result.update({"status": "complete", "evidence_token": token, "message": "Scenario evidence complete; use the token in stage synthesis."})
+            result.update({"status": "complete", "evidence_token": token, "message": "Scenario evidence complete; use the token in hard-gate synthesis."})
         else:
             result.update({"status": "active", "step_token": chain_token, "message": "Observation accepted; chain this step token into the next evidence step."})
         return result
@@ -640,6 +757,8 @@ def synthesize_stage(stage_id: str, body: dict[str, Any], x_training_learner_tok
     stage_id = safe_stage(stage_id)
     require_learner_access(learner_id, x_training_learner_token)
     require_current_stage(learner_id, stage_id)
+    if SECURITY_MODE == "strict":
+        raise HTTPException(status_code=410, detail="stage synthesis is retired in strict mode; synthesize the current hard gate")
     requirement = requirement_for(SCENARIOS, stage_id)
     supplied_scenarios = body.get("scenario_ids")
     supplied_tokens = body.get("evidence_tokens")
