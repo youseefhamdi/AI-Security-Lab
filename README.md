@@ -33,6 +33,8 @@
 - [Run the training exercises](#-run-the-training-exercises)
 - [Zodiac Bank progression](#-zodiac-bank-progression)
 - [Graph and context engineering](#-graph-and-context-engineering)
+- [Phase 1 agent identity and capability security](#-phase-1-agent-identity-and-capability-security)
+- [Phases 2–4 security controls](#-phases-24-security-controls)
 - [AI threat research and APT range](#-ai-threat-research-and-apt-range)
 - [Hard scenario range](#-hard-scenario-range)
 - [Security audit status](#-security-audit-status)
@@ -884,6 +886,49 @@ RUNTIME=1 python3 scripts/zodiac_bank_workflows.py \\
 ```
 
 See [`docs/graph-context-engineering.md`](docs/graph-context-engineering.md) for the graph schema, bounded traversal, context contract, and advanced security exercises. `CONTEXT_ENGINEERING_MODE=legacy` is retained only for controlled prompt-injection comparisons.
+
+## 🔐 Phase 1 agent identity and capability security
+
+Phase 1 adds a shared local security contract across MCP, A2A, and bank-orchestrator boundaries:
+
+- short-lived HMAC-signed agent identities bound to subject, audience, capability, expiry, branch, and learner scope;
+- request-nonce replay protection and bounded delegation chains;
+- MCP manifest digests, tool allowlists, typed arguments, and secure `/secure/tools/*` routes;
+- authenticated `/secure/a2a` delegation with narrower child capabilities;
+- optional signed-token binding for `BankOrchestrator.plan()` and `.approve()`;
+- default-deny secure tool execution through the Phase 3 no-egress handler sandbox; stdio remains disabled.
+
+The intentionally vulnerable `/tools/*`, `/a2a`, and legacy challenge routes remain available for lessons. The hardened endpoints are documented in [`docs/phase1-agent-security.md`](docs/phase1-agent-security.md).
+
+Offline regression check:
+
+```bash
+PYTHONPATH=scripts python3 scripts/zodiac_agent_security_test.py
+```
+
+Set a local key before enabling strict protocol services:
+
+```bash
+export ZODIAC_AGENT_SIGNING_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+export AGENT_SECURITY_MODE=strict
+```
+
+## 🛡️ Phases 2–4 security controls
+
+The remaining upgrade phases are now executable, not documentation-only:
+
+- **Phase 2 — fraud and telemetry:** explainable virtual transaction risk scoring, synthetic mule-network graphs, privacy-safe event envelopes, trace correlation, aggregate metrics, and `ZB-FRAUD-001` alert correlation.
+- **Phase 3 — sandbox and privacy:** no-egress registered-handler sandbox, typed arguments, fixture-only paths, resource budgets, branch/purpose/role privacy checks, redaction, retention, and access audit hashes.
+- **Phase 4 — resilience and evaluation:** tamper-evident checkpoints, recovery verification, circuit breakers, kill switch, ledger reconciliation, held-out mutation transfer, and zero-model-call evaluation.
+
+New recovery routes:
+
+```text
+POST /api/bank/operations/{run_id}/checkpoint
+POST /api/bank/checkpoints/{checkpoint_id}/recover
+```
+
+Details: [`docs/phases-2-4-security-controls.md`](docs/phases-2-4-security-controls.md).
 
 ## 🛰️ AI threat research and APT range
 

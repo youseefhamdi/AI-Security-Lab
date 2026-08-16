@@ -36,7 +36,7 @@ class _HTTPException(Exception):
 
 
 class _Header:
-    def __init__(self, default: Any = "") -> None:
+    def __init__(self, default: Any = "", **_kwargs: Any) -> None:
         self.default = default
 
 

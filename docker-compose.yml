@@ -72,6 +72,7 @@ services:
       TRAINING_ACCESS_DB: /var/lib/training/progress.sqlite3
       TRAINING_CHALLENGE_STATE_DB: /var/lib/training/challenges.sqlite3
       TRAINING_BANK_PROFILES: /app/config/bank-profiles.json
+      ZODIAC_AGENT_SIGNING_KEY: ${ZODIAC_AGENT_SIGNING_KEY:-zodiac-bank-agent-signing-key-change-me}
       ZODIAC_BANK_DATA_DIR: /app/bank-data
       ZODIAC_RAG_DIR: /app/rag-docs
     volumes:
@@ -114,13 +115,20 @@ services:
 
   mcp-wrapper:
     profiles: ["protocols", "full"]
-    build: ./mcp-wrapper
+    build:
+      context: .
+      dockerfile: mcp-wrapper/Dockerfile
     container_name: lab-mcp-wrapper
     ports:
       - "127.0.0.1:3001:3000"
     environment:
       MCP_UPSTREAM: http://mcp-server:3000
       MCP_WRAPPER_MODE: lab
+      AGENT_SECURITY_MODE: ${AGENT_SECURITY_MODE:-strict}
+      ZODIAC_AGENT_SIGNING_KEY: ${ZODIAC_AGENT_SIGNING_KEY:-zodiac-bank-agent-signing-key-change-me}
+      MCP_SECURE_ALLOWED_TOOLS: ${MCP_SECURE_ALLOWED_TOOLS:-memory}
+      MCP_SECURE_STDIO_ENABLED: ${MCP_SECURE_STDIO_ENABLED:-0}
+      MCP_SANDBOX_ENABLED: ${MCP_SANDBOX_ENABLED:-1}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     mem_limit: 256m
@@ -129,7 +137,9 @@ services:
 
   a2a-knowledge:
     profiles: ["protocols", "full"]
-    build: ./a2a-agents/knowledge
+    build:
+      context: .
+      dockerfile: a2a-agents/knowledge/Dockerfile
     container_name: lab-a2a-knowledge
     ports:
       - "127.0.0.1:5011:5000"
@@ -154,6 +164,7 @@ services:
       GRAPH_CONTEXT_API_KEY: ${GRAPH_CONTEXT_API_KEY:-zodiac-bank-context-change-me}
       CONTEXT_ENGINEERING_MODE: ${CONTEXT_ENGINEERING_MODE:-structured}
       CONTEXT_MAX_CHARS: ${CONTEXT_MAX_CHARS:-12000}
+      ZODIAC_AGENT_SIGNING_KEY: ${ZODIAC_AGENT_SIGNING_KEY:-zodiac-bank-agent-signing-key-change-me}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
     extra_hosts:
@@ -165,7 +176,9 @@ services:
 
   a2a-router:
     profiles: ["protocols", "full"]
-    build: ./a2a-agents/router
+    build:
+      context: .
+      dockerfile: a2a-agents/router/Dockerfile
     container_name: lab-a2a-router
     ports:
       - "127.0.0.1:5010:5000"
@@ -175,6 +188,8 @@ services:
       KNOWLEDGE_AGENT_URL: http://a2a-knowledge:5000
       OPENAI_BASE_URL: ${INFERENCE_BASE_URL:-http://bonsai:8000/v1}
       MODEL_NAME: ${INFERENCE_MODEL:-bonsai-27b}
+      AGENT_SECURITY_MODE: ${AGENT_SECURITY_MODE:-strict}
+      ZODIAC_AGENT_SIGNING_KEY: ${ZODIAC_AGENT_SIGNING_KEY:-zodiac-bank-agent-signing-key-change-me}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     mem_limit: 256m
@@ -207,6 +222,7 @@ services:
       GRAPH_CONTEXT_API_KEY: ${GRAPH_CONTEXT_API_KEY:-zodiac-bank-context-change-me}
       CONTEXT_ENGINEERING_MODE: ${CONTEXT_ENGINEERING_MODE:-structured}
       CONTEXT_MAX_CHARS: ${CONTEXT_MAX_CHARS:-12000}
+      ZODIAC_AGENT_SIGNING_KEY: ${ZODIAC_AGENT_SIGNING_KEY:-zodiac-bank-agent-signing-key-change-me}
     volumes:
       - ./rag-docs:/app/rag-docs:ro
     extra_hosts:

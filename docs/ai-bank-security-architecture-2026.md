@@ -109,6 +109,54 @@ The post-implementation audit found and corrected these concrete weaknesses:
 
 These controls are covered by the offline evaluator's financial-bank, flag-progression, and runtime-security checks. No n8n integration is required at this stage; adding it later must remain an event-routing/approval UI layer and never become the ledger or authorization authority.
 
+## Phase 1 implementation — agent identity and capability security
+
+Phase 1 is now implemented in `scripts/zodiac_agent_security.py` and is shared by
+secure MCP and A2A routes. It adds short-lived HMAC-signed `zbt1` tokens bound to
+subject, audience, capabilities, expiry, branch/learner scope, delegation parent,
+and (for MCP) the pinned tool-manifest digest. A bounded request-nonce replay
+cache rejects duplicate requests.
+
+- `mcp-wrapper` keeps the vulnerable `/tools/*` lesson surfaces and adds
+  authenticated `/secure/tools/list` and `/secure/tools/call` routes.
+- Secure MCP calls enforce manifest pinning, tool allowlists, typed arguments,
+  required fields, capability checks, and default-deny execution through the
+  no-egress handler sandbox. Stdio execution remains disabled.
+- `a2a-router` adds `/secure/a2a`; it verifies the caller and delegates only the
+  narrower `knowledge.query` capability to `a2a-knowledge`.
+- `a2a-knowledge` verifies the child token at its own `/secure/a2a` boundary.
+- `BankOrchestrator.plan()` and `.approve()` can bind calls to signed worker,
+  branch, learner, audience, and operation capabilities; strict mode rejects
+  missing agent tokens.
+- `scripts/zodiac_agent_security_test.py` covers signature, audience, manifest,
+  capability, delegation, replay, allowlist, and typed-argument failures.
+
+Phase 1 deliberately does not provide a token-issuing HTTP endpoint, execute
+untrusted commands, or make the model an authorization authority. The local
+control plane or instructor tooling must issue tokens out of band.
+
+## Phases 2–4 implementation — fraud, sandbox, privacy, resilience, and evaluation
+
+The remaining roadmap phases are implemented in local modules and integrated with
+virtual bank workflows:
+
+- `scripts/zodiac_fraud_engine.py` provides explainable synthetic risk scoring,
+  velocity/fan-out signals, and aggregate mule-network graphs.
+- `scripts/zodiac_telemetry.py` provides bounded structured events, redaction,
+  trace correlation, metrics, and deterministic alert correlation.
+- `scripts/zodiac_sandbox.py` provides allowlisted handler execution with no
+  shell, socket, host-filesystem, or unregistered-tool access.
+- `scripts/zodiac_privacy.py` applies purpose, role, branch, classification,
+  field-redaction, retention, and privacy-audit controls to bank memory.
+- `scripts/zodiac_resilience.py` provides tamper-evident checkpoints, replay-safe
+  recovery, circuit breakers, kill switches, and virtual-ledger reconciliation.
+- `scripts/zodiac_evaluation.py` runs held-out mutation and transfer checks with
+  zero model calls and zero external egress.
+
+The challenge service exposes checkpoint/recovery routes, while secure MCP uses
+the no-egress handler sandbox. Existing vulnerable lesson routes remain separate
+from the hardened control paths.
+
 ## Top-tier roadmap
 
 ### Phase A — domain realism

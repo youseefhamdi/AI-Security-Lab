@@ -3,12 +3,22 @@
 from __future__ import annotations
 
 import os
+import sys
 import uuid
+from pathlib import Path
 from typing import Any
+
+SHARED_DIR = Path("/app/scripts")
+if not SHARED_DIR.is_dir():
+    SHARED_DIR = Path(__file__).resolve().parent.parent.parent / "scripts"
+if SHARED_DIR.is_dir() and str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
+
+from zodiac_agent_security import AgentSecurityError, ReplayGuard, delegate_token, verify_request  # noqa: E402
 
 import requests
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 from fastapi.responses import JSONResponse
 
 app = FastAPI(title="Zodiac Bank Support Router", version="2.0")
@@ -17,6 +27,10 @@ OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://bonsai:8000/v1").rst
 MODEL_NAME = os.environ.get("MODEL_NAME", "bonsai-27b")
 KNOWLEDGE_AGENT = os.environ.get("KNOWLEDGE_AGENT_URL", "http://127.0.0.1:5011").rstrip("/")
 PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:5010")
+DEFAULT_SIGNING_KEY = "zodiac-bank-agent-signing-key-change-me"
+SIGNING_KEY_VALUE = os.environ.get("ZODIAC_AGENT_SIGNING_KEY", DEFAULT_SIGNING_KEY)
+AGENT_SECURITY_MODE = os.environ.get("AGENT_SECURITY_MODE", "development").lower()
+AGENT_REPLAY_GUARD = ReplayGuard()
 
 AGENT_CARD = AgentCard(
     name="Zodiac Bank Support Router",
@@ -89,7 +103,7 @@ def classify_ticket(text: str) -> str:
     return "general"
 
 
-def delegate_to_knowledge(text: str, request_id: Any) -> str:
+def delegate_to_knowledge(text: str, request_id: Any, *, child_token: str | None = None, request_nonce: str | None = None) -> str:
     payload = {
         "jsonrpc": "2.0",
         "id": request_id,
@@ -97,7 +111,11 @@ def delegate_to_knowledge(text: str, request_id: Any) -> str:
         "params": {"message": {"messageId": str(uuid.uuid4()), "role": "user", "parts": [{"kind": "text", "text": text}]}},
     }
     try:
-        response = requests.post(f"{KNOWLEDGE_AGENT}/", json=payload, timeout=120)
+        headers = {}
+        target = "/secure/a2a" if child_token else "/"
+        if child_token:
+            headers = {"X-Zodiac-Agent-Token": child_token, "X-Zodiac-Request-Nonce": str(request_nonce or uuid.uuid4().hex)}
+        response = requests.post(f"{KNOWLEDGE_AGENT}{target}", json=payload, headers=headers, timeout=120)
         response.raise_for_status()
         delegated = response.json()
         return extract_result_text(delegated) or str(delegated.get("result", delegated))
@@ -132,9 +150,51 @@ async def message_send(body: dict[str, Any]) -> JSONResponse:
     return JSONResponse(content=rpc_response(request_id, answer, classification))
 
 
+@app.post("/secure/a2a")
+async def secure_message_send(
+    body: dict[str, Any],
+    x_zodiac_agent_token: str = Header(default="", alias="X-Zodiac-Agent-Token"),
+    x_zodiac_request_nonce: str = Header(default="", alias="X-Zodiac-Request-Nonce"),
+) -> JSONResponse:
+    """Authenticated A2A route with narrower child delegation to Knowledge."""
+    request_id = body.get("id")
+    text = extract_text(body).strip()
+    if not text:
+        return JSONResponse(status_code=400, content={"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "message text is required"}})
+    try:
+        claims = verify_request(
+            x_zodiac_agent_token,
+            SIGNING_KEY_VALUE,
+            AGENT_REPLAY_GUARD,
+            request_nonce=x_zodiac_request_nonce,
+            audience="a2a-router",
+            required_capability="a2a.delegate",
+        )
+        child = delegate_token(
+            SIGNING_KEY_VALUE,
+            claims,
+            subject="support-router",
+            audience="a2a-knowledge",
+            capabilities=["knowledge.query"],
+            ttl_seconds=120,
+        )
+    except AgentSecurityError as exc:
+        return JSONResponse(status_code=401, content={"jsonrpc": "2.0", "id": request_id, "error": {"code": -32001, "message": str(exc)}})
+    classification = classify_ticket(text)
+    if classification == "knowledge":
+        answer = delegate_to_knowledge(text, request_id, child_token=child, request_nonce=uuid.uuid4().hex)
+    elif classification == "escalation":
+        answer = "Ticket classified for human escalation; no automatic action was taken."
+    else:
+        answer = "Ticket classified as general support; an operator should review it."
+    response = rpc_response(request_id, answer, classification)
+    response["result"]["metadata"].update({"authenticated": True, "delegation_parent": claims.get("jti"), "delegation_depth": 1})
+    return JSONResponse(content=response)
+
+
 @app.get("/health")
 async def health() -> dict[str, Any]:
-    return {"status": "healthy", "agent": AGENT_CARD.name, "knowledge_agent": KNOWLEDGE_AGENT, "model": MODEL_NAME}
+    return {"status": "healthy", "agent": AGENT_CARD.name, "knowledge_agent": KNOWLEDGE_AGENT, "model": MODEL_NAME, "secure_a2a": True}
 
 
 if __name__ == "__main__":

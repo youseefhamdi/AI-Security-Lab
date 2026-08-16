@@ -10,6 +10,11 @@ COPY scripts/zodiac_graph.py .
 COPY scripts/context_engineering.py .
 COPY scripts/zodiac_bank_simulator.py .
 COPY scripts/zodiac_bank_orchestrator.py .
+COPY scripts/zodiac_agent_security.py .
+COPY scripts/zodiac_fraud_engine.py .
+COPY scripts/zodiac_telemetry.py .
+COPY scripts/zodiac_privacy.py .
+COPY scripts/zodiac_resilience.py .
 COPY training-config/scenarios.json /app/config/scenarios.json
 COPY training-config/scenario-expansion.json /app/config/scenario-expansion.json
 COPY training-config/hard-gates.json /app/config/hard-gates.json

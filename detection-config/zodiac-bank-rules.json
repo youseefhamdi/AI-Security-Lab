@@ -98,6 +98,15 @@
       "when": ["steps > max_steps", "retries > max_retries", "approval_required && approval.id is null"],
       "mitre_attack": ["Command and Scripting Interpreter", "Exfiltration Over Web Service"],
       "response": ["stop the loop", "persist an immutable checkpoint", "require human containment approval"]
+    },
+    {
+      "id": "ZB-FRAUD-001",
+      "title": "Synthetic transaction risk or mule-network signal requires review",
+      "severity": "high",
+      "log_sources": ["training-challenges", "zodiac-bank-orchestrator", "fraud-engine"],
+      "when": ["fraud.risk_score >= review_threshold", "fraud.decision == review", "fraud.network.hub_detected == true"],
+      "mitre_attack": ["Account Discovery", "Financial Theft"],
+      "response": ["hold virtual operation", "open synthetic fraud case", "require independent fraud and compliance review"]
     }
   ]
 }

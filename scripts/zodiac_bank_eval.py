@@ -36,6 +36,129 @@ def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def check_resilience_and_evaluation() -> dict[str, Any]:
+    from zodiac_bank_orchestrator import BankOrchestrator
+    from zodiac_resilience import CheckpointStore, CircuitBreaker, KillSwitch, RecoveryViolation
+    from zodiac_evaluation import run_held_out_evaluation
+
+    orchestrator = BankOrchestrator()
+    run = orchestrator.plan("receive", "teller-north", 1000, destination_account_id="ZB-ACCT-1001", operation_id="OP-RESILIENCE-EVAL")
+    checkpoint = orchestrator.checkpoint(run["run_id"])
+    recovered = orchestrator.recover(checkpoint["checkpoint_id"], run["run_id"])
+    assert recovered["verified"] is True and recovered["ledger_mutation"] is False
+    committed = orchestrator.approve(run["run_id"], "branch-manager-north")
+    assert committed["operation"]["status"] == "committed"
+    assert orchestrator.reconcile()["balanced"] is True
+    assert orchestrator.resilience_snapshot()["circuit_breaker"]["state"] == "closed"
+
+    store = CheckpointStore()
+    stored = store.save("RUN-TAMPER", 1, {"status": "pending", "synthetic": True})
+    store._items[stored.checkpoint_id].state["status"] = "tampered"  # regression-only integrity attack
+    try:
+        store.load(stored.checkpoint_id)
+    except RecoveryViolation:
+        pass
+    else:
+        raise AssertionError("checkpoint tampering was accepted")
+    breaker = CircuitBreaker(failure_threshold=2)
+    assert breaker.allow() is True
+    breaker.record_failure()
+    breaker.record_failure()
+    assert breaker.allow() is False and breaker.snapshot()["state"] == "open"
+    switch = KillSwitch()
+    switch.engage("synthetic containment test")
+    try:
+        switch.check()
+    except RecoveryViolation:
+        pass
+    else:
+        raise AssertionError("kill switch did not stop the workflow")
+    switch.release()
+    switch.check()
+
+    challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
+    assert "/api/bank/operations/{run_id}/checkpoint" in challenge and "/api/bank/checkpoints/{checkpoint_id}/recover" in challenge
+    evaluation = run_held_out_evaluation(load_scenario_pack(SCENARIO_PATH))
+    assert evaluation["range"]["scenarios"] == 100 and evaluation["range"]["hard_gates"] == 50
+    assert evaluation["transfer"]["recall"] == 1.0 and evaluation["model_calls"] == 0
+    return {"checkpoint_recovery": True, "checkpoint_tamper_detection": True, "ledger_reconciliation": True, "circuit_breaker": True, "kill_switch": True, "held_out_transfer": True}
+
+
+def check_sandbox_and_privacy() -> dict[str, Any]:
+    from zodiac_privacy import PrivacyDenied, PrivacyGuard
+    from zodiac_sandbox import FixtureFilesystem, LocalToolSandbox, SandboxPolicy, SandboxViolation, memory_handler
+
+    sandbox = LocalToolSandbox(SandboxPolicy(allowed_tools=frozenset({"memory"}), max_calls=1))
+    sandbox.register("memory", memory_handler)
+    result = sandbox.execute("memory", {"operation": "read", "key": "synthetic-case"})
+    assert result.network_allowed is False and result.filesystem_mode == "fixture-only" and result.side_effects == ()
+    try:
+        sandbox.execute("memory", {"operation": "read", "key": "second"})
+    except SandboxViolation:
+        pass
+    else:
+        raise AssertionError("sandbox call budget was bypassed")
+    fixture = FixtureFilesystem({"/safe/case.txt": "synthetic evidence"})
+    assert fixture.read("/safe/case.txt")["raw_host_file"] is False
+    try:
+        fixture.read("/safe/../etc/passwd")
+    except SandboxViolation:
+        pass
+    else:
+        raise AssertionError("fixture path traversal was accepted")
+
+    privacy = PrivacyGuard(retention_seconds=60)
+    decision = privacy.authorize(actor_worker_id="teller-north", actor_role="teller", actor_branch_id="ZB-BR-001", record={"entity_id": "ZB-CUS-001", "branch_id": "ZB-BR-001", "classification": "internal", "name": "synthetic"}, purpose="training-review", requested_fields=["entity_id", "name"])
+    projected = privacy.project({"entity_id": "ZB-CUS-001", "name": "synthetic"}, decision, requested_fields=["entity_id", "name"])
+    assert projected["name"]["redacted"] is True and privacy.metrics()["denied"] == 0
+    try:
+        privacy.authorize(actor_worker_id="teller-north", actor_role="teller", actor_branch_id="ZB-BR-001", record={"entity_id": "ZB-CUS-002", "branch_id": "ZB-BR-002", "classification": "internal"}, purpose="training-review")
+    except PrivacyDenied:
+        pass
+    else:
+        raise AssertionError("cross-branch privacy access was accepted")
+    retained, removed = privacy.purge_expired([{"entity_id": "old", "created_epoch": 0}, {"entity_id": "new", "created_epoch": 100}], now=120)
+    assert removed == 1 and len(retained) == 1
+    return {"handler_sandbox": True, "no_egress": True, "fixture_path_jail": True, "redaction": True, "branch_privacy": True, "retention": True}
+
+
+def check_fraud_and_telemetry() -> dict[str, Any]:
+    from zodiac_fraud_engine import assess_transaction, build_mule_network
+    from zodiac_telemetry import AlertCorrelator, EventStore, make_event
+    from zodiac_bank_simulator import BankMemory
+
+    assessment = assess_transaction(
+        operation_type="transfer",
+        amount_cents=1_200_000,
+        source_account={"account_id": "ZB-ACCT-1001", "status": "active"},
+        destination_account={"account_id": "ZB-ACCT-4001", "status": "monitored"},
+        source_customer={"risk_rating": "low", "kyc_status": "verified"},
+        destination_customer={"risk_rating": "high", "kyc_status": "verified"},
+        recent_transactions=[
+            {"source_account_id": "ZB-ACCT-1001", "destination_account_id": "ZB-ACCT-4001"},
+            {"source_account_id": "ZB-ACCT-1001", "destination_account_id": "ZB-ACCT-3001"},
+            {"source_account_id": "ZB-ACCT-1001", "destination_account_id": "ZB-ACCT-2001"},
+        ],
+        device_trusted=False,
+        beneficiary_age_days=2,
+    )
+    assert assessment["decision"] in {"review", "deny"} and assessment["risk_score"] >= 60
+    network = build_mule_network([{"source_account_id": "A", "destination_account_id": "B"}, {"source_account_id": "A", "destination_account_id": "C"}])
+    assert network["edges"] == [{"from": "A", "to": "B"}, {"from": "A", "to": "C"}] and network["raw_transactions"] is False
+    event = make_event("fraud_assessment", actor_worker_id="fraud-analyst", operation_id="OP-FRAUD-EVAL", payload={"risk_score": 75, "raw_prompt": "must never be stored"})
+    assert event["payload"]["raw_prompt"]["redacted"] is True and event["side_effects"] == []
+    store = EventStore(64)
+    store.append(event)
+    assert store.metrics()["events"] == 1 and store.metrics()["raw_content"] is False
+    alerts = AlertCorrelator().correlate(store.events())
+    assert alerts and alerts[0]["rule_id"] == "ZB-FRAUD-001"
+    memory = BankMemory()
+    planned = memory.plan_operation("transfer", "teller-north", 1_200_000, source_account_id="ZB-ACCT-1001", destination_account_id="ZB-ACCT-4001", operation_id="OP-FRAUD-MEMORY")
+    assert planned["risk_assessment"]["decision"] == "review"
+    assert memory.telemetry.metrics()["events"] >= 2 and memory.audit_events[0]["schema_version"] == 1
+    return {"risk_scoring": True, "mule_graph": True, "privacy_safe_events": True, "fraud_alert_correlation": True, "ledger_telemetry": True}
+
+
 def check_dynamic_bank_profiles() -> dict[str, Any]:
     profiles = load(BANK_PROFILE_PATH)
     entries = profiles["profiles"]
@@ -302,6 +425,47 @@ def check_flag_progression() -> dict[str, Any]:
     }
 
 
+def check_phase1_agent_security() -> dict[str, Any]:
+    from zodiac_agent_security import AgentSecurityError, issue_agent_token, manifest_digest, verify_agent_token
+    from zodiac_bank_orchestrator import BankAuthorizationError, BankOrchestrator
+
+    key = b"zodiac-bank-agent-signing-key-change-me"
+    mcp_wrapper = (ROOT / "mcp-wrapper" / "server.py").read_text(encoding="utf-8")
+    router = (ROOT / "a2a-agents" / "router" / "main.py").read_text(encoding="utf-8")
+    knowledge = (ROOT / "a2a-agents" / "knowledge" / "main.py").read_text(encoding="utf-8")
+    challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
+    compose = COMPOSE_PATH.read_text(encoding="utf-8")
+    assert "/secure/tools/list" in mcp_wrapper and "/secure/tools/call" in mcp_wrapper
+    assert "/api/secure/bank/operations/plan" in challenge and "/api/secure/bank/operations/{run_id}/approve" in challenge
+    assert "/secure/a2a" in router and "/secure/a2a" in knowledge
+    assert "zodiac_agent_security.py" in (ROOT / "mcp-wrapper" / "Dockerfile").read_text(encoding="utf-8")
+    assert "zodiac_agent_security.py" in (ROOT / "a2a-agents" / "router" / "Dockerfile").read_text(encoding="utf-8")
+    assert "ZODIAC_AGENT_SIGNING_KEY" in compose and "MCP_SECURE_ALLOWED_TOOLS" in compose
+
+    token = issue_agent_token(key, subject="teller-north", audience="zodiac-bank-orchestrator", branch_id="ZB-BR-001", learner_id="phase1-eval", capabilities=["bank.operation.plan"])
+    claims = verify_agent_token(token, key, audience="zodiac-bank-orchestrator", required_capability="bank.operation.plan", subject="teller-north", branch_id="ZB-BR-001", learner_id="phase1-eval")
+    assert claims["sub"] == "teller-north"
+    orchestrator = BankOrchestrator()
+    run = orchestrator.plan("receive", "teller-north", 1000, destination_account_id="ZB-ACCT-1001", operation_id="OP-PHASE1-EVAL", owner_learner_id="phase1-eval", agent_token=token, agent_request_nonce="phase1-plan-nonce")
+    wrong_token = issue_agent_token(key, subject="teller-east", audience="zodiac-bank-orchestrator", branch_id="ZB-BR-002", learner_id="phase1-eval", capabilities=["bank.operation.approve"])
+    try:
+        orchestrator.approve(run["run_id"], "branch-manager-north", owner_learner_id="phase1-eval", agent_token=wrong_token, agent_request_nonce="phase1-wrong-nonce")
+    except BankAuthorizationError:
+        pass
+    else:
+        raise AssertionError("wrong branch/subject agent token was accepted")
+    approver = issue_agent_token(key, subject="branch-manager-north", audience="zodiac-bank-orchestrator", branch_id="ZB-BR-001", learner_id="phase1-eval", capabilities=["bank.operation.approve"])
+    committed = orchestrator.approve(run["run_id"], "branch-manager-north", owner_learner_id="phase1-eval", agent_token=approver, agent_request_nonce="phase1-approve-nonce")
+    assert committed["operation"]["status"] == "committed"
+    try:
+        verify_agent_token(token, key, audience="other-service", now=None)
+    except AgentSecurityError:
+        pass
+    else:
+        raise AssertionError("audience mismatch was accepted")
+    return {"signed_identity": True, "mcp_manifest_and_allowlist": True, "a2a_child_delegation": True, "orchestrator_binding": True, "replay_and_audience_controls": True}
+
+
 def check_runtime_security() -> dict[str, Any]:
     compose = COMPOSE_PATH.read_text(encoding="utf-8")
     gate = (ROOT / "training-gate" / "main.py").read_text(encoding="utf-8")
@@ -336,6 +500,9 @@ def main() -> int:
     checks: list[tuple[str, Callable[[], dict[str, Any]]]] = [
         ("curriculum_progression", lambda: check_curriculum()),
         ("financial_bank_model", check_financial_bank_model),
+        ("resilience_and_evaluation", check_resilience_and_evaluation),
+        ("sandbox_and_privacy", check_sandbox_and_privacy),
+        ("fraud_and_telemetry", check_fraud_and_telemetry),
         ("dynamic_bank_profiles", check_dynamic_bank_profiles),
         ("flag_pipeline_consistency", check_flag_pipeline),
         ("flag_progression_e2e", check_flag_progression),
@@ -344,6 +511,7 @@ def main() -> int:
         ("workflow_orchestrator_symmetry", lambda: check_workflows(bank, workflows)),
         ("ai_threat_model_and_detection", check_ai_threat_model),
         ("hard_scenario_range", check_hard_scenario_range),
+        ("phase1_agent_security", check_phase1_agent_security),
         ("runtime_security_wiring", check_runtime_security),
     ]
     results: list[dict[str, Any]] = []

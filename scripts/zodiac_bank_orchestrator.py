@@ -14,6 +14,7 @@ import json
 import sqlite3
 import sys
 import threading
+import os
 import uuid
 from functools import wraps
 from datetime import datetime, timezone
@@ -21,13 +22,21 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from zodiac_agent_security import AgentSecurityError, ReplayGuard, verify_request
     from zodiac_bank_simulator import BankAuthorizationError, BankMemory, BankValidationError
+    from zodiac_resilience import CheckpointStore, CircuitBreaker, KillSwitch, reconcile_ledger
 except ModuleNotFoundError:  # Support imports as scripts.zodiac_bank_orchestrator.
+    from .zodiac_agent_security import AgentSecurityError, ReplayGuard, verify_request
     from .zodiac_bank_simulator import BankAuthorizationError, BankMemory, BankValidationError
+    from .zodiac_resilience import CheckpointStore, CircuitBreaker, KillSwitch, reconcile_ledger
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_AUDIT = ROOT / "logs" / "zodiac-bank-orchestrator.sqlite3"
 MAX_ORCHESTRATOR_RUNS = 256
+DEFAULT_AGENT_SIGNING_KEY = "zodiac-bank-agent-signing-key-change-me"
+AGENT_SIGNING_KEY = os.environ.get("ZODIAC_AGENT_SIGNING_KEY", DEFAULT_AGENT_SIGNING_KEY)
+AGENT_SECURITY_MODE = os.environ.get("ZODIAC_AGENT_SECURITY_MODE", "development").lower()
+AGENT_REPLAY_GUARD = ReplayGuard()
 
 
 def synchronized(method: Any) -> Any:
@@ -76,7 +85,45 @@ class BankOrchestrator:
         self.memory = memory or BankMemory()
         self.audit_path = audit_path
         self.runs: dict[str, dict[str, Any]] = {}
+        self.checkpoints = CheckpointStore()
+        self.circuit_breaker = CircuitBreaker()
+        self.kill_switch = KillSwitch()
         self._lock = threading.RLock()
+
+    def _authorize_agent_request(
+        self,
+        token: str | None,
+        request_nonce: str | None,
+        *,
+        worker_id: str,
+        capability: str,
+        owner_learner_id: str | None,
+    ) -> None:
+        """Bind a delegated agent call to the exact worker and bank scope.
+
+        Existing Python callers remain compatible in development mode. Secure
+        service routes pass both values and therefore always receive signature,
+        audience, capability, learner, branch, expiry, and replay checks.
+        """
+        if not token:
+            if AGENT_SECURITY_MODE == "strict":
+                raise BankAuthorizationError("signed agent token required")
+            return
+        employee = self.memory.employee(worker_id)
+        try:
+            verify_request(
+                token,
+                AGENT_SIGNING_KEY,
+                AGENT_REPLAY_GUARD,
+                request_nonce=str(request_nonce or ""),
+                audience="zodiac-bank-orchestrator",
+                required_capability=capability,
+                subject=worker_id,
+                branch_id=employee["branch_id"],
+                learner_id=owner_learner_id,
+            )
+        except AgentSecurityError as exc:
+            raise BankAuthorizationError(str(exc)) from exc
 
     @synchronized
     def plan(
@@ -89,7 +136,19 @@ class BankOrchestrator:
         destination_account_id: str | None = None,
         operation_id: str | None = None,
         owner_learner_id: str | None = None,
+        agent_token: str | None = None,
+        agent_request_nonce: str | None = None,
     ) -> dict[str, Any]:
+        self.kill_switch.check()
+        if not self.circuit_breaker.allow():
+            raise BankValidationError("synthetic orchestrator circuit breaker is open")
+        self._authorize_agent_request(
+            agent_token,
+            agent_request_nonce,
+            worker_id=actor_worker_id,
+            capability="bank.operation.plan",
+            owner_learner_id=owner_learner_id,
+        )
         if len(self.runs) >= MAX_ORCHESTRATOR_RUNS:
             raise BankValidationError("in-memory orchestrator run capacity reached; start a fresh bounded run")
         if operation_id is not None:
@@ -139,7 +198,24 @@ class BankOrchestrator:
         return self._public_run(run)
 
     @synchronized
-    def approve(self, run_id: str, approver_worker_id: str, owner_learner_id: str | None = None) -> dict[str, Any]:
+    def approve(
+        self,
+        run_id: str,
+        approver_worker_id: str,
+        owner_learner_id: str | None = None,
+        agent_token: str | None = None,
+        agent_request_nonce: str | None = None,
+    ) -> dict[str, Any]:
+        self.kill_switch.check()
+        if not self.circuit_breaker.allow():
+            raise BankValidationError("synthetic orchestrator circuit breaker is open")
+        self._authorize_agent_request(
+            agent_token,
+            agent_request_nonce,
+            worker_id=approver_worker_id,
+            capability="bank.operation.approve",
+            owner_learner_id=owner_learner_id,
+        )
         run = self.runs.get(run_id)
         if run is None:
             raise BankValidationError("unknown orchestrator loop")
@@ -156,6 +232,33 @@ class BankOrchestrator:
         run["status"] = result["status"]
         self._persist(run)
         return self._public_run(run)
+
+    @synchronized
+    def checkpoint(self, run_id: str) -> dict[str, Any]:
+        run = self.runs.get(run_id)
+        if run is None:
+            raise BankValidationError("unknown orchestrator loop")
+        sequence = len(self.memory.ledger)
+        checkpoint = self.checkpoints.save(
+            run_id,
+            sequence,
+            {"run": self._public_run(run), "ledger_sequence": sequence, "synthetic": True, "side_effects": []},
+        )
+        return {"checkpoint_id": checkpoint.checkpoint_id, "run_id": checkpoint.run_id, "sequence": checkpoint.sequence, "state_digest": checkpoint.state_digest, "synthetic": True, "side_effects": []}
+
+    @synchronized
+    def recover(self, checkpoint_id: str, run_id: str) -> dict[str, Any]:
+        state = self.checkpoints.recover(checkpoint_id, run_id=run_id, minimum_sequence=0)
+        return {"checkpoint_id": checkpoint_id, "run_id": run_id, "state": state, "verified": True, "ledger_mutation": False, "side_effects": []}
+
+    @synchronized
+    def reconcile(self) -> dict[str, Any]:
+        opening = {item["account_id"]: int(item["opening_balance_cents"]) for item in self.memory.operations["virtual_accounts"]}
+        return reconcile_ledger(self.memory.ledger, self.memory.balances, opening)
+
+    @synchronized
+    def resilience_snapshot(self) -> dict[str, Any]:
+        return {"circuit_breaker": self.circuit_breaker.snapshot(), "kill_switch": self.kill_switch.snapshot(), "checkpoints": self.checkpoints.metrics(), "reconciliation": self.reconcile(), "side_effects": []}
 
     @synchronized
     def reject(self, run_id: str, worker_id: str, reason: str, owner_learner_id: str | None = None) -> dict[str, Any]:

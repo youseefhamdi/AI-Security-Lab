@@ -531,12 +531,22 @@ def bank_snapshot(learner_id: str = "", x_training_learner_token: str = Header(d
     learner_id = safe_learner(learner_id)
     require_learner_access(learner_id, x_training_learner_token)
     profile = require_financial_operations(learner_id)
-    snapshot = bank_orchestrator(learner_id).memory.snapshot(public=True)
-    return {"learner_id": learner_id, "profile": profile, "snapshot": snapshot, "side_effects": []}
+    orchestrator = bank_orchestrator(learner_id)
+    snapshot = orchestrator.memory.snapshot(public=True)
+    return {"learner_id": learner_id, "profile": profile, "snapshot": snapshot, "resilience": orchestrator.resilience_snapshot(), "side_effects": []}
 
 
+@app.post("/api/secure/bank/operations/plan")
 @app.post("/api/bank/operations/plan")
-def plan_bank_operation(body: dict[str, Any], x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+def plan_bank_operation(
+    body: dict[str, Any],
+    request: Request,
+    x_training_learner_token: str = Header(default=""),
+    x_zodiac_agent_token: str = Header(default="", alias="X-Zodiac-Agent-Token"),
+    x_zodiac_request_nonce: str = Header(default="", alias="X-Zodiac-Request-Nonce"),
+) -> dict[str, Any]:
+    if request.url.path.startswith("/api/secure/") and (not x_zodiac_agent_token or not x_zodiac_request_nonce):
+        raise HTTPException(status_code=401, detail="signed agent token and request nonce required")
     learner_id = safe_learner(body.get("learner_id"))
     require_learner_access(learner_id, x_training_learner_token)
     profile = require_financial_operations(learner_id)
@@ -549,22 +559,68 @@ def plan_bank_operation(body: dict[str, Any], x_training_learner_token: str = He
             destination_account_id=body.get("destination_account_id"),
             operation_id=body.get("operation_id"),
             owner_learner_id=learner_id,
+            agent_token=x_zodiac_agent_token or None,
+            agent_request_nonce=x_zodiac_request_nonce or None,
         )
     except (BankValidationError, BankAuthorizationError, ValueError, KeyError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"learner_id": learner_id, "profile": profile, "loop": run, "side_effects": []}
 
 
+@app.post("/api/secure/bank/operations/{run_id}/approve")
 @app.post("/api/bank/operations/{run_id}/approve")
-def approve_bank_operation(run_id: str, body: dict[str, Any], x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+def approve_bank_operation(
+    run_id: str,
+    body: dict[str, Any],
+    request: Request,
+    x_training_learner_token: str = Header(default=""),
+    x_zodiac_agent_token: str = Header(default="", alias="X-Zodiac-Agent-Token"),
+    x_zodiac_request_nonce: str = Header(default="", alias="X-Zodiac-Request-Nonce"),
+) -> dict[str, Any]:
+    if request.url.path.startswith("/api/secure/") and (not x_zodiac_agent_token or not x_zodiac_request_nonce):
+        raise HTTPException(status_code=401, detail="signed agent token and request nonce required")
     learner_id = safe_learner(body.get("learner_id"))
     require_learner_access(learner_id, x_training_learner_token)
     profile = require_financial_operations(learner_id)
     try:
-        run = bank_orchestrator(learner_id).approve(run_id, str(body.get("approver_worker_id", "")), owner_learner_id=learner_id)
+        run = bank_orchestrator(learner_id).approve(
+            run_id,
+            str(body.get("approver_worker_id", "")),
+            owner_learner_id=learner_id,
+            agent_token=x_zodiac_agent_token or None,
+            agent_request_nonce=x_zodiac_request_nonce or None,
+        )
+
     except (BankValidationError, BankAuthorizationError, ValueError, KeyError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"learner_id": learner_id, "profile": profile, "loop": run, "side_effects": []}
+
+
+@app.post("/api/bank/operations/{run_id}/checkpoint")
+def checkpoint_bank_operation(run_id: str, body: dict[str, Any], x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = safe_learner(body.get("learner_id"))
+    require_learner_access(learner_id, x_training_learner_token)
+    profile = require_financial_operations(learner_id)
+    try:
+        checkpoint = bank_orchestrator(learner_id).checkpoint(run_id)
+    except (BankValidationError, BankAuthorizationError, ValueError, KeyError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"learner_id": learner_id, "profile": profile, "checkpoint": checkpoint, "side_effects": []}
+
+
+@app.post("/api/bank/checkpoints/{checkpoint_id}/recover")
+def recover_bank_checkpoint(checkpoint_id: str, body: dict[str, Any], x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = safe_learner(body.get("learner_id"))
+    run_id = str(body.get("run_id", ""))
+    require_learner_access(learner_id, x_training_learner_token)
+    profile = require_financial_operations(learner_id)
+    if not run_id:
+        raise HTTPException(status_code=422, detail="run_id is required")
+    try:
+        recovered = bank_orchestrator(learner_id).recover(checkpoint_id, run_id)
+    except (BankValidationError, BankAuthorizationError, ValueError, KeyError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"learner_id": learner_id, "profile": profile, "recovery": recovered, "side_effects": []}
 
 
 @app.get("/api/bank/memory")

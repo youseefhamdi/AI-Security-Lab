@@ -21,10 +21,16 @@ from typing import Any
 
 try:
     from context_engineering import assemble_context
+    from zodiac_fraud_engine import assess_transaction, public_assessment
     from zodiac_graph import build_graph
+    from zodiac_privacy import PrivacyDenied, PrivacyGuard
+    from zodiac_telemetry import AlertCorrelator, EventStore, make_event
 except ModuleNotFoundError:  # Support imports as scripts.zodiac_bank_simulator.
     from .context_engineering import assemble_context
+    from .zodiac_fraud_engine import assess_transaction, public_assessment
     from .zodiac_graph import build_graph
+    from .zodiac_privacy import PrivacyDenied, PrivacyGuard
+    from .zodiac_telemetry import AlertCorrelator, EventStore, make_event
 
 ROOT = Path(__file__).resolve().parent.parent
 BANK_DATA_DIR = Path(os.environ.get("ZODIAC_BANK_DATA_DIR", str(ROOT / "bank-data")))
@@ -78,6 +84,10 @@ class BankMemory:
         self.ledger: list[dict[str, Any]] = []
         self.receipts: dict[str, dict[str, Any]] = {}
         self.audit_events: list[dict[str, Any]] = []
+        self.telemetry = EventStore(MAX_AUDIT_EVENTS)
+        self.alerts: list[dict[str, Any]] = []
+        self.privacy = PrivacyGuard()
+        self._trace_by_operation: dict[str, str] = {}
         self.memories: list[dict[str, Any]] = []
         self._seed_memories()
 
@@ -154,17 +164,23 @@ class BankMemory:
     def _event(self, event_type: str, operation_id: str | None, actor: str, payload: dict[str, Any]) -> dict[str, Any]:
         if len(self.audit_events) >= MAX_AUDIT_EVENTS:
             raise BankValidationError("in-memory audit capacity reached; start a fresh bounded run")
-        event = {
-            "event_id": f"EVT-{len(self.audit_events) + 1:06d}",
-            "event_type": event_type,
-            "operation_id": operation_id,
-            "actor_worker_id": actor,
-            "timestamp": utc_now(),
-            "payload": deepcopy(payload),
-            "synthetic": True,
-            "side_effects": [],
-        }
+        branch_id = None
+        if actor in self.employees:
+            branch_id = self.employees[actor].get("branch_id")
+        trace_id = self._trace_by_operation.get(operation_id or "")
+        event = make_event(
+            event_type,
+            actor_worker_id=actor,
+            operation_id=operation_id,
+            branch_id=branch_id,
+            trace_id=trace_id,
+            payload=payload,
+        )
+        if operation_id and trace_id is None:
+            self._trace_by_operation[operation_id] = event["trace_id"]
         self.audit_events.append(event)
+        self.telemetry.append(event)
+        self.alerts.extend(AlertCorrelator().correlate([event]))
         return event
 
     def employee(self, worker_id: str) -> dict[str, Any]:
@@ -270,6 +286,30 @@ class BankMemory:
         self._authorize_actor_scope(actor_worker_id, source or destination)
         if source and self.balances[source["account_id"]] < amount:
             raise BankValidationError("insufficient virtual funds")
+        source_customer = self.customers.get(source["customer_id"]) if source else None
+        destination_customer = self.customers.get(destination["customer_id"]) if destination else None
+        recent_transactions = [
+            {
+                "source_account_id": item.get("source_account_id"),
+                "destination_account_id": item.get("destination_account_id"),
+                "amount_cents": item.get("amount_cents", 0),
+                "operation_type": item.get("operation_type"),
+            }
+            for item in self.operation_state.values()
+            if item.get("status") == "committed"
+        ]
+        risk_assessment = assess_transaction(
+            operation_type=operation_type,
+            amount_cents=amount,
+            source_account=source,
+            destination_account=destination,
+            source_customer=source_customer,
+            destination_customer=destination_customer,
+            recent_transactions=recent_transactions,
+        )
+        if risk_assessment["decision"] == "deny":
+            self._event("fraud_assessment", operation_id, actor_worker_id, public_assessment(risk_assessment))
+            raise BankValidationError("synthetic fraud policy denied the operation")
         workflow = self._workflow_for(operation_type, amount)
         if operation_type in {"receive", "withdraw"}:
             branch_id = (destination or source)["branch_id"]
@@ -296,6 +336,7 @@ class BankMemory:
             "max_steps": workflow["max_steps"],
             "max_retries": workflow["max_retries"],
             "approval_policy": approvals,
+            "risk_assessment": public_assessment(risk_assessment),
             "approvals": [],
             "status": "pending_approval",
             "created_at": utc_now(),
@@ -304,7 +345,8 @@ class BankMemory:
             "side_effects": [],
         }
         self.operation_state[operation_id] = operation
-        self._event("operation_planned", operation_id, actor_worker_id, {"operation_type": operation_type, "amount_cents": amount, "workflow_id": workflow["workflow_id"]})
+        self._event("fraud_assessment", operation_id, actor_worker_id, public_assessment(risk_assessment))
+        self._event("operation_planned", operation_id, actor_worker_id, {"operation_type": operation_type, "amount_cents": amount, "workflow_id": workflow["workflow_id"], "risk_decision": risk_assessment["decision"], "risk_score": risk_assessment["risk_score"]})
         self.memories.append({"memory_id": f"MEM-{operation_id}", "entity_id": operation_id, "entity_type": "operation", "text": f"Synthetic {operation_type} {operation_id} is pending approval under workflow {workflow['workflow_id']}.", "trust": "derived-audit", "branch_id": operation["scope_branch_id"], "provenance": "in-memory-ledger"})
         return deepcopy(operation)
 
@@ -335,6 +377,10 @@ class BankMemory:
     def _settle(self, operation: dict[str, Any]) -> None:
         if operation["status"] == "committed":
             return
+        if operation.get("risk_assessment", {}).get("decision") == "deny":
+            operation["status"] = "rejected"
+            self._event("settlement_rejected", operation["operation_id"], "zodiac-bank-orchestrator", {"reason": "synthetic_fraud_policy_denied"})
+            raise BankValidationError("synthetic fraud policy denied settlement")
         source_id = operation["source_account_id"]
         destination_id = operation["destination_account_id"]
         amount = int(operation["amount_cents"])
@@ -402,13 +448,27 @@ class BankMemory:
             allowed = self._branch_scope_ids(employee["branch_id"])
         roots = [entity_id] if entity_id else []
         packet = assemble_context(query, graph, RAG_PATH, roots=roots, allowed_entity_ids=allowed, depth=2, max_nodes=24, max_chars=12000)
-        visible_memories = [item for item in self.memories if not branch_scoped or item.get("branch_id") == employee["branch_id"]]
+        visible_memories: list[dict[str, Any]] = []
+        for item in self.memories:
+            try:
+                decision = self.privacy.authorize(
+                    actor_worker_id=worker_id,
+                    actor_role=employee["role"],
+                    actor_branch_id=employee.get("branch_id"),
+                    record={**item, "classification": "internal"},
+                    purpose="bank-memory-retrieval",
+                    requested_fields=("memory_id", "entity_id", "entity_type", "text", "trust", "branch_id", "provenance"),
+                )
+                visible_memories.append(self.privacy.project(item, decision, requested_fields=("memory_id", "entity_id", "entity_type", "text", "trust", "branch_id", "provenance")))
+            except PrivacyDenied:
+                continue
         if branch_scoped:
             # The local corpus is bank-wide. Do not let a branch worker turn a
             # generic RAG query into a cross-branch document enumeration path.
             packet["documents"] = []
             packet["security"]["documents_scope_redacted"] = True
         packet["bank_memory"] = {"records": visible_memories[:24], "trust": "canonical-or-derived-audit", "scope": employee["branch_id"] if branch_scoped else "central-role"}
+        packet["security"]["privacy"] = self.privacy.metrics()
         packet["security"]["side_effects"] = "forbidden"
         return packet
 
@@ -427,6 +487,10 @@ class BankMemory:
             "ledger_events": len(self.ledger),
             "receipts": len(self.receipts),
             "memory_records": len(self.memories),
+            "security_events": len(self.audit_events),
+            "security_alerts": len(self.alerts),
+            "telemetry_metrics": self.telemetry.metrics(),
+            "privacy_metrics": self.privacy.metrics(),
             "external_egress": False,
             "real_money": False,
         }

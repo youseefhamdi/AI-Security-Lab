@@ -4,13 +4,22 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+SHARED_DIR = Path("/app/scripts")
+if not SHARED_DIR.is_dir():
+    SHARED_DIR = Path(__file__).resolve().parent.parent.parent / "scripts"
+if SHARED_DIR.is_dir() and str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
+
+from zodiac_agent_security import AgentSecurityError, ReplayGuard, verify_request  # noqa: E402
+
 import requests
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 from fastapi.responses import JSONResponse
 
 app = FastAPI(title="Zodiac Bank Knowledge Agent", version="2.0")
@@ -32,6 +41,9 @@ GRAPH_CONTEXT_URL = os.environ.get("GRAPH_CONTEXT_URL", "http://zodiac-context:5
 GRAPH_CONTEXT_API_KEY = os.environ.get("GRAPH_CONTEXT_API_KEY", "")
 CONTEXT_ENGINEERING_MODE = os.environ.get("CONTEXT_ENGINEERING_MODE", "structured").lower()
 CONTEXT_MAX_CHARS = int(os.environ.get("CONTEXT_MAX_CHARS", "12000"))
+DEFAULT_SIGNING_KEY = "zodiac-bank-agent-signing-key-change-me"
+SIGNING_KEY_VALUE = os.environ.get("ZODIAC_AGENT_SIGNING_KEY", DEFAULT_SIGNING_KEY)
+AGENT_REPLAY_GUARD = ReplayGuard()
 
 AGENT_CARD = AgentCard(
     name="Zodiac Bank Knowledge Agent",
@@ -251,6 +263,31 @@ async def message_send(body: dict[str, Any]) -> JSONResponse:
         return JSONResponse(status_code=400, content={"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "message text is required"}})
     answer, sources, retrieval_backend, graph_context = answer_question(question)
     return JSONResponse(content={"jsonrpc": "2.0", "id": request_id, "result": {"kind": "message", "role": "agent", "parts": [{"kind": "text", "text": answer}], "metadata": {"source": retrieval_backend, "sources": sources, "graph_context": graph_context, "context_engineering": {"enabled": GRAPH_CONTEXT_ENABLED, "mode": CONTEXT_ENGINEERING_MODE}, "agent": AGENT_CARD.name}}})
+
+
+@app.post("/secure/a2a")
+async def secure_message_send(
+    body: dict[str, Any],
+    x_zodiac_agent_token: str = Header(default="", alias="X-Zodiac-Agent-Token"),
+    x_zodiac_request_nonce: str = Header(default="", alias="X-Zodiac-Request-Nonce"),
+) -> JSONResponse:
+    request_id = body.get("id")
+    question = extract_text(body)
+    try:
+        claims = verify_request(
+            x_zodiac_agent_token,
+            SIGNING_KEY_VALUE,
+            AGENT_REPLAY_GUARD,
+            request_nonce=x_zodiac_request_nonce,
+            audience="a2a-knowledge",
+            required_capability="knowledge.query",
+        )
+    except AgentSecurityError as exc:
+        return JSONResponse(status_code=401, content={"jsonrpc": "2.0", "id": request_id, "error": {"code": -32001, "message": str(exc)}})
+    if not question:
+        return JSONResponse(status_code=400, content={"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "message text is required"}})
+    answer, sources, retrieval_backend, graph_context = answer_question(question)
+    return JSONResponse(content={"jsonrpc": "2.0", "id": request_id, "result": {"kind": "message", "role": "agent", "parts": [{"kind": "text", "text": answer}], "metadata": {"source": retrieval_backend, "sources": sources, "graph_context": graph_context, "context_engineering": {"enabled": GRAPH_CONTEXT_ENABLED, "mode": CONTEXT_ENGINEERING_MODE}, "agent": AGENT_CARD.name, "authenticated": True, "delegation_parent": claims.get("parent"), "delegation_depth": claims.get("depth", 0)}}})
 
 
 @app.get("/health")
