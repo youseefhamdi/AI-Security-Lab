@@ -1,21 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420" role="img" aria-labelledby="title desc">
   <title id="title">Zodiac Bank AI Security Lab</title>
-  <desc id="desc">Upgraded dark cyber-bank security operations banner with the Zodiac defense vault, fraud telemetry, no-egress sandbox, privacy, and resilient recovery controls.</desc>
+  <desc id="desc">Cinematic dark cyber-bank security operations banner with a rotating radar vault, holographic security ledger, fraud telemetry, and 2026 agentic defense phases.</desc>
   <defs>
     <linearGradient id="space" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#01030a"/>
-      <stop offset="0.4" stop-color="#061120"/>
-      <stop offset="0.72" stop-color="#0d1430"/>
-      <stop offset="1" stop-color="#040713"/>
+      <stop offset="0.35" stop-color="#050c1c"/>
+      <stop offset="0.7" stop-color="#0c1230"/>
+      <stop offset="1" stop-color="#030512"/>
     </linearGradient>
+    <radialGradient id="nebula1" cx="22%" cy="50%" r="42%">
+      <stop offset="0" stop-color="#0ea5e9" stop-opacity=".22"/>
+      <stop offset=".6" stop-color="#2563eb" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="nebula2" cx="86%" cy="22%" r="30%">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
     <radialGradient id="vaultAura" cx="50%" cy="50%" r="50%">
       <stop offset="0" stop-color="#22d3ee" stop-opacity=".34"/>
-      <stop offset=".4" stop-color="#2563eb" stop-opacity=".12"/>
+      <stop offset=".42" stop-color="#2563eb" stop-opacity=".12"/>
       <stop offset="1" stop-color="#020617" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="coreAura" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#818cf8" stop-opacity=".28"/>
+      <stop offset="0" stop-color="#818cf8" stop-opacity=".3"/>
       <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sweepGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".5"/>
+      <stop offset=".7" stop-color="#38bdf8" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#f8fafc"/>
@@ -46,6 +60,11 @@
       <stop offset=".45" stop-color="#dbeafe"/>
       <stop offset="1" stop-color="#a5b4fc"/>
     </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0ea5e9"/>
+      <stop offset=".5" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
     <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
       <path d="M34 0H0V34" fill="none" stroke="#94a3b8" stroke-opacity=".08"/>
     </pattern>
@@ -74,36 +93,65 @@
       .orbitReverse { transform-box: fill-box; transform-origin: center; animation: orbitReverse 11s linear infinite; }
       .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 3s ease-in-out infinite; }
       .pulseLate { transform-box: fill-box; transform-origin: center; animation: pulse 3s ease-in-out 1.4s infinite; }
+      .star { animation: twinkle 4s ease-in-out infinite; }
       .data { stroke-dasharray: 2 12; animation: data 2.4s linear infinite; }
       .dataSlow { stroke-dasharray: 3 16; animation: data 4.6s linear 1s infinite; }
       .beam { animation: beam 5.5s linear infinite; }
       .beam2 { animation: beam 7s linear 2.5s infinite; opacity: .34; }
       .meter { transform-box: fill-box; transform-origin: left center; animation: meter 4s ease-in-out infinite; }
       .gauge { transform-box: fill-box; transform-origin: center; animation: gauge 6s ease-in-out infinite; }
+      .wave { stroke-dasharray: 180 600; animation: wave 3.4s linear infinite; }
       .flicker { animation: flicker 2.8s steps(2,end) infinite; }
       .tick { animation: tick 3.2s ease-in-out infinite; }
+      .rain { animation: rain 3.4s linear infinite; }
+      .bracket { animation: tick 4s ease-in-out infinite; }
       @keyframes orbit { to { transform: rotate(360deg); } }
       @keyframes orbitReverse { to { transform: rotate(-360deg); } }
       @keyframes pulse { 0%,100% { opacity: .28; transform: scale(.68); } 50% { opacity: 1; transform: scale(1.38); } }
+      @keyframes twinkle { 0%,100% { opacity: .12; } 50% { opacity: .95; } }
       @keyframes data { to { stroke-dashoffset: -84; } }
       @keyframes beam { from { transform: translateX(-260px); } to { transform: translateX(1660px); } }
       @keyframes meter { 0%,100% { transform: scaleX(.6); } 50% { transform: scaleX(1); } }
       @keyframes gauge { 0%,100% { transform: rotate(-86deg); } 50% { transform: rotate(86deg); } }
+      @keyframes wave { to { stroke-dashoffset: -780; } }
       @keyframes flicker { 0%,46% { opacity: .4; } 47%,100% { opacity: 1; } }
       @keyframes tick { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
-      @media (prefers-reduced-motion: reduce) { .orbit,.orbitReverse,.pulse,.pulseLate,.data,.dataSlow,.beam,.beam2,.meter,.gauge,.flicker,.tick { animation: none; } }
+      @keyframes rain { from { transform: translateY(-46px); opacity: 0; } 30% { opacity: .9; } to { transform: translateY(46px); opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) { .orbit,.orbitReverse,.pulse,.pulseLate,.star,.data,.dataSlow,.beam,.beam2,.meter,.gauge,.wave,.flicker,.tick,.rain,.bracket { animation: none; } }
     </style>
   </defs>
 
   <!-- Premium dark cinematic foundation -->
   <rect width="1400" height="420" rx="24" fill="url(#space)"/>
+  <ellipse cx="308" cy="210" rx="420" ry="300" fill="url(#nebula1)"/>
+  <ellipse cx="1204" cy="92" rx="360" ry="220" fill="url(#nebula2)"/>
   <rect x="2" y="2" width="1396" height="416" rx="22" fill="none" stroke="#334155" stroke-width="3"/>
   <rect x="18" y="18" width="1364" height="384" rx="16" fill="url(#grid)"/>
   <rect x="18" y="18" width="1364" height="384" rx="16" fill="url(#fineGrid)"/>
   <path d="M18 76H1382M18 348H1382" stroke="#475569" stroke-opacity=".5"/>
   <path d="M586 76V348" stroke="#475569" stroke-opacity=".4"/>
-  <ellipse cx="300" cy="214" rx="310" ry="250" fill="url(#vaultAura)" filter="url(#largeGlow)"/>
-  <ellipse cx="300" cy="214" rx="150" ry="150" fill="url(#coreAura)" filter="url(#largeGlow)"/>
+
+  <!-- Animated corner brackets -->
+  <g stroke="#22d3ee" stroke-opacity=".7" fill="none" class="bracket">
+    <path d="M18 52V34a16 16 0 0 1 16-16h18"/>
+    <path d="M1382 52V34a16 16 0 0 0-16-16h-18"/>
+    <path d="M18 368v18a16 16 0 0 0 16 16h18"/>
+    <path d="M1382 368v18a16 16 0 0 1-16 16h-18"/>
+  </g>
+
+  <!-- Starfield -->
+  <g fill="#cbd5e1">
+    <circle cx="90" cy="120" r="1.3" class="star"/>
+    <circle cx="150" cy="300" r="1" class="star" style="animation-delay:.8s"/>
+    <circle cx="360" cy="80" r="1.2" class="star" style="animation-delay:1.6s"/>
+    <circle cx="520" cy="330" r="1" class="star" style="animation-delay:2.2s"/>
+    <circle cx="760" cy="60" r="1.1" class="star" style="animation-delay:3s"/>
+    <circle cx="900" cy="120" r="1" class="star" style="animation-delay:.4s"/>
+    <circle cx="1350" cy="300" r="1.2" class="star" style="animation-delay:1.2s"/>
+    <circle cx="1290" cy="70" r="1" class="star" style="animation-delay:2.8s"/>
+    <circle cx="70" cy="220" r="1" class="star" style="animation-delay:3.4s"/>
+    <circle cx="460" cy="150" r="1" class="star" style="animation-delay:1s"/>
+  </g>
 
   <!-- Header rail -->
   <g transform="translate(48 45)">
@@ -112,16 +160,21 @@
     <text x="1330" y="4" text-anchor="end" class="micro" fill="#64748b">SIMULATION // LOCAL-ONLY // HARDENED 2026</text>
   </g>
 
-  <!-- Cinematic defense vault -->
+  <!-- Cinematic defense vault with radar sweep -->
   <g transform="translate(34 96)">
     <circle cx="214" cy="122" r="155" fill="#020617" fill-opacity=".72" stroke="#0e7490" stroke-opacity=".35" stroke-width="2"/>
     <circle cx="214" cy="122" r="140" fill="none" stroke="#1e40af" stroke-opacity=".5" stroke-width="14"/>
     <circle cx="214" cy="122" r="140" fill="none" stroke="url(#neon)" stroke-width="3" stroke-dasharray="5 19" class="orbit"/>
-    <circle cx="214" cy="122" r="116" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="2 10" class="orbitReverse"/>
+    <circle cx="214" cy="122" r="132" fill="none" stroke="#475569" stroke-width="3" stroke-dasharray="2 9" class="orbitReverse"/>
+    <circle cx="214" cy="122" r="116" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="2 10" class="orbit"/>
+    <path d="M214 122 L214 -28 A150 150 0 0 1 344 122 Z" fill="url(#sweepGrad)" opacity=".5">
+      <animateTransform attributeName="transform" type="rotate" from="0 214 122" to="360 214 122" dur="7s" repeatCount="indefinite"/>
+    </path>
     <circle cx="214" cy="122" r="92" fill="#030712" stroke="url(#chrome)" stroke-width="3" opacity=".96"/>
     <circle cx="214" cy="122" r="74" fill="none" stroke="#0e7490" stroke-opacity=".8" stroke-width="2"/>
-    <circle cx="214" cy="122" r="55" fill="#071525" stroke="#22d3ee" stroke-opacity=".55"/>
-    <image href="spartan-emblem.svg" x="166" y="74" width="96" height="96"/>
+    <circle cx="214" cy="122" r="62" fill="#071525" stroke="#22d3ee" stroke-opacity=".55"/>
+    <path d="M214 78 L258 92 V148 C258 172 238 180 214 184 C190 180 170 172 170 148 V92 Z" fill="#04101f" fill-opacity=".9" stroke="url(#shield)" stroke-width="2.5" filter="url(#textGlow)"/>
+    <text x="214" y="150" text-anchor="middle" font="900 30px 'Inter','Segoe UI',sans-serif" letter-spacing="2" fill="url(#headline)">ZB</text>
     <circle cx="214" cy="122" r="102" fill="none" stroke="#34d399" stroke-opacity=".45" stroke-width="2" stroke-dasharray="1 26" class="orbit"/>
     <circle cx="214" cy="-18" r="5" fill="#22d3ee" class="pulse" filter="url(#glow)"/>
     <circle cx="344" cy="122" r="5" fill="#818cf8" class="pulseLate" filter="url(#glow)"/>
@@ -180,7 +233,13 @@
       </g>
     </g>
 
-    <!-- Control gauge -->
+    <!-- Telemetry waveform -->
+    <g transform="translate(20 156)">
+      <path d="M0 20 L30 20 L44 4 L58 34 L72 12 L86 26 L100 8 L114 30 L128 16 L142 22 L156 10 L170 26 L184 14 L198 20 L212 6 L226 26 L240 18 L254 24 L268 12 L282 20 L308 20" fill="none" stroke="#1e293b" stroke-width="2"/>
+      <path d="M0 20 L30 20 L44 4 L58 34 L72 12 L86 26 L100 8 L114 30 L128 16 L142 22 L156 10 L170 26 L184 14 L198 20 L212 6 L226 26 L240 18 L254 24 L268 12 L282 20 L308 20" fill="none" stroke="url(#neon)" stroke-width="2" class="wave"/>
+    </g>
+
+    <!-- Control gauges -->
     <g transform="translate(22 194)">
       <circle cx="24" cy="14" r="14" fill="#0b1220" stroke="#1e293b" stroke-width="2"/>
       <path d="M24 6 A8 8 0 0 1 38 18" fill="none" stroke="url(#emerald)" stroke-width="3" stroke-linecap="round" class="gauge"/>
@@ -192,6 +251,15 @@
       <text x="238" y="22" class="micro" fill="#64748b">EXTERNAL EGRESS</text>
       <text x="306" y="22" text-anchor="end" class="metric" fill="#86efac">DENIED</text>
     </g>
+  </g>
+
+  <!-- Digital rain column -->
+  <g stroke="#22d3ee" stroke-opacity=".55" stroke-width="1" fill="none">
+    <path d="M978 90 v34" class="rain"/>
+    <path d="M988 100 v40" class="rain" style="animation-delay:.6s"/>
+    <path d="M998 84 v30" class="rain" style="animation-delay:1.2s"/>
+    <path d="M1372 96 v38" class="rain" style="animation-delay:1.8s"/>
+    <path d="M1382 108 v30" class="rain" style="animation-delay:2.4s"/>
   </g>
 
   <!-- Bottom cinematic signal rail -->
