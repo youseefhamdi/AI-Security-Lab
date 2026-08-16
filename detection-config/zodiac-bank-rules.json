@@ -107,6 +107,78 @@
       "when": ["fraud.risk_score >= review_threshold", "fraud.decision == review", "fraud.network.hub_detected == true"],
       "mitre_attack": ["Account Discovery", "Financial Theft"],
       "response": ["hold virtual operation", "open synthetic fraud case", "require independent fraud and compliance review"]
+    },
+    {
+      "id": "ZB-AI-011",
+      "title": "Agent-to-agent lateral movement or orchestrator route hijack",
+      "severity": "critical",
+      "log_sources": ["orchestrator", "a2a-router", "training-challenges"],
+      "when": ["lateral_move.compromised_source == true", "orchestrator.route not in policy", "delegation path exceeds max hops"],
+      "mitre_attack": ["Lateral Movement", "Use Alternate Authentication Material"],
+      "response": ["deny the move", "quarantine the compromised agent", "persist the attempted route"]
+    },
+    {
+      "id": "ZB-AI-012",
+      "title": "Attacker-controlled telemetry carries instruction-like content",
+      "severity": "critical",
+      "log_sources": ["mcp-wrapper", "a2a-knowledge", "training-challenges"],
+      "when": ["telemetry.source == attacker-controlled", "telemetry.instruction_markers > 0"],
+      "mitre_atlas": ["AI agent tool poisoning", "indirect prompt injection"],
+      "response": ["refuse the tool action", "preserve event origin", "require human review"]
+    },
+    {
+      "id": "ZB-AI-013",
+      "title": "Non-human identity lifecycle or delegation relay violation",
+      "severity": "high",
+      "log_sources": ["training-gate", "orchestrator", "a2a-router"],
+      "when": ["credential.revoked or credential.expired", "credential.rotation_due", "delegation.subject reused", "delegation scope widened"],
+      "mitre_attack": ["Use Alternate Authentication Material", "Valid Accounts"],
+      "response": ["block the credential", "rotate and revoke", "escalate to compliance"]
+    },
+    {
+      "id": "ZB-AI-014",
+      "title": "Hidden or obfuscated multimodal instruction crosses to an action",
+      "severity": "high",
+      "log_sources": ["aurora", "a2a-knowledge", "training-challenges"],
+      "when": ["multimodal.hidden_markers > 0", "multimodal.obfuscated == true", "channel == untrusted"],
+      "mitre_atlas": ["multimodal prompt injection", "obfuscated prompt injection"],
+      "response": ["quarantine the content", "deny the cross-modal action", "preserve the source channel"]
+    },
+    {
+      "id": "ZB-AI-015",
+      "title": "GenAI trace is missing spans or correlation",
+      "severity": "medium",
+      "log_sources": ["orchestrator", "a2a-router", "mcp-wrapper"],
+      "when": ["trace.orphaned_spans > 0", "trace.security_events == 0", "agent span lacks tool span"],
+      "mitre_atlas": ["evasion"],
+      "response": ["attach the missing spans", "correlate the trace", "open a detection-gap task"]
+    },
+    {
+      "id": "ZB-AI-016",
+      "title": "Runtime supply-chain drift, registry squat, or rug-pull",
+      "severity": "critical",
+      "log_sources": ["mcp-wrapper", "dependency-sweeper", "orchestrator"],
+      "when": ["artifact.digest != pinned", "manifest.digest changed after approval", "registry.name near-collision"],
+      "mitre_attack": ["Supply Chain Compromise", "Poisoned Pipeline Execution"],
+      "response": ["deny the artifact or tool", "pin the approved baseline", "open a supply-chain case"]
+    },
+    {
+      "id": "ZB-AI-017",
+      "title": "Deepfake or agentic fraud orchestration signal",
+      "severity": "high",
+      "log_sources": ["training-challenges", "fraud-engine", "orchestrator"],
+      "when": ["deepfake.risk_score >= review_threshold", "scam.pretext_count > 0 and transfer_count > 0", "mule.hub_detected == true"],
+      "mitre_attack": ["Financial Theft", "Account Discovery"],
+      "response": ["hold the operation", "open a synthetic fraud case", "require fraud and compliance review"]
+    },
+    {
+      "id": "ZB-AI-018",
+      "title": "Detector regresses under mutation or transfer",
+      "severity": "medium",
+      "log_sources": ["training-challenges", "orchestrator", "evaluation"],
+      "when": ["evaluation.regression_found == true", "evaluation.transfer_gap_found == true", "detector recall < threshold"],
+      "mitre_atlas": ["adversarial evaluation"],
+      "response": ["remediate the detector", "expand the corpus", "record the regression threshold"]
     }
   ]
 }

@@ -466,6 +466,15 @@ def check_phase1_agent_security() -> dict[str, Any]:
     return {"signed_identity": True, "mcp_manifest_and_allowlist": True, "a2a_child_delegation": True, "orchestrator_binding": True, "replay_and_audience_controls": True}
 
 
+def check_phase5_agentic_2026() -> dict[str, Any]:
+    from zodiac_phase5_test import run_all
+
+    report = run_all()
+    assert report["status"] == "pass", "phase 5 agentic-2026 regression failed"
+    assert len(report["checks"]) == 8
+    return {"checks": len(report["checks"]), "control_plane": True, "agentjacking": True, "nhi_lifecycle": True, "multimodal_injection": True, "otel_genai_telemetry": True, "supply_chain_runtime": True, "fraud_agentic": True, "evolutionary_eval": True}
+
+
 def check_runtime_security() -> dict[str, Any]:
     compose = COMPOSE_PATH.read_text(encoding="utf-8")
     gate = (ROOT / "training-gate" / "main.py").read_text(encoding="utf-8")
@@ -512,6 +521,7 @@ def main() -> int:
         ("ai_threat_model_and_detection", check_ai_threat_model),
         ("hard_scenario_range", check_hard_scenario_range),
         ("phase1_agent_security", check_phase1_agent_security),
+        ("phase5_agentic_2026", check_phase5_agentic_2026),
         ("runtime_security_wiring", check_runtime_security),
     ]
     results: list[dict[str, Any]] = []

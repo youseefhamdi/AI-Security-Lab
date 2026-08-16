@@ -166,6 +166,78 @@
       "url": "https://blog.trailofbits.com/2025/10/22/prompt-injection-to-rce-in-ai-agents/",
       "confidence": "security-research",
       "observations": ["argument injection in pre-approved commands", "approval bypass patterns", "shell-disabled execution is not enough", "sandboxing and argument separation"]
+    },
+    {
+      "id": "csa-atlas-agentic-gap-2026",
+      "publisher": "Cloud Security Alliance",
+      "title": "MITRE ATT&CK and ATLAS Agentic Gap Analysis",
+      "published": "2026-03-27",
+      "url": "https://labs.cloudsecurityalliance.org/agentic/csa-research-note-atlas-agentic-gap-analysis-20260327/",
+      "confidence": "primary-research",
+      "observations": ["agent-to-agent lateral movement", "tool-chain poisoning", "orchestrator hijacking", "credential relay through delegation chains", "cross-session memory persistence", "MCP server compromise as a pivot"]
+    },
+    {
+      "id": "csa-agentjacking-2026",
+      "publisher": "Cloud Security Alliance / Tenet Security",
+      "title": "Agentjacking: MCP Injection Hijacks AI Coding Agents",
+      "published": "2026-06-12",
+      "url": "https://labs.cloudsecurityalliance.org/research/csa-research-note-agentjacking-mcp-sentry-injection-20260612/",
+      "confidence": "primary-research",
+      "observations": ["MCP telemetry injection via public DSN", "attacker-controlled diagnostic content", "command execution with developer privileges", "85 percent exploitation rate", "bypass of EDR, WAF, IAM, VPN"]
+    },
+    {
+      "id": "owasp-agentic-top10-2026",
+      "publisher": "OWASP GenAI Security Project",
+      "title": "OWASP Top 10 for Agentic Applications 2026",
+      "published": "2025-12-09",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "confidence": "primary-guidance",
+      "observations": ["agent goal hijack", "tool misuse", "identity and privilege abuse", "agentic supply chain", "insecure inter-agent communication", "cascading failures", "human-agent trust", "rogue agents"]
+    },
+    {
+      "id": "openclaw-cve-2026-25253",
+      "publisher": "NVD / SonicWall",
+      "title": "OpenClaw Auth Token Theft Leading to RCE (CVE-2026-25253)",
+      "published": "2026-02-26",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-25253",
+      "confidence": "vulnerability-advisory",
+      "observations": ["CSRF auth-token theft", "one-click remote code execution", "agent platform gateway trust"]
+    },
+    {
+      "id": "openclaw-cve-2026-24763",
+      "publisher": "CVE / SentinelOne",
+      "title": "OpenClaw Command Injection RCE (CVE-2026-24763)",
+      "published": "2026-02-02",
+      "url": "https://www.cve.org/CVERecord?id=CVE-2026-24763",
+      "confidence": "vulnerability-advisory",
+      "observations": ["PATH environment handling in sandbox execution", "command injection", "unsafe agent execution design"]
+    },
+    {
+      "id": "bcg-agentic-fraud-2026",
+      "publisher": "Boston Consulting Group",
+      "title": "Agentic AI Will Industrialize Financial Scams",
+      "published": "2026-06-11",
+      "url": "https://www.bcg.com/publications/2026/how-agentic-ai-will-industrialize-financial-scams",
+      "confidence": "industry-report",
+      "observations": ["scam cost reduction of 90 percent", "volume surge", "deepfake payment fraud", "mule networks", "synthetic identities"]
+    },
+    {
+      "id": "otel-genai-semconv-2026",
+      "publisher": "OpenTelemetry",
+      "title": "Semantic Conventions for Generative AI",
+      "published": "2026-05-14",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/",
+      "confidence": "primary-guidance",
+      "observations": ["LLM client spans", "agent spans", "MCP tool spans", "prompt and completion events", "trace correlation"]
+    },
+    {
+      "id": "csa-image-prompt-injection-2026",
+      "publisher": "Cloud Security Alliance",
+      "title": "Image-Based Prompt Injection in Multimodal LLMs",
+      "published": "2026-03-08",
+      "url": "https://labs.cloudsecurityalliance.org/research/csa-research-note-image-prompt-injection-multimodal-llm-2026/",
+      "confidence": "primary-research",
+      "observations": ["hidden text in images", "OCR-based injection", "typographic obfuscation", "cross-modal instruction transfer"]
     }
   ],
   "threats": [
@@ -333,6 +405,94 @@
       "controls": ["adaptive evaluation sets", "scenario transfer testing", "held-out cases", "regression thresholds"],
       "detection_rule_ids": ["ZB-AI-006", "ZB-AI-010"],
       "mappings": {"mitre_atlas": ["adversarial evaluation"], "agentic_risk": ["monitoring failure", "goal hijack"]}
+    },
+    {
+      "id": "ZBT-16",
+      "name": "Agent-to-agent lateral movement and orchestrator hijacking",
+      "stage_id": "L09-apt-capstone",
+      "surfaces": ["agent trust graph", "orchestrator routing", "delegation edges", "task metadata"],
+      "research_refs": ["csa-atlas-agentic-gap-2026", "owasp-agentic-top10-2026", "anthropic-ai-threat-map-2026"],
+      "safe_simulation": "Walk a bounded synthetic trust graph with explicitly allowed delegation edges and deny any compromised-source move that requests out-of-scope capabilities.",
+      "controls": ["pinned route policy", "delegation depth bounds", "capability narrowing", "compromise quarantine", "approval checkpoints"],
+      "detection_rule_ids": ["ZB-AI-011", "ZB-AI-013"],
+      "mappings": {"mitre_attack": ["Lateral Movement", "Use Alternate Authentication Material"], "agentic_risk": ["insecure inter-agent communication", "identity and privilege abuse"]}
+    },
+    {
+      "id": "ZBT-17",
+      "name": "Agentjacking via MCP telemetry injection",
+      "stage_id": "L04-agent-protocols",
+      "surfaces": ["MCP telemetry events", "diagnostic content", "tool-call decision chain", "write-only ingest endpoints"],
+      "research_refs": ["csa-agentjacking-2026", "openclaw-cve-2026-25253", "owasp-agentic-top10-2026"],
+      "safe_simulation": "Classify a synthetic telemetry event by source trust and instruction-like markers, then refuse any tool action derived from attacker-controlled content.",
+      "controls": ["telemetry source allowlists", "instruction-marker detection", "tool-action refusal", "no command execution", "attribution of content origin"],
+      "detection_rule_ids": ["ZB-AI-012", "ZB-AI-016"],
+      "mappings": {"mitre_atlas": ["AI agent tool poisoning", "indirect prompt injection"], "agentic_risk": ["tool misuse", "goal hijack"]}
+    },
+    {
+      "id": "ZBT-18",
+      "name": "Non-human identity lifecycle and delegation relay",
+      "stage_id": "L06-identity-control-plane",
+      "surfaces": ["service accounts", "OAuth tokens", "API keys", "agent delegation chains"],
+      "research_refs": ["csa-atlas-agentic-gap-2026", "owasp-agentic-top10-2026", "cisa-agentic-ai-2026"],
+      "safe_simulation": "Scan a bounded synthetic credential inventory for expiry, rotation due, orphaned owners, long-lived secrets, and delegation-chain capability widening.",
+      "controls": ["credential rotation", "expiry enforcement", "revocation", "owner binding", "delegation narrowing"],
+      "detection_rule_ids": ["ZB-AI-013", "ZB-AI-004"],
+      "mappings": {"mitre_attack": ["Use Alternate Authentication Material", "Valid Accounts"], "agentic_risk": ["identity and privilege abuse"]}
+    },
+    {
+      "id": "ZBT-19",
+      "name": "Multimodal and vision prompt injection",
+      "stage_id": "L02-prompt-injection",
+      "surfaces": ["image alt and caption text", "SVG text nodes", "OCR'd screenshots", "audio transcripts"],
+      "research_refs": ["csa-image-prompt-injection-2026", "owasp-llm01-2025", "unit42-web-idpi-2026"],
+      "safe_simulation": "Detect harmless hidden instruction markers and typographic obfuscation in synthetic multimodal fields, then quarantine cross-modal action requests.",
+      "controls": ["cross-modal extraction", "zero-width and homoglyph detection", "deny-untrusted channel policy", "output validation"],
+      "detection_rule_ids": ["ZB-AI-014", "ZB-AI-001"],
+      "mappings": {"mitre_atlas": ["multimodal prompt injection", "obfuscated prompt injection"], "agentic_risk": ["goal hijack"]}
+    },
+    {
+      "id": "ZBT-20",
+      "name": "GenAI observability and trace-correlation gap",
+      "stage_id": "L08-detection-evasion",
+      "surfaces": ["agent spans", "MCP tool spans", "LLM client spans", "security events"],
+      "research_refs": ["otel-genai-semconv-2026", "cisa-agentic-ai-2026"],
+      "safe_simulation": "Build a coherent in-memory GenAI trace tree and measure orphaned spans, missing correlation, and security-event coverage without an exporter.",
+      "controls": ["trace correlation", "agent and tool span coverage", "security event attachment", "usage counters"],
+      "detection_rule_ids": ["ZB-AI-015", "ZB-AI-010"],
+      "mappings": {"mitre_atlas": ["evasion"], "agentic_risk": ["evasion and monitoring failure"]}
+    },
+    {
+      "id": "ZBT-21",
+      "name": "Runtime agentic supply chain and registry squatting",
+      "stage_id": "L07-supply-chain",
+      "surfaces": ["poisoned GGUF and artifacts", "MCP registry names", "live tool rug-pulls", "manifest drift"],
+      "research_refs": ["csa-agentjacking-2026", "openclaw-cve-2026-24763", "owasp-agentic-top10-2026"],
+      "safe_simulation": "Verify a synthetic artifact digest against a pinned baseline, detect a live rug-pull, and flag near-name registry collisions without installing anything.",
+      "controls": ["digest pinning", "approved sources", "manifest fingerprints", "rug-pull diffing", "squat detection"],
+      "detection_rule_ids": ["ZB-AI-016", "ZB-AI-002"],
+      "mappings": {"mitre_attack": ["Supply Chain Compromise", "Poisoned Pipeline Execution"], "mitre_atlas": ["ML supply-chain compromise"], "agentic_risk": ["agentic supply chain"]}
+    },
+    {
+      "id": "ZBT-22",
+      "name": "Deepfake and agentic financial fraud orchestration",
+      "stage_id": "L09-apt-capstone",
+      "surfaces": ["biometric and liveness checks", "scam pretexts", "mule accounts", "transaction fan-out"],
+      "research_refs": ["bcg-agentic-fraud-2026", "anthropic-ai-espionage-2025", "google-gtig-ai-threat-tracker-2025"],
+      "safe_simulation": "Score synthetic deepfake and orchestrated-scam signals and flag mule hubs; never move money or contact a real party.",
+      "controls": ["liveness and voiceprint checks", "device reputation", "velocity and fan-out limits", "mule hub detection", "human review"],
+      "detection_rule_ids": ["ZB-AI-017", "ZB-FRAUD-001"],
+      "mappings": {"mitre_attack": ["Financial Theft", "Account Discovery"], "agentic_risk": ["excessive agency", "identity and privilege abuse"]}
+    },
+    {
+      "id": "ZBT-23",
+      "name": "Evolutionary and mutation-based adversarial evaluation",
+      "stage_id": "L08-detection-evasion",
+      "surfaces": ["attack templates", "detector variants", "transfer matrices", "regression thresholds"],
+      "research_refs": ["nist-agent-redteam-2026", "owasp-agentic-top10-2026"],
+      "safe_simulation": "Mutate harmless abstract attack templates deterministically and measure detector regression and transfer without calling a model.",
+      "controls": ["mutation testing", "evolutionary corpora", "transfer matrices", "regression tracking", "held-out cases"],
+      "detection_rule_ids": ["ZB-AI-018", "ZB-AI-006"],
+      "mappings": {"mitre_atlas": ["adversarial evaluation"], "agentic_risk": ["monitoring failure"]}
     }
   ],
   "campaigns": [

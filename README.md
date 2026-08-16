@@ -36,6 +36,7 @@
 - [Graph and context engineering](#-graph-and-context-engineering)
 - [Phase 1 agent identity and capability security](#-phase-1-agent-identity-and-capability-security)
 - [Phases 2–4 security controls](#-phases-24-security-controls)
+- [Phase 5 agentic-2026 control range](#-phase-5-agentic-2026-control-range)
 - [AI threat curriculum and APT range](#-ai-threat-curriculum-and-apt-range)
 - [Hard scenario range](#-hard-scenario-range)
 - [Security audit status](#-security-audit-status)
@@ -1023,6 +1024,31 @@ POST /api/bank/checkpoints/{checkpoint_id}/recover
 
 Details: [`docs/phases-2-4-security-controls.md`](docs/phases-2-4-security-controls.md).
 
+## 🧨 Phase 5 agentic-2026 control range
+
+The gap analysis identified eight 2026 attack areas that were previously only documented. They are now executable, local-only control modules with regression coverage:
+
+- **Agentic control-plane** — agent-to-agent lateral movement, orchestrator hijacking, delegation-chain credential relay, cross-session memory persistence, and MCP-server-compromise pivots.
+- **Agentjacking** — MCP telemetry/DSN injection decision chain (Tenet Security / CSA 2026): attacker-controlled diagnostic content is refused before any tool action.
+- **Non-human identity lifecycle** — rotation, revocation, expiry, orphan detection, and delegation narrowing.
+- **Multimodal injection** — hidden text, zero-width and homoglyph obfuscation, and cross-modal action refusal.
+- **OpenTelemetry GenAI telemetry** — agent, tool, and security-event spans with trace correlation and orphan detection.
+- **Runtime supply chain** — digest pinning, registry squatting, and live tool rug-pull detection.
+- **Deepfake / agentic fraud** — liveness bypass, scam orchestration, and mule-hub detection.
+- **Evolutionary evaluation** — mutation and transfer-based detector regression without a single model call.
+
+```mermaid
+flowchart TB
+  P4["🛡️ Phase 4<br/>Recovery · Resilience"] --> P5["🧨 Phase 5<br/>Agentic Control-Plane · Agentjacking<br/>NHI · Multimodal · OTel · Fraud"]
+  P5 --> EV["🔬 Evolutionary Evaluation<br/>mutation + transfer, zero model calls"]
+```
+
+New modules: `zodiac_control_plane.py`, `zodiac_agentjacking.py`, `zodiac_nhi.py`, `zodiac_multimodal.py`, `zodiac_otel.py`, `zodiac_supply_chain_runtime.py`, `zodiac_fraud_agentic.py`, `zodiac_evolutionary_eval.py`.
+
+The threat model grows to **23 threats** and the detection ruleset to **19 rules** (`ZB-AI-011` … `ZB-AI-018`). Run the focused suite with `PYTHONPATH=scripts python3 scripts/zodiac_phase5_test.py`, or the full offline evaluator with `python3 scripts/zodiac_bank_eval.py`.
+
+Details: [`docs/phase5-agentic-2026.md`](docs/phase5-agentic-2026.md).
+
 ## 🛰️ AI threat curriculum and APT range
 
 The lab now includes a dated, research-informed threat curriculum rather than generic attack labels. It exists to teach students, not to publish research:
@@ -1267,7 +1293,7 @@ a2a-agents/            A2A Router and Knowledge Agent
 rag-docs/              Synthetic Zodiac Bank knowledge corpus
 sensitive-data/        Honeypot credentials and internal fixtures
 exercises/             Recon, attack, evasion, and fingerprint exercises
-scripts/               Startup, seeding, detection, evaluation, threat modeling, bank simulation, orchestration, verification, and progression helpers
+scripts/               Startup, seeding, detection, evaluation, threat modeling, bank simulation, orchestration, verification, progression, and Phase 5 agentic-2026 control helpers (control-plane, agentjacking, NHI, multimodal, OTel, supply-chain, fraud, evolutionary eval)
 graph-context/         Authenticated graph and context engineering service
 docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
