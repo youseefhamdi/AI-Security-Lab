@@ -153,6 +153,34 @@ def check_hard_scenario_range() -> dict[str, Any]:
     return result
 
 
+def check_flag_progression() -> dict[str, Any]:
+    """Full 10-stage flag progression, driven through the real service code.
+
+    Enrolls a learner, solves every required scenario per stage (using the same
+    per-run candidate pools the trainer UI exposes), synthesizes each stage to
+    issue its hard flag, submits the flag to the gate, and asserts the exact
+    next stage unlocks -- through L09 and curriculum completion. Also exercises
+    the negative paths: wrong evidence, tampered chained proof, invalid flag,
+    locked-stage flag, and idempotent re-submission. Offline-safe: all state is
+    a temp SQLite file under the system temp dir, with a stubbed FastAPI.
+    """
+    from zodiac_bank_progression_test import run_progression
+
+    report = run_progression()
+    assert report["passed"], "full 10-stage flag progression failed"
+    assert report["stages_completed"] == 10, "expected exactly 10 completed stages"
+    assert report["total_scenarios"] == 45, "expected all 45 scenarios solved"
+    assert all(value is True for value in report["negatives"].values()), "a negative path check failed"
+    last = report["stages"][-1]
+    assert last["stage_id"] == "L09-apt-capstone" and last["next_stage_id"] is None, "capstone did not complete the curriculum"
+    return {
+        "stages_completed": report["stages_completed"],
+        "scenarios_solved": report["total_scenarios"],
+        "negative_checks": len(report["negatives"]),
+        "curriculum_complete": True,
+    }
+
+
 def check_runtime_security() -> dict[str, Any]:
     compose = COMPOSE_PATH.read_text(encoding="utf-8")
     graph_service = (ROOT / "graph-context" / "main.py").read_text(encoding="utf-8")
@@ -182,6 +210,7 @@ def main() -> int:
     checks: list[tuple[str, Callable[[], dict[str, Any]]]] = [
         ("curriculum_progression", lambda: check_curriculum()),
         ("flag_pipeline_consistency", check_flag_pipeline),
+        ("flag_progression_e2e", check_flag_progression),
         ("canonical_graph", lambda: check_graph(bank, workflows)),
         ("context_contract", lambda: check_context(bank, workflows)),
         ("workflow_orchestrator_symmetry", lambda: check_workflows(bank, workflows)),

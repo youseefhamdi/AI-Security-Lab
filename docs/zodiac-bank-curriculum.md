@@ -177,6 +177,15 @@ In strict mode, learner progress and flag submission also require the instructor
 
 Hints are released only after the stage is unlocked. The next difficulty is not released by reading a hint; it requires valid scenario evidence and an accepted stage synthesis before the hard flag can be submitted.
 
+## Flag progression verification
+
+`scripts/zodiac_bank_progression_test.py` walks the complete 10-stage flag chain through the real service code (FastAPI stubbed, real SQLite state, real HMAC secrets): enroll, solve every required scenario per stage via the trainer candidate pools, synthesize each stage, submit the hard flag to the gate, and assert the exact next stage unlocks through L09 and curriculum completion. It also exercises the negative paths (wrong evidence, tampered chained proof, invalid flag, locked-stage flag, idempotent re-submission). The offline evaluator runs the same journey as the `flag_progression_e2e` regression check:
+
+```bash
+python3 scripts/zodiac_bank_progression_test.py
+python3 scripts/zodiac_bank_eval.py
+```
+
 ## Security boundary
 
 - Keep every service bound to `127.0.0.1`.

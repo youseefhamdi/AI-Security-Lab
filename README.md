@@ -899,8 +899,12 @@ RUNTIME=1 ./exercises/evasion_practice.sh
 # Research-backed synthetic AI/APT campaign packet
 python3 scripts/zodiac_bank_threats.py --campaign ai-apt-campaign --format json --output logs/ai-apt-campaign.json
 
-# Validate the hard multi-step scenario range
+# Validate the hard multi-step scenario range and flag pipeline
 python3 scripts/zodiac_bank_eval.py
+
+# Walk all 10 stages end-to-end: solve every scenario, synthesize each stage,
+# submit the hard flag to the gate, and confirm the next stage unlocks
+python3 scripts/zodiac_bank_progression_test.py
 ```
 
 The written exercises and attack notes are available in:
