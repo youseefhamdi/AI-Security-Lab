@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "bank_id": "ZB-BANK-001",
+  "classification": "synthetic-training-only",
+  "safety": {
+    "network": "localhost-only",
+    "real_money": false,
+    "external_accounts": false,
+    "external_egress": false,
+    "settlement": "in-memory-virtual-ledger-only",
+    "side_effects": false
+  },
+  "employees": [
+    {"employee_id": "ZB-EMP-001", "staff_id": "ZB-STF-001", "worker_id": "branch-manager-north", "role": "branch_manager", "branch_id": "ZB-BR-001", "approval_limit_cents": 1000000},
+    {"employee_id": "ZB-EMP-002", "staff_id": "ZB-STF-002", "worker_id": "branch-manager-east", "role": "branch_manager", "branch_id": "ZB-BR-002", "approval_limit_cents": 1000000},
+    {"employee_id": "ZB-EMP-003", "staff_id": "ZB-STF-003", "worker_id": "branch-manager-west", "role": "branch_manager", "branch_id": "ZB-BR-003", "approval_limit_cents": 1000000},
+    {"employee_id": "ZB-EMP-004", "staff_id": "ZB-STF-004", "worker_id": "fraud-analyst", "role": "fraud_analyst", "branch_id": "ZB-BR-002", "approval_limit_cents": 100000000},
+    {"employee_id": "ZB-EMP-005", "staff_id": "ZB-STF-005", "worker_id": "compliance-officer", "role": "compliance_officer", "branch_id": "ZB-BR-001", "approval_limit_cents": 100000000},
+    {"employee_id": "ZB-EMP-006", "staff_id": "ZB-STF-006", "worker_id": "credit-reviewer", "role": "credit_reviewer", "branch_id": "ZB-BR-003", "approval_limit_cents": 5000000},
+    {"employee_id": "ZB-EMP-007", "staff_id": "ZB-STF-007", "worker_id": "teller-north", "role": "teller", "branch_id": "ZB-BR-001", "approval_limit_cents": 250000},
+    {"employee_id": "ZB-EMP-008", "staff_id": "ZB-STF-008", "worker_id": "teller-east", "role": "teller", "branch_id": "ZB-BR-002", "approval_limit_cents": 250000},
+    {"employee_id": "ZB-EMP-009", "staff_id": "ZB-STF-009", "worker_id": "teller-west", "role": "teller", "branch_id": "ZB-BR-003", "approval_limit_cents": 250000},
+    {"employee_id": "ZB-EMP-010", "staff_id": "ZB-STF-010", "worker_id": "payments-analyst", "role": "payments_analyst", "branch_id": "ZB-BR-001", "approval_limit_cents": 10000000},
+    {"employee_id": "ZB-EMP-011", "staff_id": "ZB-STF-011", "worker_id": "aml-investigator", "role": "aml_investigator", "branch_id": "ZB-BR-002", "approval_limit_cents": 100000000},
+    {"employee_id": "ZB-EMP-012", "staff_id": "ZB-STF-012", "worker_id": "receipt-verifier", "role": "receipt_verifier", "branch_id": "ZB-BR-001", "approval_limit_cents": 0}
+  ],
+  "virtual_accounts": [
+    {"account_id": "ZB-ACCT-1001", "opening_balance_cents": 2500000, "cash_cap_cents": 500000},
+    {"account_id": "ZB-ACCT-1002", "opening_balance_cents": 5000000, "cash_cap_cents": 0},
+    {"account_id": "ZB-ACCT-2001", "opening_balance_cents": 7500000, "cash_cap_cents": 1000000},
+    {"account_id": "ZB-ACCT-3001", "opening_balance_cents": 800000, "cash_cap_cents": 250000},
+    {"account_id": "ZB-ACCT-4001", "opening_balance_cents": 1500000, "cash_cap_cents": 500000}
+  ],
+  "operation_types": {
+    "transfer": {"direction": "account-to-account", "requires_source": true, "requires_destination": true, "receipt": true},
+    "receive": {"direction": "cash-to-account", "requires_source": false, "requires_destination": true, "receipt": true},
+    "withdraw": {"direction": "account-to-cash", "requires_source": true, "requires_destination": false, "receipt": true}
+  },
+  "limits": {
+    "single_operation_max_cents": 10000000,
+    "receive_max_cents": 500000,
+    "withdraw_max_cents": 1000000,
+    "high_value_threshold_cents": 1000000,
+    "daily_virtual_ledger_max_cents": 25000000
+  },
+  "approval_policy": {
+    "receive": {"required_roles": ["branch_manager"], "distinct_approvers": 1},
+    "withdraw": {"required_roles": ["branch_manager"], "distinct_approvers": 1},
+    "transfer": {"required_roles": ["payments_analyst"], "distinct_approvers": 1},
+    "high_value": {"required_roles": ["payments_analyst", "compliance_officer"], "distinct_approvers": 2},
+    "high_risk_customer": {"required_roles": ["fraud_analyst", "compliance_officer"], "distinct_approvers": 2}
+  },
+  "employee_loop_workflows": [
+    {"workflow_id": "receive-deposit", "operation_type": "receive", "max_steps": 6, "max_retries": 2, "approval_required": true, "route": ["teller-north", "branch-manager-north", "receipt-verifier"]},
+    {"workflow_id": "cash-withdrawal", "operation_type": "withdraw", "max_steps": 7, "max_retries": 2, "approval_required": true, "route": ["teller-north", "branch-manager-north", "fraud-analyst", "receipt-verifier"]},
+    {"workflow_id": "internal-transfer", "operation_type": "transfer", "max_steps": 8, "max_retries": 3, "approval_required": true, "route": ["payments-analyst", "fraud-analyst", "compliance-officer", "receipt-verifier"]},
+    {"workflow_id": "high-value-transfer", "operation_type": "transfer", "max_steps": 10, "max_retries": 3, "approval_required": true, "route": ["payments-analyst", "aml-investigator", "compliance-officer", "receipt-verifier"]}
+  ],
+  "receipt_policy": {
+    "format": "ZB-RECEIPT-<operation-id>-<ledger-sequence>",
+    "immutable": true,
+    "contains_raw_customer_data": false,
+    "hash_algorithm": "sha256"
+  }
+}

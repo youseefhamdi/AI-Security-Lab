@@ -9,12 +9,14 @@ from pathlib import Path
 from typing import Any
 
 from zodiac_graph import build_graph, validate_graph
+from zodiac_bank_simulator import BankMemory, BankValidationError
 
 ROOT = Path(__file__).resolve().parent.parent
 BANK_PATH = ROOT / "bank-data" / "zodiac-bank.json"
 WORKFLOW_PATH = ROOT / "bank-data" / "workflows.json"
+FINANCIAL_OPERATIONS_PATH = ROOT / "bank-data" / "financial-operations.json"
 ORCHESTRATOR_PATH = ROOT / "orchestrator-config" / "zodiac-bank.json"
-CORPUS_PATH = ROOT / "rag-docs" / "Zodiac_Bank_Reference.md"
+CORPUS_PATH = ROOT / "rag-docs"
 
 
 def fail(errors: list[str]) -> None:
@@ -44,8 +46,15 @@ def ids(records: list[dict[str, Any]], key: str, label: str, errors: list[str]) 
 def main() -> int:
     bank = load(BANK_PATH)
     workflows = load(WORKFLOW_PATH)
+    financial_operations = load(FINANCIAL_OPERATIONS_PATH)
     orchestrator = load(ORCHESTRATOR_PATH)
     errors: list[str] = []
+    try:
+        virtual_bank = BankMemory(bank, financial_operations)
+        if len(virtual_bank.employees) != 12 or len(virtual_bank.balances) != 5:
+            errors.append("financial operation model does not contain the expected employee/account set")
+    except (BankValidationError, KeyError, TypeError, ValueError) as exc:
+        errors.append(f"financial operation model failed validation: {exc}")
 
     branch_ids = ids(bank["branches"], "branch_id", "branches", errors)
     staff_ids = ids(bank["staff"], "staff_id", "staff", errors)
@@ -122,10 +131,11 @@ def main() -> int:
     except (KeyError, TypeError, ValueError) as exc:
         errors.append(f"graph construction failed: {exc}")
 
-    if not CORPUS_PATH.is_file():
+    corpus_paths = sorted(CORPUS_PATH.glob("*.md")) if CORPUS_PATH.is_dir() else []
+    if not corpus_paths:
         errors.append(f"canonical RAG corpus is missing: {CORPUS_PATH}")
     else:
-        corpus = CORPUS_PATH.read_text(encoding="utf-8")
+        corpus = "\n".join(path.read_text(encoding="utf-8") for path in corpus_paths)
         for entity_id in sorted(all_entity_ids):
             if entity_id not in corpus:
                 errors.append(f"RAG corpus is missing canonical entity {entity_id}")

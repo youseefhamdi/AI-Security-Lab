@@ -5,7 +5,8 @@
   "workflow_source": "bank-data/workflows.json",
   "capabilities": {
     "graph_engineering": {"service": "zodiac-context", "schema_version": 1, "bounded_traversal_depth": 3},
-    "context_engineering": {"service": "zodiac-context", "schema_version": 1, "max_packet_chars": 16000, "evidence_is_untrusted": true}
+    "context_engineering": {"service": "zodiac-context", "schema_version": 1, "max_packet_chars": 16000, "evidence_is_untrusted": true},
+    "financial_operations": {"service": "zodiac-bank-memory", "source": "bank-data/financial-operations.json", "virtual_ledger": true, "maker_checker": true, "external_egress": false, "real_money": false}
   },
   "workers": [
     "customer-support",
@@ -19,13 +20,23 @@
     "siem-analyst",
     "supply-chain-reviewer",
     "graph-context-engineer",
-    "context-engineer"
+    "context-engineer",
+    "teller-north",
+    "teller-east",
+    "teller-west",
+    "payments-analyst",
+    "aml-investigator",
+    "receipt-verifier"
   ],
   "workflows": [
     {"workflow_id": "customer-onboarding", "delegates_to": ["customer-support", "branch-manager-north", "compliance-officer", "branch-manager-east", "fraud-analyst"]},
     {"workflow_id": "fraud-investigation", "delegates_to": ["fraud-analyst", "compliance-officer", "branch-manager-east", "siem-analyst"]},
     {"workflow_id": "credit-review", "delegates_to": ["credit-reviewer", "branch-manager-west", "compliance-officer", "fraud-analyst"]},
     {"workflow_id": "support-escalation", "delegates_to": ["customer-support", "knowledge-retriever", "branch-manager-north", "fraud-analyst", "siem-analyst"]},
-    {"workflow_id": "ai-incident-response", "delegates_to": ["siem-analyst", "knowledge-retriever", "customer-support", "compliance-officer", "fraud-analyst", "supply-chain-reviewer"]}
+    {"workflow_id": "ai-incident-response", "delegates_to": ["siem-analyst", "knowledge-retriever", "customer-support", "compliance-officer", "fraud-analyst", "supply-chain-reviewer"]},
+    {"workflow_id": "receive-deposit", "delegates_to": ["teller-north", "branch-manager-north", "receipt-verifier"]},
+    {"workflow_id": "cash-withdrawal", "delegates_to": ["teller-north", "branch-manager-north", "fraud-analyst", "receipt-verifier"]},
+    {"workflow_id": "internal-transfer", "delegates_to": ["payments-analyst", "fraud-analyst", "compliance-officer", "receipt-verifier"]},
+    {"workflow_id": "high-value-transfer", "delegates_to": ["payments-analyst", "aml-investigator", "compliance-officer", "receipt-verifier"]}
   ]
 }

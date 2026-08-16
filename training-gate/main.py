@@ -14,9 +14,16 @@ import os
 import re
 import secrets
 import sqlite3
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+PROFILE_SCRIPT_DIR = Path(__file__).resolve().parent.parent / "scripts"
+if PROFILE_SCRIPT_DIR.is_dir() and str(PROFILE_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROFILE_SCRIPT_DIR))
+
+from zodiac_bank_profiles import load_profiles, profile_by_id, profile_for_stage, public_profile  # noqa: E402
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -25,6 +32,9 @@ APP_TITLE = "Zodiac Bank AI Security Training Gate"
 CURRICULUM_PATH = Path(os.environ.get("TRAINING_CURRICULUM", "/app/config/curriculum.json"))
 STATE_PATH = Path(os.environ.get("TRAINING_STATE_DB", "/var/lib/training/progress.sqlite3"))
 ARTIFACT_DIR = Path(os.environ.get("TRAINING_ARTIFACT_DIR", "/var/lib/training/learners"))
+PROFILE_PATH = Path(os.environ.get("TRAINING_BANK_PROFILES", "/app/config/bank-profiles.json"))
+if not PROFILE_PATH.is_file():
+    PROFILE_PATH = Path(__file__).resolve().parent.parent / "training-config" / "bank-profiles.json"
 DEFAULT_FLAG_SECRET = "zodiac-bank-change-this-training-secret"
 FLAG_SECRET_VALUE = os.environ.get("TRAINING_FLAG_SECRET", DEFAULT_FLAG_SECRET)
 FLAG_SECRET = FLAG_SECRET_VALUE.encode("utf-8")
@@ -96,7 +106,9 @@ def load_curriculum() -> dict[str, Any]:
 
 
 CURRICULUM = load_curriculum()
+BANK_PROFILES = load_profiles(PROFILE_PATH)
 STAGES: dict[str, dict[str, Any]] = {stage["id"]: stage for stage in CURRICULUM["stages"]}
+INITIAL_PROFILE = BANK_PROFILES["profiles"][0]
 
 
 def flag_for(stage_id: str) -> str:
@@ -165,6 +177,13 @@ def connection() -> sqlite3.Connection:
             FOREIGN KEY(learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE
         );
         CREATE INDEX IF NOT EXISTS cohort_members_learner_idx ON cohort_members(learner_id);
+        CREATE TABLE IF NOT EXISTS learner_profiles (
+            learner_id TEXT PRIMARY KEY,
+            profile_id TEXT NOT NULL,
+            promotion_count INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY(learner_id) REFERENCES learners(learner_id) ON DELETE CASCADE
+        );
         """
     )
     db.commit()
@@ -217,7 +236,34 @@ def ensure_learner(db: sqlite3.Connection, learner_id: str) -> None:
         "INSERT INTO learners(learner_id, created_at, updated_at) VALUES (?, ?, ?) ON CONFLICT(learner_id) DO UPDATE SET updated_at=excluded.updated_at",
         (learner_id, timestamp, timestamp),
     )
+    db.execute(
+        "INSERT OR IGNORE INTO learner_profiles(learner_id, profile_id, promotion_count, updated_at) VALUES (?, ?, 0, ?)",
+        (learner_id, INITIAL_PROFILE["profile_id"], timestamp),
+    )
     db.commit()
+
+
+def bank_profile_view(db: sqlite3.Connection, learner_id: str) -> dict[str, Any]:
+    row = db.execute(
+        "SELECT profile_id, promotion_count, updated_at FROM learner_profiles WHERE learner_id=?",
+        (learner_id,),
+    ).fetchone()
+    if row is None:
+        raise HTTPException(status_code=500, detail="learner bank profile is unavailable")
+    profile = profile_by_id(BANK_PROFILES, str(row["profile_id"]))
+    return public_profile(profile, promotion_count=int(row["promotion_count"]), updated_at=str(row["updated_at"]))
+
+
+def promote_profile(db: sqlite3.Connection, learner_id: str, completed: set[str]) -> dict[str, Any]:
+    next_stage = current_stage(completed)
+    profile = profile_for_stage(BANK_PROFILES, next_stage["id"] if next_stage else None)
+    now = utc_now()
+    db.execute(
+        "UPDATE learner_profiles SET profile_id=?, promotion_count=promotion_count+1, updated_at=? WHERE learner_id=?",
+        (profile["profile_id"], now, learner_id),
+    )
+    row = db.execute("SELECT promotion_count FROM learner_profiles WHERE learner_id=?", (learner_id,)).fetchone()
+    return public_profile(profile, promotion_count=int(row["promotion_count"]) if row else 0, updated_at=now)
 
 
 def completed_stages(db: sqlite3.Connection, learner_id: str) -> set[str]:
@@ -322,6 +368,7 @@ def curriculum(learner_id: str = "default", x_training_learner_token: str = Head
             "lab_id": CURRICULUM["lab_id"],
             "title": CURRICULUM["title"],
             "learner_id": learner_id,
+            "bank_profile": bank_profile_view(db, learner_id),
             "stages": [stage_view(stage, completed, db, learner_id) for stage in CURRICULUM["stages"]],
         }
     finally:
@@ -331,6 +378,18 @@ def curriculum(learner_id: str = "default", x_training_learner_token: str = Head
 @app.get("/api/progress/{learner_id}")
 def progress(learner_id: str, x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
     return curriculum(learner_id, x_training_learner_token)
+
+
+@app.get("/api/bank/profile")
+def bank_profile(learner_id: str = "default", x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = validate_learner(learner_id)
+    db = connection()
+    try:
+        require_learner_access(db, learner_id, x_training_learner_token)
+        ensure_learner(db, learner_id)
+        return {"learner_id": learner_id, "profile": bank_profile_view(db, learner_id)}
+    finally:
+        db.close()
 
 
 @app.get("/api/lessons/{stage_id}")
@@ -348,7 +407,7 @@ def lesson(stage_id: str, learner_id: str = "default", x_training_learner_token:
         status = stage_status(stage, completed)
         if status == "locked":
             raise HTTPException(status_code=403, detail="complete prerequisite stages first")
-        return {"learner_id": learner_id, "stage": stage_view(stage, completed, db, learner_id)}
+        return {"learner_id": learner_id, "bank_profile": bank_profile_view(db, learner_id), "stage": stage_view(stage, completed, db, learner_id)}
     finally:
         db.close()
 
@@ -462,6 +521,10 @@ def reset_cohort(cohort_id: str, _: None = Depends(require_admin)) -> dict[str, 
             learner_id = member["learner_id"]
             db.execute("DELETE FROM completions WHERE learner_id=?", (learner_id,))
             db.execute("DELETE FROM submissions WHERE learner_id=?", (learner_id,))
+            db.execute(
+                "UPDATE learner_profiles SET profile_id=?, promotion_count=0, updated_at=? WHERE learner_id=?",
+                (INITIAL_PROFILE["profile_id"], utc_now(), learner_id),
+            )
             sync_active_artifact(learner_id, set())
         db.commit()
         return {"cohort_id": cohort_id, "reset_members": len(members), "status": "reset"}
@@ -488,13 +551,24 @@ def submit_flag(submission: FlagSubmission, x_training_learner_token: str = Head
             return {"accepted": True, "stage_id": stage["id"], "status": "completed", "message": "stage already completed"}
 
         # Serialize the check-and-complete sequence so concurrent requests cannot
-        # consume multiple attempts or race the same stage completion.
+        # consume multiple attempts or race the same stage completion. Re-read
+        # completion state after acquiring the write lock; the pre-lock snapshot
+        # above may already be stale when two valid submissions arrive together.
         db.execute("BEGIN IMMEDIATE")
+        completed = completed_stages(db, learner_id)
+        status = stage_status(stage, completed)
+        if status == "completed":
+            db.commit()
+            return {"accepted": True, "stage_id": stage["id"], "status": "completed", "message": "stage already completed"}
+        if status == "locked":
+            db.rollback()
+            raise HTTPException(status_code=403, detail="complete prerequisite stages first")
         attempts = db.execute(
             "SELECT COUNT(*) AS count FROM submissions WHERE learner_id=? AND stage_id=?",
             (learner_id, stage["id"]),
         ).fetchone()["count"]
         if attempts >= MAX_SUBMISSIONS_PER_STAGE:
+            db.rollback()
             raise HTTPException(status_code=429, detail="submission limit reached for this stage")
 
         submitted_flag = submission.flag.strip()
@@ -505,13 +579,15 @@ def submit_flag(submission: FlagSubmission, x_training_learner_token: str = Head
             (learner_id, stage["id"], digest_flag(submitted_flag), int(accepted), reason, utc_now()),
         )
         if accepted:
+            promoted_completed = completed | {stage["id"]}
             db.execute(
                 "INSERT OR IGNORE INTO completions(learner_id, stage_id, completed_at) VALUES (?, ?, ?)",
                 (learner_id, stage["id"], utc_now()),
             )
+            promoted_profile = promote_profile(db, learner_id, promoted_completed)
         db.commit()
         if accepted:
-            sync_active_artifact(learner_id, completed | {stage["id"]})
+            sync_active_artifact(learner_id, promoted_completed)
         if not accepted:
             raise HTTPException(status_code=401, detail="invalid hard flag")
 
@@ -521,7 +597,8 @@ def submit_flag(submission: FlagSubmission, x_training_learner_token: str = Head
             "stage_id": stage["id"],
             "status": "completed",
             "next_stage_id": next_stage["id"] if next_stage else None,
-            "message": "hard flag accepted; next stage unlocked" if next_stage else "hard flag accepted; curriculum complete",
+            "bank_profile": promoted_profile,
+            "message": "hard flag accepted; bank security profile promoted and next stage unlocked" if next_stage else "hard flag accepted; curriculum complete and bank moved to review-only profile",
         }
     finally:
         db.close()

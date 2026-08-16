@@ -30,7 +30,8 @@
     "agentic_detection": {"ruleset": "detection-config/zodiac-bank-rules.json", "bounded_campaign_planner": true, "side_effects": false},
     "apt_simulation": {"campaign": "ai-apt-campaign", "phases": 9, "human_approval_checkpoints": ["scope", "identity", "collection", "containment"]},
     "attack_flow": {"formats": ["synthetic-event", "mitre-attack", "mitre-atlas", "agentic-risk"], "immutable_evidence": true},
-    "hard_scenario_range": {"pack": "training-config/scenarios.json", "multi_step": true, "stage_synthesis": true, "evidence_tokens": true, "wrong_order_rejected": true, "replay_rejected": true}
+    "hard_scenario_range": {"pack": "training-config/scenarios.json", "multi_step": true, "stage_synthesis": true, "evidence_tokens": true, "wrong_order_rejected": true, "replay_rejected": true},
+    "dynamic_bank_profiles": {"pack": "training-config/bank-profiles.json", "promotion_trigger": "accepted-stage-flag", "state_store": "shared-training-sqlite", "future_profiles_hidden": true, "external_egress": false}
   },
   "stages": [
     {

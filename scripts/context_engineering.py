@@ -13,7 +13,10 @@ import re
 from pathlib import Path
 from typing import Any, Iterable
 
-from zodiac_graph import neighborhood
+try:
+    from zodiac_graph import neighborhood
+except ModuleNotFoundError:  # Support imports as scripts.context_engineering.
+    from .zodiac_graph import neighborhood
 
 SCHEMA_VERSION = 1
 MAX_QUERY_CHARS = 4_000

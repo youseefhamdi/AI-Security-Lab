@@ -99,6 +99,11 @@ LEARNER_TOKEN="$(jget "${RESP_BODY}" 'd["learner_token"]')"
 [[ -n "${LEARNER_TOKEN}" ]] || fail "cohort-add returned no learner token"
 LEARNER_AUTH="X-Training-Learner-Token: ${LEARNER_TOKEN}"
 log "Enrolled learner ${LEARNER_ID} in cohort ${COHORT_ID}"
+http_call GET "${GATE_URL}/api/bank/profile?learner_id=${LEARNER_ID}" "${LEARNER_AUTH}"
+[[ "${RESP_CODE}" == "200" ]] || fail "initial bank profile check failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
+initial_profile_stage="$(jget "${RESP_BODY}" 'd["profile"].get("stage_id")')"
+[[ "${initial_profile_stage}" == "L00-foundation" ]] || fail "learner did not start in foundation bank profile: ${initial_profile_stage}"
+log "BANK profile promoted dynamically: initial posture is foundation-observe"
 
 # --- 3. negative checks before the walk (learner is on L00) ----------------
 locked="$(expected_flag "L02-prompt-injection")"
@@ -189,6 +194,11 @@ print(json.dumps({"learner_id": sys.argv[3], "scenario_ids": req["scenario_ids"]
     expected_next="${STAGES[$((stage_index + 1))]}"
   fi
   [[ "${next}" == "${expected_next}" ]] || fail "${stage}: expected next stage '${expected_next}', got '${next}'"
+  promoted_profile_stage="$(jget "${RESP_BODY}" 'd["bank_profile"].get("stage_id")')"
+  [[ "${promoted_profile_stage}" == "${expected_next}" ]] || fail "${stage}: bank profile did not promote to '${expected_next}', got '${promoted_profile_stage}'"
+  promoted_level="$(jget "${RESP_BODY}" 'd["bank_profile"].get("level")')"
+  expected_level=$((stage_index + 2))
+  [[ "${promoted_level}" == "${expected_level}" ]] || fail "${stage}: expected bank security level ${expected_level}, got ${promoted_level}"
 
   if [[ -n "${expected_next}" ]]; then
     log "PASS ${stage} (${#scenario_ids[@]} scenarios) -> ${expected_next}"

@@ -33,7 +33,9 @@ services:
       retries: 20
 
   training-gate:
-    build: ./training-gate
+    build:
+      context: .
+      dockerfile: training-gate/Dockerfile
     container_name: zodiac-bank-training-gate
     ports:
       - "127.0.0.1:5050:5050"
@@ -45,6 +47,7 @@ services:
       TRAINING_SECURITY_MODE: ${TRAINING_SECURITY_MODE:-strict}
       TRAINING_MAX_SUBMISSIONS: ${TRAINING_MAX_SUBMISSIONS:-20}
       TRAINING_ARTIFACT_DIR: /var/lib/training/learners
+      TRAINING_BANK_PROFILES: /app/config/bank-profiles.json
     volumes:
       - ./training-config:/app/config:ro
       - training_data:/var/lib/training
@@ -67,6 +70,9 @@ services:
       TRAINING_SECURITY_MODE: ${TRAINING_SECURITY_MODE:-strict}
       TRAINING_ACCESS_DB: /var/lib/training/progress.sqlite3
       TRAINING_CHALLENGE_STATE_DB: /var/lib/training/challenges.sqlite3
+      TRAINING_BANK_PROFILES: /app/config/bank-profiles.json
+      ZODIAC_BANK_DATA_DIR: /app/bank-data
+      ZODIAC_RAG_DIR: /app/rag-docs
     volumes:
       - training_data:/var/lib/training
     mem_limit: 128m

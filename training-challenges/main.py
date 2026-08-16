@@ -17,6 +17,7 @@ import re
 import secrets
 import sqlite3
 import sys
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,9 @@ SCRIPT_DIR = Path(__file__).resolve().parent.parent / "scripts"
 if SCRIPT_DIR.is_dir() and str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from zodiac_bank_orchestrator import BankOrchestrator  # noqa: E402
+from zodiac_bank_profiles import load_profiles, profile_for_stage, public_profile  # noqa: E402
+from zodiac_bank_simulator import BankAuthorizationError, BankValidationError  # noqa: E402
 from zodiac_scenario_engine import (  # noqa: E402
     MAX_ATTEMPTS_PER_STEP,
     PROOF_KEY,
@@ -74,6 +78,7 @@ def find_config(name: str, local_relative: str) -> Path:
 
 CURRICULUM_PATH = find_config("TRAINING_CURRICULUM", "training-config/curriculum.json")
 SCENARIO_PATH = find_config("TRAINING_SCENARIOS", "training-config/scenarios.json")
+PROFILE_PATH = find_config("TRAINING_BANK_PROFILES", "training-config/bank-profiles.json")
 ACCESS_DB = Path(os.environ.get("TRAINING_ACCESS_DB", "/var/lib/training/progress.sqlite3"))
 CHALLENGE_DB = Path(os.environ.get("TRAINING_CHALLENGE_STATE_DB", "/var/lib/training/challenges.sqlite3"))
 
@@ -81,12 +86,31 @@ if SECURITY_MODE == "strict" and (FLAG_SECRET_VALUE == DEFAULT_FLAG_SECRET or le
     raise RuntimeError("strict security requires TRAINING_FLAG_SECRET with at least 32 bytes")
 
 CURRICULUM = json.loads(CURRICULUM_PATH.read_text(encoding="utf-8"))
+BANK_PROFILES = load_profiles(PROFILE_PATH)
 SCENARIOS = json.loads(SCENARIO_PATH.read_text(encoding="utf-8"))
 validate_scenarios(SCENARIOS, CURRICULUM)
 MAX_ACTIVE_SCENARIOS = int(SCENARIOS.get("scope", {}).get("max_active_scenarios_per_learner", 2))
+MAX_BANK_LEARNERS = 64
 if MAX_ACTIVE_SCENARIOS < 1 or MAX_ACTIVE_SCENARIOS > 8:
     raise RuntimeError("max_active_scenarios_per_learner must be between 1 and 8")
 SCENARIO_BY_ID = scenario_map(SCENARIOS)
+BANK_ORCHESTRATORS: dict[str, BankOrchestrator] = {}
+BANK_ORCHESTRATORS_LOCK = threading.Lock()
+
+
+def bank_orchestrator(learner_id: str) -> BankOrchestrator:
+    # FastAPI may serve two first requests for one learner concurrently. Create
+    # exactly one isolated memory per learner or a race could replace the first
+    # orchestrator and silently lose pending operations.
+    with BANK_ORCHESTRATORS_LOCK:
+        orchestrator = BANK_ORCHESTRATORS.get(learner_id)
+        if orchestrator is None:
+            if len(BANK_ORCHESTRATORS) >= MAX_BANK_LEARNERS:
+                raise HTTPException(status_code=429, detail="bounded learner bank-memory capacity reached")
+            orchestrator = BankOrchestrator()
+            BANK_ORCHESTRATORS[learner_id] = orchestrator
+        return orchestrator
+
 
 app = FastAPI(title="Zodiac Bank Hard Challenge Range", version="2.1")
 
@@ -185,6 +209,24 @@ def completed_stages(learner_id: str) -> set[str]:
 def current_stage(learner_id: str) -> str | None:
     completed = completed_stages(learner_id)
     return next((stage_id for stage_id in STAGES if stage_id not in completed), None)
+
+
+def bank_profile(learner_id: str) -> dict[str, Any]:
+    """Read the gate-promoted profile from the shared progress database."""
+    db = training_db()
+    if db is not None:
+        try:
+            row = db.execute(
+                "SELECT profile_id, promotion_count, updated_at FROM learner_profiles WHERE learner_id=?",
+                (learner_id,),
+            ).fetchone()
+            if row is not None:
+                profile = next((item for item in BANK_PROFILES["profiles"] if item["profile_id"] == row["profile_id"]), None)
+                if profile is not None:
+                    return public_profile(profile, promotion_count=int(row["promotion_count"]), updated_at=str(row["updated_at"]))
+        finally:
+            db.close()
+    return public_profile(profile_for_stage(BANK_PROFILES, current_stage(learner_id)))
 
 
 def require_current_stage(learner_id: str, stage_id: str) -> None:
@@ -286,6 +328,7 @@ def trainer_range(x_training_learner_token: str = Header(default=""), learner_id
     return {
         "learner_id": learner_id,
         "current_stage_id": active,
+        "bank_profile": bank_profile(learner_id),
         "stages": [
             {
                 "stage_id": stage_id,
@@ -346,6 +389,82 @@ def scenario_hint(scenario_id: str, learner_id: str = "", x_training_learner_tok
         db.close()
 
 
+@app.get("/api/bank/state")
+def bank_state(learner_id: str = "", x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    """Expose the current synthetic bank posture, never flags or raw records."""
+    learner_id = safe_learner(learner_id)
+    require_learner_access(learner_id, x_training_learner_token)
+    profile = bank_profile(learner_id)
+    return {
+        "learner_id": learner_id,
+        "stage_id": profile.get("stage_id"),
+        "profile": profile,
+        "dynamic_rule": "accepted stage flags promote this profile; only the current stage surface is active",
+    }
+
+
+def require_financial_operations(learner_id: str) -> dict[str, Any]:
+    profile = bank_profile(learner_id)
+    if int(profile.get("level", 0)) < 3:
+        raise HTTPException(status_code=403, detail="synthetic financial operations unlock after the protected-assistant level")
+    return profile
+
+
+@app.get("/api/bank/snapshot")
+def bank_snapshot(learner_id: str = "", x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = safe_learner(learner_id)
+    require_learner_access(learner_id, x_training_learner_token)
+    profile = require_financial_operations(learner_id)
+    snapshot = bank_orchestrator(learner_id).memory.snapshot(public=True)
+    return {"learner_id": learner_id, "profile": profile, "snapshot": snapshot, "side_effects": []}
+
+
+@app.post("/api/bank/operations/plan")
+def plan_bank_operation(body: dict[str, Any], x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = safe_learner(body.get("learner_id"))
+    require_learner_access(learner_id, x_training_learner_token)
+    profile = require_financial_operations(learner_id)
+    try:
+        run = bank_orchestrator(learner_id).plan(
+            str(body.get("operation_type", "")),
+            str(body.get("actor_worker_id", "")),
+            int(body.get("amount_cents", 0)),
+            source_account_id=body.get("source_account_id"),
+            destination_account_id=body.get("destination_account_id"),
+            operation_id=body.get("operation_id"),
+            owner_learner_id=learner_id,
+        )
+    except (BankValidationError, BankAuthorizationError, ValueError, KeyError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"learner_id": learner_id, "profile": profile, "loop": run, "side_effects": []}
+
+
+@app.post("/api/bank/operations/{run_id}/approve")
+def approve_bank_operation(run_id: str, body: dict[str, Any], x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = safe_learner(body.get("learner_id"))
+    require_learner_access(learner_id, x_training_learner_token)
+    profile = require_financial_operations(learner_id)
+    try:
+        run = bank_orchestrator(learner_id).approve(run_id, str(body.get("approver_worker_id", "")), owner_learner_id=learner_id)
+    except (BankValidationError, BankAuthorizationError, ValueError, KeyError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"learner_id": learner_id, "profile": profile, "loop": run, "side_effects": []}
+
+
+@app.get("/api/bank/memory")
+def bank_memory(query: str = "", worker_id: str = "", learner_id: str = "", entity_id: str = "", x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    learner_id = safe_learner(learner_id)
+    require_learner_access(learner_id, x_training_learner_token)
+    profile = require_financial_operations(learner_id)
+    if not query.strip() or not worker_id.strip():
+        raise HTTPException(status_code=422, detail="query and worker_id are required")
+    try:
+        packet = bank_orchestrator(learner_id).memory.retrieve_memory(query, worker_id, entity_id or None)
+    except (BankValidationError, BankAuthorizationError, ValueError, KeyError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"learner_id": learner_id, "profile": profile, "context": packet, "side_effects": []}
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {
@@ -403,6 +522,9 @@ def start_scenario(scenario_id: str, body: dict[str, Any], x_training_learner_to
     require_current_stage(learner_id, scenario["stage_id"])
     db = challenge_db()
     try:
+        profile = bank_profile(learner_id)
+        active_limit = int(profile.get("agent_policy", {}).get("max_parallel_scenarios", MAX_ACTIVE_SCENARIOS))
+        active_limit = max(1, min(MAX_ACTIVE_SCENARIOS, active_limit))
         active_runs = db.execute(
             "SELECT COUNT(*) AS count FROM scenario_runs WHERE learner_id=? AND status='active'",
             (learner_id,),
@@ -411,8 +533,8 @@ def start_scenario(scenario_id: str, body: dict[str, Any], x_training_learner_to
             "SELECT status FROM scenario_runs WHERE learner_id=? AND scenario_id=?",
             (learner_id, scenario_id),
         ).fetchone()
-        if existing is None and active_runs >= MAX_ACTIVE_SCENARIOS:
-            raise HTTPException(status_code=409, detail="maximum active scenarios reached; complete or reset an active scenario")
+        if existing is None and active_runs >= active_limit:
+            raise HTTPException(status_code=409, detail="current bank profile active-scenario budget reached; complete or reset an active scenario")
         now = utc_now()
         nonce = secrets.token_hex(16)
         db.execute(

@@ -34,6 +34,7 @@
 - [Graph and context engineering](#-graph-and-context-engineering)
 - [AI threat research and APT range](#-ai-threat-research-and-apt-range)
 - [Hard scenario range](#-hard-scenario-range)
+- [Security audit status](#-security-audit-status)
 - [Automatic provider detection](#-automatic-provider-detection)
 - [Endpoints](#-endpoints)
 - [Stop, restart, and clean](#-stop-restart-and-clean)
@@ -52,7 +53,7 @@ The project is intentionally unsafe by design inside its challenge surfaces. It 
 
 The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Spartan defense emblem, hard-gated progression, graph RAG, and APT-range training.
 
-The animated banner communicates the lab identity without exposing credentials, model paths, or runtime secrets. The terminal startup banner is activated with:
+The hero is a self-contained animated SVG: neon gradient edge, scanning beam, pulsing telemetry nodes, orbiting emblem, floating attack-surface card, animated title glow, and a `prefers-reduced-motion` fallback. It communicates the lab identity without exposing credentials, model paths, or runtime secrets. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
@@ -63,6 +64,7 @@ Brand assets:
 - Hero banner: `docs/assets/ai-security-lab-banner.svg`
 - Spartan emblem: `docs/assets/zodiac-spartan-logo.svg`
 - Runtime identity: `ZODIAC BANK SECURITY LAB`
+- Motion-safe behavior: SVG animations stop when the viewer requests reduced motion.
 
 All branding represents a synthetic training environment; it is not affiliated with a real bank.
 
@@ -420,11 +422,13 @@ docker compose logs --tail=100 aurora
 
 The full progression — enroll, solve every required scenario per stage, synthesize the evidence, submit the hard flag to the gate, and unlock the exact next stage, through L09 and curriculum completion — is verified programmatically against the real gate and challenge code. Run it offline (no services or model needed):
 
+The bank is dynamic rather than a static lesson list. Each accepted flag atomically promotes the learner's synthetic bank profile: the next level changes the active data domains, synthetic branch scope, staff/customer visibility, agent loop/tool budgets, approval posture, and active security controls. At L09 completion the profile moves to `apt-complete-review`, which is review-only and still denies external egress; no profile enables real banking, real customers, real staff, or real transactions.
+
 ```bash
 python3 scripts/zodiac_bank_progression_test.py
 ```
 
-The walkthrough solves all 45 scenarios, confirms each synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
+The walkthrough solves all 51 scenarios, confirms each synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
 
 Once the core profile is running, a real learner walks the same journey in the browser:
 
@@ -760,6 +764,53 @@ curl --fail http://127.0.0.1:5050/api/flags/submit \\
 
 Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. In strict mode, legacy challenge routes do not issue flags: complete the required multi-step scenarios at `http://127.0.0.1:5060`, synthesize the evidence, then submit the returned flag to the gate. Invalid submissions are hashed for audit, limited to a bounded number of attempts, and do not reveal the expected flag. All targets, identities, accounts, and evidence are synthetic and must remain localhost-bound.
 
+Inspect the learner's current dynamic bank posture after enrollment or after every promotion:
+
+```bash
+curl --fail 'http://127.0.0.1:5050/api/bank/profile?learner_id=analyst-01' \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+# The challenge service exposes the same shared state:
+curl --fail 'http://127.0.0.1:5060/api/bank/state?learner_id=analyst-01' \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+```
+
+The response is a safe posture document — security tier, active controls, synthetic data domains, branch scope, staff/customer visibility, and bounded agent policy — not a flag or raw bank record. An accepted L00 flag changes the profile from `foundation-observe` to `recon-inventory`; subsequent flags promote through protected assistant, tenant-guarded retrieval, pinned delegation, isolated memory, identity-bound, supply-chain-pinned, detection circuit-breaker, and bounded APT response profiles.
+
+### Synthetic bank operations and employee loops
+
+The lab now includes a realistic but non-financial virtual bank domain:
+
+- 3 branches, 12 employees/staff workers, 4 customers, 5 accounts, cases, products, and branch-scoped roles;
+- virtual `transfer`, `receive`, and `withdraw` operations using integer cents only;
+- maker/checker approvals, branch isolation, high-value and high-risk escalation, idempotency, replay rejection, balanced virtual ledger entries, and immutable synthetic receipts;
+- employee-loop workflows routed through teller, branch manager, payments, fraud, compliance, AML, and receipt-verifier workers;
+- graph/RAG/memory context attached to loop tasks as provenance-tagged evidence that cannot authorize settlement;
+- no real money, real accounts, payment rails, external egress, or irreversible side effects.
+
+Run the isolated receive + high-value transfer demonstration:
+
+```bash
+python3 scripts/zodiac_bank_orchestrator.py --demo
+```
+
+The domain model is in [`bank-data/financial-operations.json`](bank-data/financial-operations.json), the in-memory engine is `scripts/zodiac_bank_simulator.py`, and the research/architecture plan is [`docs/ai-bank-security-architecture-2026.md`](docs/ai-bank-security-architecture-2026.md).
+
+After the learner reaches the protected-assistant profile, the same domain is available through authenticated challenge APIs:
+
+```bash
+# Inspect the synthetic in-memory bank snapshot
+curl --fail "http://127.0.0.1:5060/api/bank/snapshot?learner_id=${LEARNER_ID}" \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+
+# Plan a virtual receive; the response returns the employee loop and approval rule
+curl --fail -X POST http://127.0.0.1:5060/api/bank/operations/plan \\
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
+  -H 'Content-Type: application/json' \\
+  -d '{"learner_id":"analyst-01","operation_type":"receive","actor_worker_id":"teller-north","amount_cents":25000,"destination_account_id":"ZB-ACCT-1001","operation_id":"OP-TRAINING-001"}'
+```
+
+The plan must be advanced through the returned loop with an explicitly authorized employee approval. Settlement creates only paired virtual-ledger entries and a synthetic receipt. The API returns `side_effects: []` and rejects operations before the required profile level, so the curriculum itself teaches when financial workflows become available.
+
 Training Gate endpoint: `http://127.0.0.1:5050`.
 
 Instructor commands are local-only and require the admin key:
@@ -847,7 +898,8 @@ The nine-phase campaign produces synthetic events, expected detection rules, tra
 
 Strict mode now uses a real multi-step range instead of one-request flag discovery:
 
-- **45 scenarios** across all 10 stages (up to 8 in the supply-chain stage);
+- **51 scenarios** across all 10 stages (including employee-loop and virtual-settlement paths);
+- **dynamic bank posture**: each accepted stage flag promotes a persistent learner profile with stricter controls, narrower synthetic data scope, changing branch visibility, smaller agent budgets, and a new active service surface;
 - **per-run evidence**: every run derives its expected values server-side from the flag secret, learner, scenario, step, and a fresh nonce — the repository contains **no literal answers**, and each learner/run sees different values;
 - **candidate pools**: each step exposes the correct value among distractors from a bounded vocabulary; static values from another run are rejected;
 - **chained proofs**: every step after the first requires the chained token issued by the previous accepted step, so skipping or replaying is impossible;
@@ -861,7 +913,7 @@ Strict mode now uses a real multi-step range instead of one-request flag discove
 
 The challenge service serves a browser-based trainer console at `http://127.0.0.1:5060` (no extra dependencies). The console provides:
 
-- a full 45-scenario range map across all 10 stages with per-stage status;
+- a full 51-scenario range map across all 10 stages with per-stage status;
 - progressive objective clues, detection rules, and required controls per scenario;
 - start, next-step hint, candidate-chip evidence picker, and reset controls for the current stage;
 - stage synthesis with required evidence tokens, detection coverage, controls, timeline, and concept checks;
@@ -910,6 +962,30 @@ curl --fail -X POST http://127.0.0.1:5060/api/stages/L02-prompt-injection/synthe
 ```
 
 The example intentionally contains placeholders and is expected to be rejected until the learner has real local evidence. Scenario definitions are stored in `training-config/scenarios.json` as **evidence value types only**; the service derives the per-run expected values from the flag secret and a fresh run nonce, so reading the repository never reveals an answer.
+
+## 🛡️ Security audit status
+
+The current upgrade includes an adversarial audit of authorization, concurrency, state isolation, RAG/memory scope, workflow settlement, and container security boundaries. Confirmed issues were patched and are covered by the offline evaluator:
+
+- learner-bound employee loops and operation IDs;
+- branch-bound teller and manager actions;
+- branch-scoped graph/memory context with document redaction for branch workers;
+- isolated, bounded virtual bank state per learner;
+- serialized approvals and double-settlement protection;
+- restricted/monitored account enforcement and risk escalation;
+- SQLite write-lock rechecks for concurrent hard-flag submissions;
+- lock-protected learner orchestrator initialization;
+- no external egress, real-money movement, or irreversible side effects.
+
+Run the complete local audit suite:
+
+```bash
+python3 scripts/zodiac_bank_eval.py
+python3 scripts/validate_zodiac_bank.py
+python3 scripts/zodiac_bank_progression_test.py
+```
+
+The suite validates 11 evaluator checks, all 10 hard-gated stages, 51 scenarios, financial ledger invariants, negative authorization paths, RAG/memory tenant boundaries, and concurrency controls. It is offline-safe and does not require an inference model. n8n is intentionally not part of this stage; if added later, it must remain an optional event-routing or approval UI layer and never become the ledger or authorization authority.
 
 ## 🧪 Run the training exercises
 
@@ -1010,21 +1086,21 @@ docs/
 ```text
 apps/                  Aurora, Phoenix, and Assistant
 training-gate/         Zodiac Bank hard-flag progression service
-training-challenges/   Hard-range API and browser trainer UI (30 scenarios)
-bank-data/             Canonical Zodiac Bank entities and branched workflows
+training-challenges/   Hard-range API and browser trainer UI (51 scenarios + dynamic bank state)
+bank-data/             Canonical branches, employees, customers, accounts, cases, operations, and workflows
 mcp-server/            Deliberately vulnerable MCP server
 mcp-wrapper/           HTTP wrapper for MCP tools
 a2a-agents/            A2A Router and Knowledge Agent
 rag-docs/              Synthetic Zodiac Bank knowledge corpus
 sensitive-data/        Honeypot credentials and internal fixtures
 exercises/             Recon, attack, evasion, and fingerprint exercises
-scripts/               Startup, seeding, detection, evaluation, threat modeling, verification, and progression helpers
+scripts/               Startup, seeding, detection, evaluation, threat modeling, bank simulation, orchestration, verification, and progression helpers
 graph-context/         Authenticated graph and context engineering service
 docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
 loop-config/           Synthetic workflow inputs for Loop Engineering
 mem0-config/           Optional Mem0 configuration
-training-config/       Zodiac Bank curriculum, gate, threat model, and 45 hard scenarios (evidence types only)
+training-config/       Zodiac Bank curriculum, gate, threat model, profiles, and 51 hard scenarios (evidence types only)
 detection-config/       Synthetic Sigma-like AI/APT detection rules
 scripts/zodiac_scenario_engine.py  Shared scenario validation and evidence primitives
 models/                Local GGUF files; ignored by Git

@@ -14,7 +14,13 @@
     {"staff_id": "ZB-STF-003", "name": "Lina Ortiz", "role": "branch_manager", "branch_id": "ZB-BR-003", "clearance": "branch", "worker_id": "branch-manager-west"},
     {"staff_id": "ZB-STF-004", "name": "Ravi Chen", "role": "fraud_analyst", "branch_id": "ZB-BR-002", "clearance": "fraud", "worker_id": "fraud-analyst"},
     {"staff_id": "ZB-STF-005", "name": "Nia Brooks", "role": "compliance_officer", "branch_id": "ZB-BR-001", "clearance": "compliance", "worker_id": "compliance-officer"},
-    {"staff_id": "ZB-STF-006", "name": "Owen Park", "role": "credit_reviewer", "branch_id": "ZB-BR-003", "clearance": "credit", "worker_id": "credit-reviewer"}
+    {"staff_id": "ZB-STF-006", "name": "Owen Park", "role": "credit_reviewer", "branch_id": "ZB-BR-003", "clearance": "credit", "worker_id": "credit-reviewer"},
+    {"staff_id": "ZB-STF-007", "name": "Tala Reed", "role": "teller", "branch_id": "ZB-BR-001", "clearance": "cash-operations", "worker_id": "teller-north"},
+    {"staff_id": "ZB-STF-008", "name": "Ivo Grant", "role": "teller", "branch_id": "ZB-BR-002", "clearance": "cash-operations", "worker_id": "teller-east"},
+    {"staff_id": "ZB-STF-009", "name": "Sana Cole", "role": "teller", "branch_id": "ZB-BR-003", "clearance": "cash-operations", "worker_id": "teller-west"},
+    {"staff_id": "ZB-STF-010", "name": "Milo Hart", "role": "payments_analyst", "branch_id": "ZB-BR-001", "clearance": "payments", "worker_id": "payments-analyst"},
+    {"staff_id": "ZB-STF-011", "name": "Eli Noor", "role": "aml_investigator", "branch_id": "ZB-BR-002", "clearance": "aml", "worker_id": "aml-investigator"},
+    {"staff_id": "ZB-STF-012", "name": "Rhea Moss", "role": "receipt_verifier", "branch_id": "ZB-BR-001", "clearance": "audit", "worker_id": "receipt-verifier"}
   ],
   "customers": [
     {"customer_id": "ZB-CUS-001", "name": "Alice Morgan", "segment": "premier", "home_branch_id": "ZB-BR-001", "kyc_status": "verified", "risk_rating": "low"},

@@ -211,7 +211,7 @@
 
 <div class="wrap">
   <aside class="panel" id="range-panel">
-    <h2>Range map · 10 stages</h2>
+    <h2>Range map · 10 stages · 51 scenarios</h2>
     <div id="range-list"><p class="muted">Enter a learner ID and token, then press <em>Load range</em>.</p></div>
   </aside>
 
@@ -230,6 +230,7 @@
 
 <div class="statusbar">
   <span id="status-mode">mode: —</span>
+  <span id="status-profile">bank posture: —</span>
   <span id="status-stage">current stage: —</span>
   <span id="status-gate">gate: —</span>
   <span id="status-range">range: —</span>
@@ -326,6 +327,7 @@ async function loadAll() {
     const range = await api(`/api/range?learner_id=${encodeURIComponent(state.learner)}`);
     state.range = range;
     state.currentStageId = range.current_stage_id;
+    renderBankProfile(range.bank_profile);
     $("status-range").textContent = `range: ${range.stages.reduce((n, s) => n + s.scenarios.length, 0)} scenarios`;
     renderRange();
     await refreshStage();
@@ -399,6 +401,30 @@ async function refreshStage() {
   $("status-stage").textContent = `current stage: ${esc(data.stage_id)}`;
 }
 
+function renderBankProfile(profile) {
+  if (!profile) return;
+  const domains = (profile.data_domains || []).join(", ");
+  const controls = (profile.controls || []).join(", ");
+  $("status-profile").textContent = `bank posture: L${profile.level} · ${profile.security_tier} · ${profile.operating_mode}`;
+  const existing = document.querySelector("#bank-posture");
+  if (existing) existing.remove();
+  const panel = $("scenario-panel");
+  const posture = document.createElement("details");
+  posture.id = "bank-posture";
+  posture.open = true;
+  posture.innerHTML = `<summary>Dynamic bank posture · ${esc(profile.label)}</summary>
+    <div class="hint" style="margin-top:8px">Only this profile's synthetic data and controls are active after the last accepted flag.</div>
+    <div class="grid" style="margin-top:8px">
+      <span class="chip">security: ${esc(profile.security_tier)}</span>
+      <span class="chip">mode: ${esc(profile.operating_mode)}</span>
+      <span class="chip">staff: ${esc(profile.staff_access)}</span>
+      <span class="chip">customer: ${esc(profile.customer_access)}</span>
+    </div>
+    <div class="hint" style="margin-top:8px">data domains: ${esc(domains)}</div>
+    <div class="hint">controls: ${esc(controls)}</div>`;
+  panel.insertBefore(posture, panel.firstChild.nextSibling);
+}
+
 function renderScenario() {
   const detail = $("scenario-detail");
   if (!state.selected) { detail.innerHTML = '<p class="muted">Select a scenario in the range map.</p>'; return; }
@@ -443,6 +469,7 @@ function renderScenario() {
 }
 
 function renderGateStatus(curriculum) {
+  renderBankProfile(curriculum.bank_profile);
   const stages = curriculum.stages || [];
   const byId = {};
   if (state.range) state.range.stages.forEach((s) => { byId[s.stage_id] = s; });

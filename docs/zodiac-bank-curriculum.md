@@ -51,6 +51,45 @@ The challenge surface is deliberately separate from the progression API. It is a
 
 The route is `http://127.0.0.1:5060`. The challenge service does not unlock stages; it only provides the synthetic discovery condition. The Training Gate remains the sole authority for progression.
 
+## Synthetic bank operations and employee loops
+
+The bank domain is now modeled as a realistic **virtual** institution rather than a lesson-only API. `bank-data/zodiac-bank.json` contains branches, staff, customers, products, accounts, policies, and cases. `bank-data/financial-operations.json` adds 12 employee identities, virtual seed balances, branch cash fixtures, operation types, approval rules, and bounded employee-loop routes.
+
+Supported operations are `receive`, `withdraw`, and account-to-account `transfer`. The orchestrator creates an intent, resolves the employee workflow, attaches graph/RAG/memory evidence, records bounded loop steps, waits for explicit maker/checker approvals, and only then commits paired entries to an in-memory virtual ledger and creates a synthetic receipt. Pending operations do not mutate balances; duplicate operation IDs with changed parameters, approval replay, self-approval, cross-branch teller actions, insufficient funds, and external account identifiers are rejected.
+
+Run the complete isolated demonstration:
+
+```bash
+python3 scripts/zodiac_bank_orchestrator.py --demo
+```
+
+The simulator and orchestrator are intentionally local and side-effect-free. They model bank security decisions, not real banking. See [`docs/ai-bank-security-architecture-2026.md`](ai-bank-security-architecture-2026.md) for the 2026 research synthesis and roadmap.
+
+## Dynamic synthetic bank profiles
+
+`training-config/bank-profiles.json` models the bank as a stateful training environment instead of a static collection of lessons. Every enrolled learner starts at `foundation-observe`. When the gate accepts the current stage's hard flag, it updates `learner_profiles` in the shared SQLite database in the same transaction as the stage completion. The next request therefore sees the next bank posture immediately; a rejected or early flag cannot promote it.
+
+The promoted profile changes the safe operating envelope for the next level:
+
+- active synthetic data domains and branch scope;
+- staff visibility and customer visibility (metadata, case-scoped memory, or canaries only);
+- active local service surface;
+- agent tool/loop budgets and human-approval requirements;
+- controls such as tenant filtering, provenance, manifest pinning, identity binding, circuit breaking, and recovery verification.
+
+The learner can inspect only the current profile:
+
+```bash
+curl --fail 'http://127.0.0.1:5050/api/bank/profile?learner_id=analyst-01' \
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+curl --fail 'http://127.0.0.1:5060/api/bank/state?learner_id=analyst-01' \
+  -H "X-Training-Learner-Token: ${LEARNER_TOKEN}"
+```
+
+The final profile, `apt-complete-review`, is review-only. It denies external egress and real side effects, and exposes no raw customer or staff records. This is a dynamic **synthetic** bank model for security training, not a real banking system. The progression harness and live curl check assert that the profile stage and security level increase after every accepted flag.
+
+The current 2026 architecture is documented in [`docs/ai-bank-security-architecture-2026.md`](ai-bank-security-architecture-2026.md), with sources from IMF agentic payments research, Treasury FS AI RMF, NIST CAISI's AI-agent security RFI, OWASP Agentic Applications 2026, and BIS/CPMI fraud work.
+
 ## Research-backed AI/APT range
 
 The dated threat model in `training-config/threat-model.json` maps current public reporting to synthetic stages, detection rules, and safe controls. The offline planner renders a nine-phase campaign packet without executing commands or contacting external systems:
@@ -64,7 +103,7 @@ Use [`docs/ai-threat-research-2026.md`](ai-threat-research-2026.md) for the rese
 
 ## Hard scenario range
 
-The strict challenge surface is defined by `training-config/scenarios.json`. It contains **45 scenarios** across the 10 stages, including:
+The strict challenge surface is defined by `training-config/scenarios.json`. It contains **51 scenarios** across the 10 stages, including:
 
 - web-based indirect injection, operationalized indirect-injection feeds, and browser-origin confusion;
 - multimodal, split, hidden, and obfuscated prompt content;
@@ -108,7 +147,7 @@ The API deliberately does not expose step matchers or future steps. The step hin
 
 ### Browser trainer console
 
-The challenge service also serves a trainer console at `http://127.0.0.1:5060`. It renders the full 45-scenario range map, per-stage status, progressive clues, next-step hints with candidate-chip evidence picking, chained-proof handling, stage synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
+The challenge service also serves a trainer console at `http://127.0.0.1:5060`. It renders the full 51-scenario range map, per-stage status, progressive clues, next-step hints with candidate-chip evidence picking, chained-proof handling, stage synthesis, and one-click hard-flag submission to the Training Gate. The console uses the learner's private token for every request and keeps it in browser local storage on the localhost machine only.
 
 ## API examples
 
@@ -137,7 +176,7 @@ curl --fail http://127.0.0.1:5050/api/flags/submit \
   -d '{"learner_id":"analyst-01","stage_id":"L00-foundation","flag":"<discovered-flag>"}'
 ```
 
-A successful response contains the next unlocked stage. Submitting a later-stage flag early is rejected even if the flag is otherwise valid. Open `/api/lessons/{stage_id}` only for the current stage to receive its three progressive hints; locked lessons do not disclose their hints.
+A successful response contains the next unlocked stage and the promoted `bank_profile`. Submitting a later-stage flag early is rejected even if the flag is otherwise valid. Open `/api/lessons/{stage_id}` only for the current stage to receive its three progressive hints; locked lessons do not disclose their hints.
 
 ## Instructor controls
 

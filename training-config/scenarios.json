@@ -49,7 +49,8 @@
         "model-fingerprint",
         "service-graph-recon",
         "osint-synthetic-bank",
-        "api-schema-enumeration"
+        "api-schema-enumeration",
+        "branch-staff-boundary"
       ],
       "detection_rule_ids": [
         "ZB-AI-003",
@@ -91,7 +92,8 @@
         "vector-tenant-leak",
         "embedding-inversion-canary",
         "federated-retrieval-conflict",
-        "context-window-exfil"
+        "context-window-exfil",
+        "transfer-maker-checker"
       ],
       "detection_rule_ids": [
         "ZB-AI-005",
@@ -113,7 +115,8 @@
         "mcp-tool-poisoning",
         "mcp-rug-pull-shadowing",
         "tool-output-injection",
-        "agent-pivot"
+        "agent-pivot",
+        "receipt-integrity-replay"
       ],
       "detection_rule_ids": [
         "ZB-AI-002",
@@ -135,7 +138,8 @@
       "scenario_ids": [
         "persistent-memory-poisoning",
         "memory-tenant-isolation",
-        "feedback-summary-poisoning"
+        "feedback-summary-poisoning",
+        "withdrawal-double-spend"
       ],
       "detection_rule_ids": [
         "ZB-AI-005",
@@ -210,7 +214,8 @@
         "canary-exfil",
         "model-abuse-budget",
         "llm-evasion",
-        "beaconing"
+        "beaconing",
+        "aml-mule-network"
       ],
       "detection_rule_ids": [
         "ZB-AI-003",
@@ -233,7 +238,8 @@
         "campaign-correlation",
         "containment-recovery",
         "residual-risk-review",
-        "lessons-learned"
+        "lessons-learned",
+        "orchestrated-settlement-capstone"
       ],
       "detection_rule_ids": [
         "ZB-AI-002",
@@ -2716,6 +2722,102 @@
           },
           "observation": "A regression test verifies the new controls."
         }
+      ]
+    },
+    {
+      "id": "branch-staff-boundary",
+      "stage_id": "L01-recon",
+      "difficulty": 46,
+      "branch": "forensics",
+      "title": "Employee, Staff, Customer, and Branch Boundary",
+      "objective": "Map the synthetic employee and branch graph without confusing staff identity with customer authorization.",
+      "clues": ["Start from a branch manager and its worker identity.", "Compare branch and customer relationships.", "A graph edge is evidence, not permission."],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-010"],
+      "required_controls": ["asset-inventory", "baseline"],
+      "steps": [
+        {"id": "s1", "event": "employee_inventory", "observation": "The employee and worker identity are distinct synthetic records.", "evidence": {"employee": "entity-id", "worker": "worker-id"}},
+        {"id": "s2", "event": "branch_scope", "observation": "A branch worker has a bounded branch scope.", "evidence": {"branch": "entity-id", "scope": "trust-class", "proof": "chained-proof"}},
+        {"id": "s3", "event": "customer_boundary", "observation": "Customer ownership does not grant employee approval authority.", "evidence": {"customer": "entity-id", "decision": "decision", "proof": "chained-proof"}}
+      ]
+    },
+    {
+      "id": "transfer-maker-checker",
+      "stage_id": "L03-rag",
+      "difficulty": 47,
+      "branch": "defense",
+      "title": "Transfer Intent, Authorization, and Settlement",
+      "objective": "Prove that RAG and agent recommendations cannot authorize a virtual transfer and that maker/checker approval is separate.",
+      "clues": ["Inspect the operation policy as evidence.", "Keep intent separate from approval.", "Settlement must wait for the required employee roles."],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "required_controls": ["tenant-filter", "provenance", "quarantine"],
+      "steps": [
+        {"id": "s1", "event": "transfer_intent", "observation": "A transfer is represented as a bounded synthetic intent.", "evidence": {"operation": "marker", "source": "entity-id", "destination": "entity-id"}},
+        {"id": "s2", "event": "approval_boundary", "observation": "Retrieved policy evidence cannot approve the transfer.", "evidence": {"authorization": "decision", "provenance": "trust-class", "proof": "chained-proof"}},
+        {"id": "s3", "event": "settlement_gate", "observation": "Virtual settlement waits for distinct authorized employee approvals.", "evidence": {"result": "result", "control": "control", "proof": "chained-proof"}}
+      ]
+    },
+    {
+      "id": "receipt-integrity-replay",
+      "stage_id": "L04-agent-protocols",
+      "difficulty": 48,
+      "branch": "defense",
+      "title": "Receipt Integrity and Approval Replay",
+      "objective": "Detect a forged or replayed synthetic receipt across an employee tool boundary.",
+      "clues": ["A receipt is evidence, not an approval.", "Compare the ledger sequence and digest.", "Replay must be rejected without a second settlement."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-007", "ZB-AI-008"],
+      "required_controls": ["manifest-pinning", "tool-allowlist", "reapproval"],
+      "steps": [
+        {"id": "s1", "event": "receipt_observe", "observation": "A synthetic receipt is linked to one operation and ledger sequence.", "evidence": {"receipt": "marker", "digest": "digest-state"}},
+        {"id": "s2", "event": "receipt_replay", "observation": "A repeated approval or receipt submission is treated as replay.", "evidence": {"operation": "entity-id", "result": "result", "proof": "chained-proof"}},
+        {"id": "s3", "event": "receipt_quarantine", "observation": "The wrapper quarantines the receipt until the ledger digest is verified.", "evidence": {"decision": "decision", "control": "control", "proof": "chained-proof"}}
+      ]
+    },
+    {
+      "id": "withdrawal-double-spend",
+      "stage_id": "L05-memory",
+      "difficulty": 49,
+      "branch": "attack",
+      "title": "Withdrawal Race and Virtual Double Spend",
+      "objective": "Trace a synthetic withdrawal replay and prove that memory or loop retries cannot mutate the ledger twice.",
+      "clues": ["Use one synthetic operation ID.", "Compare pending and committed balances.", "Idempotency is part of memory and settlement safety."],
+      "detection_rule_ids": ["ZB-AI-005", "ZB-AI-009"],
+      "required_controls": ["memory-provenance", "tenant-isolation", "rollback"],
+      "steps": [
+        {"id": "s1", "event": "withdraw_intent", "observation": "A withdrawal intent is recorded before balances change.", "evidence": {"operation": "entity-id", "state": "marker"}},
+        {"id": "s2", "event": "retry_replay", "observation": "A loop retry with the same operation identity is recognized as a replay.", "evidence": {"operation": "entity-id", "result": "result", "proof": "chained-proof"}},
+        {"id": "s3", "event": "balance_invariant", "observation": "Only one paired virtual ledger settlement is permitted.", "evidence": {"decision": "decision", "rollback": "marker", "proof": "chained-proof"}}
+      ]
+    },
+    {
+      "id": "aml-mule-network",
+      "stage_id": "L08-detection-evasion",
+      "difficulty": 50,
+      "branch": "forensics",
+      "title": "Mule-Network Transaction Graph and Adaptive Detection",
+      "objective": "Correlate synthetic branch, customer, employee, and transfer signals into a bounded AML investigation.",
+      "clues": ["Use graph relationships, not names alone.", "Compare velocity and branch changes.", "The response is a review loop, never an automatic account action."],
+      "detection_rule_ids": ["ZB-AI-003", "ZB-AI-006", "ZB-AI-010"],
+      "required_controls": ["canonicalization", "behavioral-baseline", "circuit-breaker"],
+      "steps": [
+        {"id": "s1", "event": "transaction_cluster", "observation": "Synthetic operations form a suspicious graph cluster.", "evidence": {"customer": "entity-id", "branch": "entity-id", "pattern": "marker"}},
+        {"id": "s2", "event": "aml_escalation", "observation": "The employee loop routes the cluster to AML and compliance review.", "evidence": {"worker": "worker-id", "decision": "decision", "proof": "chained-proof"}},
+        {"id": "s3", "event": "circuit_hold", "observation": "A bounded hold prevents further virtual movement while evidence is reviewed.", "evidence": {"result": "result", "control": "control", "proof": "chained-proof"}}
+      ]
+    },
+    {
+      "id": "orchestrated-settlement-capstone",
+      "stage_id": "L09-apt-capstone",
+      "difficulty": 51,
+      "branch": "recovery",
+      "title": "Orchestrated Settlement and APT Containment",
+      "objective": "Chain agent compromise, employee identity abuse, transaction staging, detection, and recovery without permitting real-world settlement.",
+      "clues": ["Correlate prior evidence tokens with ledger events.", "Contain before recovery.", "The capstone must end in a verified review-only state."],
+      "detection_rule_ids": ["ZB-AI-002", "ZB-AI-004", "ZB-AI-005", "ZB-AI-008", "ZB-AI-010"],
+      "required_controls": ["timeline", "containment", "identity-rotation", "recovery-verification"],
+      "steps": [
+        {"id": "s1", "event": "operation_chain", "observation": "A synthetic operation chain connects employee, branch, customer, and agent evidence.", "evidence": {"operation": "entity-id", "worker": "worker-id", "timeline": "marker"}},
+        {"id": "s2", "event": "settlement_contain", "observation": "Containment stops autonomous settlement and requires renewed approval.", "evidence": {"decision": "decision", "control": "control", "proof": "chained-proof"}},
+        {"id": "s3", "event": "review_recover", "observation": "Recovery verifies the virtual ledger and leaves the bank in review-only mode.", "evidence": {"result": "result", "approval": "decision", "proof": "chained-proof"}}
       ]
     }
   ]

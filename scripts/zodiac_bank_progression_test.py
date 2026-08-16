@@ -257,12 +257,18 @@ def run_progression() -> dict[str, Any]:
         assert hard_flag == CHALLENGE.flag_for(stage_id) == GATE.flag_for(stage_id)
         assert hard_flag.startswith(f"ZODIAC-BANK-{stage_id.upper()}-") and len(hard_flag.split("-")[-1]) == 32
 
+        profile_before = GATE.bank_profile(learner_id=learner, x_training_learner_token=token)["profile"]
+        assert profile_before["stage_id"] == stage_id, f"{stage_id}: bank profile was not aligned before promotion"
         submission = GATE.submit_flag(
             GATE.FlagSubmission(learner_id=learner, stage_id=stage_id, flag=hard_flag),
             x_training_learner_token=token,
         )
         assert submission["accepted"] is True and submission["status"] == "completed"
         assert submission["next_stage_id"] == next_stage, f"{stage_id}: unexpected next stage {submission['next_stage_id']}"
+        promoted = submission["bank_profile"]
+        assert promoted["stage_id"] == next_stage, f"{stage_id}: profile did not promote to {next_stage}"
+        assert promoted["level"] == profile_before["level"] + 1, f"{stage_id}: profile level did not increase"
+        assert promoted["promotion_count"] == position + 1, f"{stage_id}: profile promotion count drifted"
         # Challenge service observes the shared progress DB advancing too.
         assert CHALLENGE.current_stage(learner) == next_stage, f"{stage_id}: challenge service did not observe unlock"
 
@@ -275,6 +281,8 @@ def run_progression() -> dict[str, Any]:
                 ),
                 "flag_issued": hard_flag,
                 "next_stage_id": next_stage,
+                "profile_id": promoted["profile_id"],
+                "security_tier": promoted["security_tier"],
             }
         )
 
@@ -282,6 +290,8 @@ def run_progression() -> dict[str, Any]:
     final_statuses = {stage["id"]: stage["status"] for stage in final_view["stages"]}
     assert all(status == "completed" for status in final_statuses.values()), "not every stage completed"
     assert CHALLENGE.current_stage(learner) is None, "challenge service still reports an active stage"
+    final_profile = GATE.bank_profile(learner_id=learner, x_training_learner_token=token)["profile"]
+    assert final_profile["profile_id"] == "apt-complete-review" and final_profile["stage_id"] is None
 
     # --- Negative checks on a separate learner so the main journey stays clean ---
     neg_learner = "e2e-neg-01"
@@ -365,6 +375,36 @@ def run_progression() -> dict[str, Any]:
     )
     assert second["accepted"] is True and second["status"] == "completed"
     negatives["resubmission_idempotent"] = True
+
+    # Bank-loop authorization negatives: operation loops are learner-bound even
+    # though the virtual bank memory is shared by the challenge process.
+    bank_a = "e2e-bank-a"
+    bank_b = "e2e-bank-b"
+    token_a = GATE.add_cohort_member(cohort, GATE.CohortMemberRequest(learner_id=bank_a), _=None)["learner_token"]
+    token_b = GATE.add_cohort_member(cohort, GATE.CohortMemberRequest(learner_id=bank_b), _=None)["learner_token"]
+    for bank_learner, bank_token in ((bank_a, token_a), (bank_b, token_b)):
+        GATE.submit_flag(GATE.FlagSubmission(learner_id=bank_learner, stage_id="L00-foundation", flag=GATE.flag_for("L00-foundation")), x_training_learner_token=bank_token)
+        GATE.submit_flag(GATE.FlagSubmission(learner_id=bank_learner, stage_id="L01-recon", flag=GATE.flag_for("L01-recon")), x_training_learner_token=bank_token)
+    planned = CHALLENGE.plan_bank_operation(
+        {"learner_id": bank_a, "operation_type": "receive", "actor_worker_id": "teller-north", "amount_cents": 1000, "destination_account_id": "ZB-ACCT-1001", "operation_id": "OP-E2E-OWNER"},
+        token_a,
+    )
+    _expect_http(
+        lambda: CHALLENGE.approve_bank_operation(
+            planned["loop"]["run_id"],
+            {"learner_id": bank_b, "approver_worker_id": "branch-manager-north"},
+            token_b,
+        ),
+        409,
+        "cross-learner bank loop approval",
+    )
+    negatives["cross_learner_bank_loop_rejected"] = True
+    public_snapshot = CHALLENGE.bank_snapshot(learner_id=bank_a, x_training_learner_token=token_a)["snapshot"]
+    other_snapshot = CHALLENGE.bank_snapshot(learner_id=bank_b, x_training_learner_token=token_b)["snapshot"]
+    assert public_snapshot["operations"] == 1 and other_snapshot["operations"] == 0
+    negatives["learner_bank_memory_isolated"] = True
+    assert "balances_cents" not in public_snapshot and "cash_vaults_cents" not in public_snapshot
+    negatives["public_bank_balances_redacted"] = True
 
     return {
         "passed": True,

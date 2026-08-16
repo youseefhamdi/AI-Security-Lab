@@ -14,7 +14,13 @@
     {"worker_id": "siem-analyst", "role": "detection", "endpoint": "http://127.0.0.1:5601", "source_service": "kibana"},
     {"worker_id": "supply-chain-reviewer", "role": "supply_chain", "endpoint": "local://dependency-sweeper", "source_service": "dependency-sweeper"},
     {"worker_id": "graph-context-engineer", "role": "graph_context", "endpoint": "http://127.0.0.1:5070", "source_service": "zodiac-context"},
-    {"worker_id": "context-engineer", "role": "context_engineering", "endpoint": "http://127.0.0.1:5070", "source_service": "zodiac-context"}
+    {"worker_id": "context-engineer", "role": "context_engineering", "endpoint": "http://127.0.0.1:5070", "source_service": "zodiac-context"},
+    {"worker_id": "teller-north", "role": "teller", "endpoint": "local://zodiac-bank-orchestrator", "source_service": "zodiac-bank-memory"},
+    {"worker_id": "teller-east", "role": "teller", "endpoint": "local://zodiac-bank-orchestrator", "source_service": "zodiac-bank-memory"},
+    {"worker_id": "teller-west", "role": "teller", "endpoint": "local://zodiac-bank-orchestrator", "source_service": "zodiac-bank-memory"},
+    {"worker_id": "payments-analyst", "role": "payments", "endpoint": "local://zodiac-bank-orchestrator", "source_service": "zodiac-bank-memory"},
+    {"worker_id": "aml-investigator", "role": "aml", "endpoint": "local://zodiac-bank-orchestrator", "source_service": "zodiac-bank-memory"},
+    {"worker_id": "receipt-verifier", "role": "audit", "endpoint": "local://zodiac-bank-orchestrator", "source_service": "zodiac-bank-memory"}
   ],
   "workflows": [
     {
@@ -91,6 +97,54 @@
         {"branch_id": "memory-incident", "when": {"incident_type": "memory_poisoning"}, "route": ["siem-analyst", "fraud-analyst", "compliance-officer"]},
         {"branch_id": "supply-chain-incident", "when": {"incident_type": "supply_chain"}, "route": ["siem-analyst", "supply-chain-reviewer", "compliance-officer"]}
       ]
+    },
+    {
+      "workflow_id": "receive-deposit",
+      "loop_pattern": "employee-approval-loop",
+      "trigger": "receive_request",
+      "case_type": "financial_operation",
+      "input_entity": "operation",
+      "operation_type": "receive",
+      "max_steps": 6,
+      "max_retries": 2,
+      "approval_required": true,
+      "branches": [{"branch_id": "branch-receive", "when": {"operation_type": "receive"}, "route": ["teller-north", "branch-manager-north", "receipt-verifier"]}]
+    },
+    {
+      "workflow_id": "cash-withdrawal",
+      "loop_pattern": "employee-approval-loop",
+      "trigger": "withdraw_request",
+      "case_type": "financial_operation",
+      "input_entity": "operation",
+      "operation_type": "withdraw",
+      "max_steps": 7,
+      "max_retries": 2,
+      "approval_required": true,
+      "branches": [{"branch_id": "branch-withdraw", "when": {"operation_type": "withdraw"}, "route": ["teller-north", "branch-manager-north", "fraud-analyst", "receipt-verifier"]}]
+    },
+    {
+      "workflow_id": "internal-transfer",
+      "loop_pattern": "employee-approval-loop",
+      "trigger": "transfer_request",
+      "case_type": "financial_operation",
+      "input_entity": "operation",
+      "operation_type": "transfer",
+      "max_steps": 8,
+      "max_retries": 3,
+      "approval_required": true,
+      "branches": [{"branch_id": "standard-transfer", "when": {"operation_type": "transfer", "value_band": "standard"}, "route": ["payments-analyst", "fraud-analyst", "compliance-officer", "receipt-verifier"]}]
+    },
+    {
+      "workflow_id": "high-value-transfer",
+      "loop_pattern": "employee-approval-loop",
+      "trigger": "transfer_request",
+      "case_type": "financial_operation",
+      "input_entity": "operation",
+      "operation_type": "transfer",
+      "max_steps": 10,
+      "max_retries": 3,
+      "approval_required": true,
+      "branches": [{"branch_id": "high-value-transfer", "when": {"operation_type": "transfer", "value_band": "high"}, "route": ["payments-analyst", "aml-investigator", "compliance-officer", "receipt-verifier"]}]
     }
   ]
 }

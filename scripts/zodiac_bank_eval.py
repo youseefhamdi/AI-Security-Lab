@@ -28,10 +28,127 @@ COMPOSE_PATH = ROOT / "docker-compose.yml"
 THREAT_MODEL_PATH = ROOT / "training-config" / "threat-model.json"
 DETECTION_RULES_PATH = ROOT / "detection-config" / "zodiac-bank-rules.json"
 SCENARIO_PATH = ROOT / "training-config" / "scenarios.json"
+FINANCIAL_OPERATIONS_PATH = ROOT / "bank-data" / "financial-operations.json"
+BANK_PROFILE_PATH = ROOT / "training-config" / "bank-profiles.json"
 
 
 def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def check_dynamic_bank_profiles() -> dict[str, Any]:
+    profiles = load(BANK_PROFILE_PATH)
+    entries = profiles["profiles"]
+    assert profiles["schema_version"] == 1
+    assert len(entries) == 11, "expected 10 active profiles plus post-course review"
+    assert [entry["level"] for entry in entries] == list(range(1, 12))
+    assert [entry["stage_id"] for entry in entries[:-1]] == [stage["id"] for stage in load(CURRICULUM_PATH)["stages"]]
+    assert entries[-1]["stage_id"] is None and entries[-1]["profile_id"] == "apt-complete-review"
+    for entry in entries:
+        assert entry["agent_policy"]["external_egress"] is False
+        assert 1 <= entry["agent_policy"]["max_parallel_scenarios"] <= 2
+        assert entry["data_domains"] and entry["branch_scope"] and entry["controls"]
+    gate = (ROOT / "training-gate" / "main.py").read_text(encoding="utf-8")
+    challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
+    assert "learner_profiles" in gate and "promote_profile" in gate and "/api/bank/profile" in gate
+    assert "bank_profile" in challenge and "/api/bank/state" in challenge
+    assert "TRAINING_BANK_PROFILES" in COMPOSE_PATH.read_text(encoding="utf-8")
+    return {"active_profiles": len(entries) - 1, "post_course_profile": entries[-1]["profile_id"], "external_egress_denied": True}
+
+
+def _approval_attempt(orchestrator: Any, run_id: str, worker_id: str) -> str:
+    from zodiac_bank_simulator import BankAuthorizationError
+    try:
+        orchestrator.approve(run_id, worker_id)
+    except BankAuthorizationError:
+        return "rejected"
+    return "accepted"
+
+
+def check_financial_bank_model() -> dict[str, Any]:
+    from zodiac_bank_orchestrator import BankOrchestrator
+    from zodiac_bank_simulator import BankAuthorizationError, BankMemory, BankValidationError
+
+    bank = load(BANK_PATH)
+    operations = load(FINANCIAL_OPERATIONS_PATH)
+    memory = BankMemory(bank, operations)
+    initial = memory.snapshot()
+    assert initial["employees"] == 12 and initial["branches"] == 3 and initial["customers"] == 4 and initial["accounts"] == 5
+    pending = memory.plan_operation("transfer", "teller-north", 1_200_000, source_account_id="ZB-ACCT-1001", destination_account_id="ZB-ACCT-4001", operation_id="OP-EVAL-HIGH")
+    before = dict(memory.balances)
+    pending_after_first = memory.approve_operation("OP-EVAL-HIGH", "payments-analyst")
+    assert pending_after_first["status"] == "pending_approval" and memory.balances == before
+    pending_high_risk = memory.approve_operation("OP-EVAL-HIGH", "fraud-analyst")
+    assert pending_high_risk["status"] == "pending_approval"
+    committed = memory.approve_operation("OP-EVAL-HIGH", "compliance-officer")
+    assert committed["status"] == "committed" and committed["receipt_id"] in memory.receipts
+    assert memory.balances["ZB-ACCT-1001"] == before["ZB-ACCT-1001"] - 1_200_000
+    assert memory.balances["ZB-ACCT-4001"] == before["ZB-ACCT-4001"] + 1_200_000
+    try:
+        memory.approve_operation("OP-EVAL-HIGH", "compliance-officer")
+    except BankAuthorizationError:
+        pass
+    else:
+        raise AssertionError("approval replay was accepted")
+    try:
+        memory.plan_operation("transfer", "teller-north", 1000, source_account_id="ZB-ACCT-2001", destination_account_id="ZB-ACCT-4001", operation_id="OP-EVAL-CROSS-BRANCH")
+    except (BankAuthorizationError, BankValidationError):
+        pass
+    else:
+        raise AssertionError("cross-branch teller operation was accepted")
+    branch_receive = memory.plan_operation("receive", "teller-east", 1000, destination_account_id="ZB-ACCT-2001", operation_id="OP-EVAL-BRANCH-APPROVAL")
+    try:
+        memory.approve_operation("OP-EVAL-BRANCH-APPROVAL", "branch-manager-north")
+    except BankAuthorizationError:
+        pass
+    else:
+        raise AssertionError("wrong-branch manager approval was accepted")
+    restricted_pending = memory.approve_operation("OP-EVAL-BRANCH-APPROVAL", "branch-manager-east")
+    assert restricted_pending["status"] == "pending_approval"
+    restricted_committed = memory.approve_operation("OP-EVAL-BRANCH-APPROVAL", "compliance-officer")
+    assert restricted_committed["status"] == "committed"
+    try:
+        memory.plan_operation("transfer", "teller-north", 1000, source_account_id="ZB-ACCT-1001", destination_account_id="ZB-ACCT-2001", operation_id="OP-EVAL-RESTRICTED-TRANSFER")
+    except BankValidationError:
+        pass
+    else:
+        raise AssertionError("transfer into a restricted account was accepted")
+    try:
+        memory.plan_operation("transfer", "teller-north", 1000, source_account_id="ZB-ACCT-1001", destination_account_id="ZB-ACCT-4001", operation_id="OP-EVAL-HIGH")
+    except BankValidationError:
+        pass
+    else:
+        raise AssertionError("idempotency parameter mutation was accepted")
+    owner_orchestrator = BankOrchestrator()
+    owner_run = owner_orchestrator.plan("receive", "teller-north", 1000, destination_account_id="ZB-ACCT-1001", operation_id="OP-EVAL-OWNER", owner_learner_id="learner-a")
+    try:
+        owner_orchestrator.approve(owner_run["run_id"], "branch-manager-north", owner_learner_id="learner-b")
+    except BankAuthorizationError:
+        pass
+    else:
+        raise AssertionError("cross-learner loop approval was accepted")
+    from concurrent.futures import ThreadPoolExecutor
+    concurrent = BankOrchestrator()
+    concurrent_run = concurrent.plan("transfer", "teller-north", 1_200_000, source_account_id="ZB-ACCT-1001", destination_account_id="ZB-ACCT-4001", operation_id="OP-EVAL-CONCURRENT")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        approval_results = list(pool.map(lambda _: _approval_attempt(concurrent, concurrent_run["run_id"], "payments-analyst"), range(2)))
+    assert sorted(approval_results) == ["accepted", "rejected"]
+    concurrent.approve(concurrent_run["run_id"], "fraud-analyst")
+    concurrent.approve(concurrent_run["run_id"], "compliance-officer")
+    assert concurrent.memory.snapshot()["committed_operations"] == 1 and len(concurrent.memory.ledger) == 1
+    demo = BankOrchestrator().memory.snapshot()
+    assert demo["external_egress"] is False and demo["real_money"] is False
+    challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
+    assert "/api/bank/snapshot" in challenge and "/api/bank/operations/plan" in challenge and "/api/bank/operations/{run_id}/approve" in challenge
+    packet = memory.retrieve_memory("review synthetic transfer and branch customer account", "teller-north", "ZB-ACCT-1001")
+    assert packet["security"]["side_effects"] == "forbidden"
+    assert packet["security"]["documents_scope_redacted"] is True
+    assert packet["documents"] == []
+    packet_text = json.dumps(packet, sort_keys=True)
+    assert "ZB-ACCT-2001" not in packet_text and "ZB-CUS-002" not in packet_text
+    assert packet["bank_memory"]["scope"] == "ZB-BR-001"
+    assert memory.snapshot()["committed_operations"] == 2
+    return {"employees": 12, "branches": 3, "customers": 4, "accounts": 5, "virtual_commit_verified": True, "maker_checker_verified": True, "branch_scope_verified": True, "risk_escalation_verified": True, "owner_binding_verified": True, "concurrency_verified": True, "rag_memory_scope_verified": True, "external_egress": False}
 
 
 def check_curriculum() -> dict[str, Any]:
@@ -94,7 +211,7 @@ def check_workflows(bank: dict[str, Any], workflows: dict[str, Any]) -> dict[str
         for branch in workflow["branches"]:
             assert len(branch["route"]) <= workflow["max_steps"], f"{workflow['workflow_id']} route exceeds max_steps"
             assert set(branch["route"]).issubset(workers), f"{workflow['workflow_id']} routes to an unknown worker"
-        if workflow["case_type"] in {"fraud_investigation", "credit_review", "ai_security_alert", "customer_onboarding"}:
+        if workflow["case_type"] in {"fraud_investigation", "credit_review", "ai_security_alert", "customer_onboarding"} or workflow.get("operation_type") in {"transfer", "receive", "withdraw"}:
             assert workflow["approval_required"] is True, f"sensitive workflow {workflow['workflow_id']} lacks approval"
     return {"workflows": len(workflows["workflows"]), "workers": len(workers), "approval_checked": True}
 
@@ -169,7 +286,7 @@ def check_flag_progression() -> dict[str, Any]:
     report = run_progression()
     assert report["passed"], "full 10-stage flag progression failed"
     assert report["stages_completed"] == 10, "expected exactly 10 completed stages"
-    assert report["total_scenarios"] == 45, "expected all 45 scenarios solved"
+    assert report["total_scenarios"] == 51, "expected all 51 scenarios solved"
     assert all(value is True for value in report["negatives"].values()), "a negative path check failed"
     last = report["stages"][-1]
     assert last["stage_id"] == "L09-apt-capstone" and last["next_stage_id"] is None, "capstone did not complete the curriculum"
@@ -183,6 +300,8 @@ def check_flag_progression() -> dict[str, Any]:
 
 def check_runtime_security() -> dict[str, Any]:
     compose = COMPOSE_PATH.read_text(encoding="utf-8")
+    gate = (ROOT / "training-gate" / "main.py").read_text(encoding="utf-8")
+    challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
     graph_service = (ROOT / "graph-context" / "main.py").read_text(encoding="utf-8")
     aurora = (ROOT / "apps" / "aurora" / "main.py").read_text(encoding="utf-8")
     knowledge = (ROOT / "a2a-agents" / "knowledge" / "main.py").read_text(encoding="utf-8")
@@ -193,7 +312,10 @@ def check_runtime_security() -> dict[str, Any]:
     assert "X-Graph-Context-Key" in aurora and "X-Graph-Context-Key" in knowledge
     assert "hmac.compare_digest" in graph_service
     assert "Cache-Control" in graph_service
-    return {"graph_context_auth": True, "client_auth_headers": 2, "no_store_headers": True}
+    assert 'db.execute("BEGIN IMMEDIATE")' in gate
+    assert gate.count('completed = completed_stages(db, learner_id)') >= 2, "flag completion is not re-checked inside the write lock"
+    assert "BANK_ORCHESTRATORS_LOCK" in challenge and "with BANK_ORCHESTRATORS_LOCK" in challenge
+    return {"graph_context_auth": True, "client_auth_headers": 2, "no_store_headers": True, "flag_race_recheck": True, "learner_orchestrator_creation_lock": True}
 
 
 def parse_args() -> argparse.Namespace:
@@ -209,6 +331,8 @@ def main() -> int:
     workflows = load(WORKFLOW_PATH)
     checks: list[tuple[str, Callable[[], dict[str, Any]]]] = [
         ("curriculum_progression", lambda: check_curriculum()),
+        ("financial_bank_model", check_financial_bank_model),
+        ("dynamic_bank_profiles", check_dynamic_bank_profiles),
         ("flag_pipeline_consistency", check_flag_pipeline),
         ("flag_progression_e2e", check_flag_progression),
         ("canonical_graph", lambda: check_graph(bank, workflows)),
