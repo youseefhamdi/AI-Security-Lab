@@ -1,7 +1,7 @@
 <div align="center">
 
-<a href="https://github.com/youseefhamdi/Zodiac-AI-Security-Lab">
-  <img src="docs/assets/ai-security-lab-banner.svg" alt="Professional dark animated Zodiac Bank AI Security Operations banner with telemetry and a Spartan emblem" width="100%" />
+<a href="https://github.com/youseefhamdi/AI-Security-Lab">
+  <img src="docs/assets/ai-security-lab-banner.svg?v=100-scenarios-50-gates" alt="Cinematic dark animated Zodiac Bank AI Security Operations banner with 100 scenarios, 50 hard gates, telemetry, and a Spartan emblem" width="100%" />
 </a>
 
 [![Brand](https://img.shields.io/badge/Brand-ZODIAC%20BANK-0F172A?logo=target&logoColor=67E8F9)](#-zodiac-bank-brand)
@@ -177,8 +177,8 @@ Bonsai defaults to a 2K context, one concurrent request, CPU mode, and a 5 GB co
 ### Linux
 
 ```bash
-git clone https://github.com/youseefhamdi/Zodiac-AI-Security-Lab.git
-cd Zodiac-AI-Security-Lab
+git clone https://github.com/youseefhamdi/AI-Security-Lab.git
+cd AI-Security-Lab
 
 docker --version
 docker compose version
@@ -244,8 +244,8 @@ The local Bonsai fallback does not require this setting.
 3. Clone the repository:
 
 ```bash
-git clone https://github.com/youseefhamdi/Zodiac-AI-Security-Lab.git
-cd Zodiac-AI-Security-Lab
+git clone https://github.com/youseefhamdi/AI-Security-Lab.git
+cd AI-Security-Lab
 ```
 
 4. Verify Docker:
@@ -264,8 +264,8 @@ Use either **PowerShell with Docker Desktop**, **Git Bash**, or **WSL2**.
 3. Clone the repository in Git Bash or WSL2:
 
 ```bash
-git clone https://github.com/youseefhamdi/Zodiac-AI-Security-Lab.git
-cd Zodiac-AI-Security-Lab
+git clone https://github.com/youseefhamdi/AI-Security-Lab.git
+cd AI-Security-Lab
 ```
 
 4. Verify Docker:
@@ -376,7 +376,7 @@ Verify the fallback file without downloading anything:
 From the repository root, configure strong local secrets first. Docker Compose reads `.env` automatically:
 
 ```bash
-cd /path/to/Zodiac-AI-Security-Lab  # replace with your clone path
+cd /path/to/AI-Security-Lab  # replace with your clone path
 chmod +x scripts/*.sh exercises/*.sh
 ```
 
