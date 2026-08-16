@@ -105,12 +105,12 @@ fi
 case "$LAB_MODE" in
   core)
     log "Starting core services: ${core_services[*]}"
-    docker compose -f "$COMPOSE_FILE" up -d "${core_services[@]}"
+    docker compose -f "$COMPOSE_FILE" up -d --build "${core_services[@]}"
     ;;
   lite)
     log "Starting core plus A2A/MCP protocol services"
     lite_services=("${core_services[@]}" a2a-knowledge a2a-router mcp-server mcp-wrapper)
-    docker compose -f "$COMPOSE_FILE" --profile protocols up -d "${lite_services[@]}"
+    docker compose -f "$COMPOSE_FILE" --profile protocols up -d --build "${lite_services[@]}"
     ;;
   full)
     log "Starting full stack with the selected inference provider"
@@ -122,7 +122,7 @@ case "$LAB_MODE" in
       a2a-agent mcp-memory mcp-filesystem mcp-fetch
       elasticsearch kibana filebeat
     )
-    docker compose -f "$COMPOSE_FILE" --profile protocols --profile full up -d "${full_services[@]}"
+    docker compose -f "$COMPOSE_FILE" --profile protocols --profile full up -d --build "${full_services[@]}"
     if [[ "$SEED_DATA" == "1" ]]; then
       log "Validating canonical Zodiac Bank domain and orchestrator symmetry"
       python3 ./scripts/validate_zodiac_bank.py
