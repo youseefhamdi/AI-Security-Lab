@@ -1274,6 +1274,21 @@ docs/
 | Zodiac Bank Challenge Surface | `http://127.0.0.1:5060` — trainer UI at `/`, scenario API under `/api/` |
 | Zodiac Bank Graph Context | `http://127.0.0.1:5070` — data routes require `X-Graph-Context-Key` in strict mode |
 
+> ⚠️ **Chrome (and Edge/Chromium) block port `5060`.** It is on Chromium's
+> [restricted-port list](https://chromium.googlesource.com/chromium/src/+/main/net/base/port_util.cc#L26)
+> (SIP), so a tab pointed at `http://127.0.0.1:5060` shows `ERR_UNSAFE_PORT`
+> instead of the trainer console — even when the service is healthy (curl
+> works). To open the trainer UI in Chrome either:
+>
+> - remap the port in `docker-compose.yml` (`"127.0.0.1:5060:5060"` →
+>   `"127.0.0.1:8060:5060"`) and recreate the `training-challenges` container,
+>   then use `http://127.0.0.1:8060`, or
+> - open `http://127.0.0.1:5060` in Firefox, or
+> - launch Chrome with `--explicitly-allowed-ports=5060`.
+>
+> The API and curl examples in this README are unaffected; only the browser
+> console is blocked.
+
 ### Protocol services — `lite` / `full`
 
 | Service | Endpoint |
