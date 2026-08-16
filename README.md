@@ -665,6 +665,18 @@ python3 scripts/zodiac_bank_eval.py --format json --output logs/zodiac-bank-eval
 
 This evaluator never calls Docker, models, databases, or external URLs. It checks progression, graph provenance, context budgets, scope isolation, workflow approvals, orchestrator symmetry, and security wiring.
 
+### Run the live flag-pipeline check
+
+Once the lab services are running, walk the full 10-stage flag progression over live HTTP (every request issued with curl):
+
+```bash
+export TRAINING_ADMIN_KEY='<instructor-key>'
+export TRAINING_FLAG_SECRET='<same secret as .env>'
+RUNTIME=1 ./scripts/flag_pipeline_check.sh
+```
+
+The check enrolls a dedicated `flag-pipeline-check` learner, solves every required scenario through the live challenge API (using the per-run candidate pools), synthesizes each stage, confirms the issued flag matches the locally re-derived HMAC, submits it to the Training Gate, and asserts the exact next stage unlocks through L09 and curriculum completion. It also exercises live negative paths: locked-stage flag (403), invalid flag (401), wrong scenario evidence (409), and idempotent re-submission. Both `TRAINING_ADMIN_KEY` and `TRAINING_FLAG_SECRET` must match the running services; the cohort is reset automatically at the start of each run.
+
 ### Run the inference smoke test
 
 ```bash

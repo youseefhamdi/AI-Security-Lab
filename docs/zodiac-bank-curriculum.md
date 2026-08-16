@@ -186,6 +186,16 @@ python3 scripts/zodiac_bank_progression_test.py
 python3 scripts/zodiac_bank_eval.py
 ```
 
+When the services are live, the same journey runs over real HTTP with `scripts/flag_pipeline_check.sh` (curl-based, `RUNTIME=1`):
+
+```bash
+export TRAINING_ADMIN_KEY='<instructor-key>'
+export TRAINING_FLAG_SECRET='<same secret as .env>'
+RUNTIME=1 ./scripts/flag_pipeline_check.sh
+```
+
+The live check enrolls a dedicated `flag-pipeline-check` learner, solves every scenario through the challenge API, re-derives each expected flag from `TRAINING_FLAG_SECRET` and compares it to the synthesis-issued flag before submitting it to the gate, and verifies the exact next stage unlocks through L09. Live negative paths are exercised too (locked-stage flag 403, invalid flag 401, wrong evidence 409, idempotent re-submission). It requires the services to be running and both `TRAINING_ADMIN_KEY` and `TRAINING_FLAG_SECRET` to match the running services; the check cohort is reset at the start of each run so it is safe to re-run.
+
 ## Security boundary
 
 - Keep every service bound to `127.0.0.1`.
