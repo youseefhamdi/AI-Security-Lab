@@ -25,7 +25,7 @@
 - [Choose a runtime profile](#-choose-a-runtime-profile)
 - [Requirements](#-requirements)
 - [Install on any platform](#-install-on-any-platform)
-- [Podman setup](#-podman-setup)
+- [Podman setup](#podman-setup)
 - [Prepare an inference provider](#-prepare-an-inference-provider)
 - [Start the lab](#-start-the-lab)
 - [Verify the lab](#-verify-the-lab)
@@ -415,6 +415,43 @@ If startup fails, inspect the relevant service:
 docker compose logs --tail=100 bonsai
 docker compose logs --tail=100 aurora
 ```
+
+### Verify the flag flow end to end
+
+The full progression — enroll, solve every required scenario per stage, synthesize the evidence, submit the hard flag to the gate, and unlock the exact next stage, through L09 and curriculum completion — is verified programmatically against the real gate and challenge code. Run it offline (no services or model needed):
+
+```bash
+python3 scripts/zodiac_bank_progression_test.py
+```
+
+The walkthrough solves all 45 scenarios, confirms each synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
+
+Once the core profile is running, a real learner walks the same journey in the browser:
+
+1. Enroll and capture the private learner token:
+
+   ```bash
+   export TRAINING_ADMIN_KEY='<instructor-key>'
+   python3 scripts/zodiac_bank_admin.py cohort-create cohort-2026 "Zodiac Bank 2026 Cohort"
+   python3 scripts/zodiac_bank_admin.py cohort-add cohort-2026 analyst-01  # returns LEARNER_TOKEN
+   ```
+
+2. Open the trainer console at `http://127.0.0.1:5060` and complete the current stage's required scenarios (hints expose only the current step and its candidate pool).
+
+3. Synthesize the stage once every required scenario is complete — the hard flag is issued only after evidence tokens, detection coverage, controls, timeline, and concepts all validate.
+
+4. Submit the flag to the Training Gate and confirm the next stage unlocks:
+
+   ```bash
+   curl --fail http://127.0.0.1:5050/api/flags/submit \\
+     -H "X-Training-Learner-Token: ${LEARNER_TOKEN}" \\
+     -H 'Content-Type: application/json' \\
+     -d '{"learner_id":"analyst-01","stage_id":"L00-foundation","flag":"ZODIAC-BANK-..."}'
+   ```
+
+5. Repeat through L09 — the capstone returns the curriculum-complete state.
+
+Each stage flag is an HMAC of the stage ID under `TRAINING_FLAG_SECRET`; the gate and challenge service derive it identically, and the Compose default wires both services to the same secret, so a synthesis flag always unlocks the next stage. Only the current unlocked stage accepts submissions: later-stage flags are rejected even when valid, and re-submitting an accepted flag is idempotent. See [Zodiac Bank progression](#-zodiac-bank-progression) and [Hard scenario range](#-hard-scenario-range) for the full mechanics.
 
 ### 2. Start protocol services
 
