@@ -497,6 +497,66 @@
     color: var(--warn); background: var(--warn-soft); border: 1px solid rgba(245, 165, 36, .3);
   }
 
+  /* ---------- Lab cover art (CWL-style thumbnails) ---------- */
+  .lab-cover {
+    position: relative; height: 88px; border-radius: 12px;
+    display: grid; place-items: center; overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .12);
+  }
+  .lab-cover::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(120% 130% at 82% 0%, rgba(255, 255, 255, .2), transparent 55%),
+      linear-gradient(rgba(10, 10, 15, .22) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10, 10, 15, .22) 1px, transparent 1px);
+    background-size: auto, 22px 22px, 22px 22px;
+  }
+  .lab-cover svg {
+    width: 46px; height: 46px; position: relative; z-index: 1;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .45));
+  }
+  .lab-cover .cover-code {
+    position: absolute; right: 9px; bottom: 7px; z-index: 1;
+    font: 700 11px var(--mono); letter-spacing: 1.2px; color: rgba(255, 255, 255, .9);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  }
+
+  /* ---------- Next badge (motivation) ---------- */
+  .badge-card { display: flex; align-items: center; gap: 16px; }
+  .badge-ring { width: 68px; height: 68px; flex: 0 0 68px; transform: rotate(-90deg); }
+  .badge-ring .ring-bg { fill: none; stroke: rgba(255, 255, 255, .09); stroke-width: 6; }
+  .badge-ring .ring-fg { fill: none; stroke: var(--cyan); stroke-width: 6; stroke-linecap: round; transition: stroke-dasharray .5s; filter: drop-shadow(0 0 6px rgba(0, 212, 255, .6)); }
+  .badge-ring .ring-pct { transform: rotate(90deg); transform-origin: 36px 36px; fill: var(--text); font: 700 11px var(--mono); }
+  .badge-card .label { font: 600 10.5px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: var(--faint); }
+  .badge-card .title { font-size: 17px; font-weight: 700; color: var(--text); margin-top: 2px; }
+  .badge-card .sub { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+  /* ---------- Virtual ledger (synthetic transactions) ---------- */
+  .ledger { display: flex; flex-direction: column; }
+  .ledger-head, .ledger-row {
+    display: grid; grid-template-columns: 122px minmax(0, 1fr) 100px 78px; gap: 8px; align-items: center;
+  }
+  .ledger-head {
+    padding: 6px 10px; font: 600 9.5px var(--mono); letter-spacing: 1px; text-transform: uppercase;
+    color: var(--faint); border-bottom: 1px solid var(--border-soft);
+  }
+  .ledger-row {
+    padding: 7px 10px; font: 500 11.5px var(--mono); color: var(--text-2);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .ledger-row:last-of-type { border-bottom: 0; }
+  .ledger-row:hover { background: var(--glass-2); }
+  .l-acct { color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .l-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .l-amt { text-align: right; font-weight: 600; white-space: nowrap; }
+  .l-amt.pos { color: var(--success); }
+  .l-amt.neg { color: var(--danger); }
+  .l-status { text-align: right; font: 600 9.5px var(--mono); text-transform: uppercase; letter-spacing: .5px; }
+  .l-status.posted { color: var(--success); }
+  .l-status.pending { color: var(--warn); }
+  .l-status.flagged { color: var(--danger); }
+  .ledger-note { margin: 10px 0 0; font: 500 10.5px var(--mono); color: var(--faint); text-align: center; }
+
   /* ---------- Footer (terminal status line) ---------- */
   .app-footer {
     display: flex; gap: 8px 20px; flex-wrap: wrap; align-items: center;
@@ -618,6 +678,10 @@
         <p id="dash-sub">Your synthetic bank security range.</p>
       </div>
       <div class="stats" id="dash-stats"></div>
+      <div class="panel" style="margin-bottom:16px">
+        <h2>Next badge</h2>
+        <div id="badge-body"><p class="muted">—</p></div>
+      </div>
       <div class="two-col">
         <div class="panel">
           <h2>Progression</h2>
@@ -637,6 +701,10 @@
           <h2>Activity</h2>
           <div id="activity-body"><p class="muted">—</p></div>
         </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h2>Virtual ledger</h2>
+        <div id="dash-ledger"><p class="muted">—</p></div>
       </div>
     </div>
   </section>
@@ -688,6 +756,10 @@
           <div class="panel">
             <h2>Bank posture</h2>
             <div id="posture-body"><p class="muted">—</p></div>
+          </div>
+          <div class="panel">
+            <h2>Virtual ledger</h2>
+            <div id="ledger-body"><p class="muted">—</p></div>
           </div>
         </aside>
       </div>
@@ -847,6 +919,33 @@ function maxDifficulty(stage) {
   return Math.max.apply(null, (stage.scenarios || []).map((s) => s.difficulty));
 }
 
+/* ---------- Lab cover art (CWL-style thumbnails) ---------- */
+
+const COVER_GRADS = [
+  ["#0057c5", "#00d4ff"], ["#00a6ff", "#8b5cf6"], ["#8b5cf6", "#ff2b2b"],
+  ["#0057c5", "#ff2b2b"], ["#00d4ff", "#ff2b2b"], ["#0057c5", "#00a6ff"],
+  ["#00a6ff", "#ff2b2b"], ["#0057c5", "#8b5cf6"], ["#00d4ff", "#8b5cf6"],
+  ["#0057c5", "#ff0000"],
+];
+const COVER_GLYPHS = ["shield", "vault", "radar", "globe", "layers", "key", "finger", "cpu", "cube", "flag"];
+const GLYPH_PATHS = {
+  shield: '<path d="M12 3l7 2.6V11c0 4.4-3 7.6-7 9.4-4-1.8-7-5-7-9.4V5.6L12 3z"/><path d="M9 11.5l2 2 4-4"/>',
+  vault: '<rect x="7" y="10" width="10" height="8" rx="1.5"/><path d="M9.5 10V8a2.5 2.5 0 0 1 5 0v2"/><path d="M12 13v2.2"/>',
+  radar: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5V12l6 3.5"/>',
+  globe: '<circle cx="12" cy="12" r="8.5"/><ellipse cx="12" cy="12" rx="8.5" ry="3.4"/><path d="M3.5 12h17"/><path d="M12 3.5c2.7 2.3 4 5.2 4 8.5s-1.3 6.2-4 8.5c-2.7-2.3-4-5.2-4-8.5s1.3-6.2 4-8.5z"/>',
+  layers: '<path d="M12 4l8 4-8 4-8-4 8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 16l8 4 8-4"/>',
+  key: '<circle cx="8" cy="16" r="3.2"/><path d="M10.4 13.6L19 5"/><path d="M15 8.5l2.5 2.5"/><path d="M13.5 10l2 2"/>',
+  finger: '<path d="M7.5 9.5c0-2.8 2-4.8 4.5-4.8s4.5 2 4.5 4.8c0 2-.9 3.5-1.6 4.6"/><path d="M8 16.5c-1-1.6-1.6-3-1.6-4.7 0-3 2.2-5 5.6-5 3.3 0 5.6 2 5.6 5 0 2.6-1.4 5-3.2 6.4"/><path d="M8.8 20.4c-1.4-1.5-2.3-3.2-2.3-5.3"/>',
+  cpu: '<rect x="5.5" y="5.5" width="13" height="13" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v2.5M15 3v2.5M9 18.5V21M15 18.5V21M3 9h2.5M3 15h2.5M18.5 9H21M18.5 15H21"/>',
+  cube: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>',
+  flag: '<path d="M6 21V4"/><path d="M6 4h11l-2.5 3.5L17 11H6"/>',
+};
+
+function coverFor(i, code) {
+  const g = COVER_GRADS[i % COVER_GRADS.length];
+  return { g1: g[0], g2: g[1], glyph: GLYPH_PATHS[COVER_GLYPHS[i % COVER_GLYPHS.length]] || "" };
+}
+
 /* ---------- Render: labs (CWL challenge grid, with filter chips) ---------- */
 
 function stageDifficultyBand(stage) {
@@ -930,7 +1029,7 @@ function renderRange() {
       <span class="results-count">${shown.length} ${shown.length === 1 ? "lab" : "labs"} <span class="muted">· ${all.reduce((n, s) => n + s.scenarios.length, 0)} scenarios · 50 hard gates</span></span>
       ${hasFilters ? `<button type="button" class="facet-clear" data-clear-top="1">Clear filters</button>` : ""}
     </div>
-    ${shown.map((stage) => {
+    ${shown.map((stage, i) => {
       const cur = curriculumStages.find((s) => s.id === stage.stage_id);
       const isCurrent = stage.stage_id === state.currentStageId;
       const isCompleted = cur && cur.status === "completed";
@@ -939,7 +1038,12 @@ function renderRange() {
       const code = stage.stage_id.split("-")[0];
       const lo = String(minDifficulty(stage)).padStart(2, "0");
       const hi = String(maxDifficulty(stage)).padStart(2, "0");
+      const cover = coverFor(i, code);
       return `<a class="lab-card" href="#/lab/${encodeURIComponent(stage.stage_id)}">
+        <span class="lab-cover" aria-hidden="true" style="background:linear-gradient(135deg, ${cover.g1}, ${cover.g2})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${cover.glyph}</svg>
+          <span class="cover-code">${esc(code)}</span>
+        </span>
         <div class="lab-card-top">
           <span class="lab-code">${esc(code)}</span>
           <span class="lab-status ${statusClass}">${status}</span>
@@ -1388,9 +1492,90 @@ function renderLab(stageId) {
   renderLabScenarios();
   renderScenario();
   renderSynthesis();
+  renderLedger();
 }
 
 /* ---------- Dashboard ---------- */
+
+function seedHash(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function money(n) {
+  return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function ledgerHTML() {
+  const level = ((state.range && state.range.bank_profile && state.range.bank_profile.level) || 1);
+  const seed = seedHash(state.learner + ":" + (state.currentStageId || "idle") + ":" + level);
+  const pool = [
+    ["Wire transfer", "inbound", "posted"],
+    ["Maker approval", "inbound", "pending"],
+    ["Checkout settlement", "outbound", "posted"],
+    ["Payroll run", "outbound", "posted"],
+    ["Interest accrual", "inbound", "posted"],
+    ["Card refund", "inbound", "posted"],
+    ["ACH push", "outbound", "pending"],
+    ["FX conversion", "outbound", "posted"],
+    ["Vault deposit", "inbound", "posted"],
+    ["Escrow hold", "outbound", "flagged"],
+  ];
+  const branches = ["BR-01", "BR-02", "BR-03", "HQ-01"];
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const r = seed + i * 2654435761;
+    const pick = pool[(r >>> 3) % pool.length];
+    const branch = branches[(r >>> 5) % branches.length];
+    const amount = 250 + ((r >>> 11) % 90000);
+    const sign = pick[1] === "inbound" ? "+" : "-";
+    rows.push(`<div class="ledger-row">
+      <span class="l-acct">${branch} · ${String(1000 + (r % 9000)).padStart(4, "0")}</span>
+      <span class="l-desc">${pick[0]}</span>
+      <span class="l-amt ${sign === "-" ? "neg" : "pos"}">${sign}${money(amount)}</span>
+      <span class="l-status ${pick[2]}">${pick[2]}</span>
+    </div>`);
+  }
+  return `
+    <div class="ledger">
+      <div class="ledger-head"><span>Account</span><span>Description</span><span class="amt">Amount</span><span>Status</span></div>
+      ${rows.join("")}
+    </div>
+    <p class="ledger-note">SYNTHETIC SIMULATION · VIRTUAL LEDGER · NO REAL FUNDS</p>`;
+}
+
+function renderLedger() {
+  const html = ledgerHTML();
+  const boxes = [$("ledger-body"), $("dash-ledger")];
+  boxes.forEach((box) => { if (box) box.innerHTML = html; });
+}
+
+function renderBadge() {
+  const box = $("badge-body");
+  if (!box) return;
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  const completed = stages.filter((s) => s.status === "completed").length;
+  const next = stages.find((s) => s.status === "unlocked") || null;
+  const pct = stages.length ? Math.round((completed / stages.length) * 100) : 0;
+  const circ = 188.5;
+  box.innerHTML = `
+    <div class="badge-card">
+      <svg class="badge-ring" viewBox="0 0 72 72" aria-hidden="true">
+        <circle class="ring-bg" cx="36" cy="36" r="30"></circle>
+        <circle class="ring-fg" cx="36" cy="36" r="30" style="stroke-dasharray:${(pct / 100) * circ}, ${circ}"></circle>
+        <text class="ring-pct" x="36" y="41" text-anchor="middle">${pct}%</text>
+      </svg>
+      <div>
+        <div class="label">Next badge</div>
+        <div class="title">${next ? esc(stageTitle(next.id)) : "Lab complete"}</div>
+        <div class="sub">${completed} of ${stages.length || 10} stages completed</div>
+      </div>
+    </div>`;
+}
 
 function renderActivity() {
   const box = $("activity-body");
@@ -1441,6 +1626,8 @@ function renderDashboard() {
   }
   renderProgression();
   renderActivity();
+  renderBadge();
+  renderLedger();
   const cont = $("continue-body");
   if (cont) {
     if (state.currentStageId) {
