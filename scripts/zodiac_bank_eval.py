@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -432,7 +433,7 @@ def check_phase1_agent_security() -> dict[str, Any]:
     from zodiac_agent_security import AgentSecurityError, issue_agent_token, manifest_digest, verify_agent_token
     from zodiac_bank_orchestrator import BankAuthorizationError, BankOrchestrator
 
-    key = b"zodiac-bank-agent-signing-key-change-me"
+    key = os.environ.get("ZODIAC_AGENT_SIGNING_KEY", "zodiac-bank-agent-signing-key-change-me")
     mcp_wrapper = (ROOT / "mcp-wrapper" / "server.py").read_text(encoding="utf-8")
     router = (ROOT / "a2a-agents" / "router" / "main.py").read_text(encoding="utf-8")
     knowledge = (ROOT / "a2a-agents" / "knowledge" / "main.py").read_text(encoding="utf-8")
