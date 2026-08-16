@@ -3,42 +3,44 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Zodiac Bank · AI Security Lab</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2300e15d' stroke-width='2' stroke-linejoin='round' d='M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z'/%3E%3C/svg%3E" />
+<title>Zodiac Bank · AI Security Labs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23ef7d22' stroke-width='2' stroke-linejoin='round' d='M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   /* ============================================================
-     Zodiac Bank · AI Security Lab
-     INE-style training platform: near-black green base, signature
-     INE mint-green accent, flat premium surfaces, mono micro-labels.
+     Zodiac Bank · AI Security Labs
+     Design language: faithful to the INE training platform —
+     deep neutral #151515 base, Lato type, white primary text,
+     orange #ef7d22 CTA accent, flat premium cards, mono labels.
      ============================================================ */
   :root {
-    --bg: #0a0d0c;
-    --bg-soft: #0e1210;
-    --surface: #121614;
-    --surface-2: #181d1a;
-    --surface-3: #212722;
-    --border: #232b26;
-    --border-soft: #1a201c;
-    --text: #eaf0ec;
-    --text-2: #9aa79f;
-    --text-3: #6b776f;
-    --accent: #00e15d;
-    --accent-2: #2ee87e;
-    --accent-soft: rgba(0, 225, 93, .12);
-    --success: #00e15d;
-    --success-soft: rgba(0, 225, 93, .12);
-    --warn: #f0a32a;
-    --warn-soft: rgba(240, 163, 42, .12);
-    --danger: #ff5f5f;
-    --danger-soft: rgba(255, 95, 95, .12);
-    --green: #00e15d;           /* alias used by inline render styles */
+    --bg: #151515;
+    --bg-2: #191919;
+    --surface: #1e1e1e;
+    --surface-2: #232323;
+    --surface-3: #2b2b2b;
+    --border: #2c2c2c;
+    --border-soft: #222222;
+    --text: #ffffff;
+    --text-2: #afb0bf;
+    --text-3: #7c7d86;
+    --accent: #ef7d22;
+    --accent-hi: #ff8f3d;
+    --accent-soft: rgba(239, 125, 34, .13);
+    --link: #a793f6;
+    --success: #57c785;
+    --success-soft: rgba(87, 199, 133, .12);
+    --warn: #e2a336;
+    --warn-soft: rgba(226, 163, 54, .12);
+    --danger: #ff7070;
+    --danger-soft: rgba(255, 112, 112, .12);
+    --orange: #ef7d22;          /* alias used by inline render styles */
     --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
-    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --radius: 10px;
-    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.4);
+    --sans: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --radius: 8px;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 12px 32px rgba(0, 0, 0, .35);
   }
   * { box-sizing: border-box; }
   html { color-scheme: dark; scroll-behavior: smooth; }
@@ -47,7 +49,7 @@
     font: 15px/1.6 var(--sans); min-height: 100vh;
     -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
   }
-  ::selection { background: rgba(0,225,93,.28); color: #fff; }
+  ::selection { background: rgba(239, 125, 34, .3); color: #fff; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; color: inherit; }
   .hidden { display: none !important; }
@@ -56,47 +58,50 @@
   /* ---------- Scrollbar ---------- */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: #2b322e; border-radius: 8px; border: 2px solid var(--bg); }
-  ::-webkit-scrollbar-thumb:hover { background: #3a423d; }
+  ::-webkit-scrollbar-thumb { background: #333333; border-radius: 8px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: #414141; }
 
-  /* ---------- Buttons ---------- */
+  /* ---------- Buttons (INE: orange primary, white secondary, ghost) ---------- */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
-    border-radius: 8px; padding: 9px 16px; font-weight: 600; font-size: 14px; cursor: pointer;
-    transition: background .15s, border-color .15s, transform .05s, opacity .15s, box-shadow .15s;
+    border-radius: var(--radius); padding: 9px 16px; font-weight: 700; font-size: 13.5px;
+    letter-spacing: .2px; cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s, transform .05s, opacity .15s;
   }
-  .btn:hover:not(:disabled) { background: var(--surface-3); border-color: #2f3832; }
+  .btn:hover:not(:disabled) { background: var(--surface-3); border-color: #3a3a3a; }
   .btn:active:not(:disabled) { transform: translateY(1px); }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
   .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .btn-primary {
-    background: var(--accent); border-color: var(--accent); color: #06130b; font-weight: 700;
+    background: var(--accent); border-color: var(--accent); color: #ffffff;
   }
-  .btn-primary:hover:not(:disabled) { background: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 0 3px rgba(0,225,93,.18); }
-  .btn-danger { background: transparent; border-color: rgba(255,95,95,.45); color: var(--danger); }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hi); border-color: var(--accent-hi); }
+  .btn-secondary { background: #ffffff; border-color: #ffffff; color: #1e1e1e; }
+  .btn-secondary:hover:not(:disabled) { background: #ececec; border-color: #ececec; }
+  .btn-danger { background: transparent; border-color: rgba(255, 112, 112, .4); color: var(--danger); }
   .btn-danger:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); }
   .btn-ghost { background: transparent; border-color: transparent; color: var(--text-2); }
   .btn-ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
   .btn-block { width: 100%; }
   .spinner {
     width: 15px; height: 15px; border-radius: 50%;
-    border: 2px solid rgba(6,19,11,.3); border-top-color: #06130b;
+    border: 2px solid rgba(255, 255, 255, .35); border-top-color: #ffffff;
     animation: spin .7s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ---------- Inputs ---------- */
   .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 12.5px; font-weight: 600; color: var(--text-2); letter-spacing: .2px; }
+  .field label { font-size: 12.5px; font-weight: 700; color: var(--text-2); letter-spacing: .2px; }
   input, textarea, select {
     font: inherit; color: var(--text);
-    background: var(--bg-soft); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 12px; width: 100%;
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 12px; width: 100%;
     transition: border-color .15s, box-shadow .15s;
   }
   input::placeholder, textarea::placeholder { color: var(--text-3); }
-  input:hover:not(:focus), textarea:hover:not(:focus) { border-color: #2f3832; }
+  input:hover:not(:focus), textarea:hover:not(:focus) { border-color: #3a3a3a; }
   input:focus, textarea:focus, select:focus {
     outline: none; border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
@@ -114,35 +119,34 @@
   .reveal:hover, .reveal.on { color: var(--text); background: var(--surface-3); }
 
   /* ============================================================
-     LOGIN
+     LOGIN (INE sign-in style)
      ============================================================ */
   .login-wrap {
     min-height: 100vh; display: grid; place-items: center; padding: 32px 20px;
     background:
-      radial-gradient(760px 460px at 50% -12%, rgba(0,225,93,.10), transparent 62%),
-      radial-gradient(620px 420px at 88% 112%, rgba(0,225,93,.045), transparent 60%),
+      radial-gradient(640px 420px at 50% -10%, rgba(239, 125, 34, .07), transparent 60%),
       var(--bg);
   }
   .login-card {
-    width: 100%; max-width: 402px;
+    width: 100%; max-width: 404px;
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; padding: 36px 34px 28px; box-shadow: var(--shadow);
+    border-radius: 12px; padding: 36px 34px 28px; box-shadow: var(--shadow);
   }
-  .login-brand { display: flex; align-items: center; gap: 13px; margin-bottom: 28px; }
+  .login-brand { display: flex; align-items: center; gap: 13px; margin-bottom: 26px; }
   .login-brand .mark {
     width: 46px; height: 46px; flex: 0 0 46px; display: grid; place-items: center;
-    border-radius: 12px; background: var(--accent-soft); border: 1px solid rgba(0,225,93,.3);
+    border-radius: 10px; background: var(--accent-soft); border: 1px solid rgba(239, 125, 34, .3);
   }
   .login-brand .mark svg { width: 24px; height: 24px; }
-  .login-brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: .5px; }
-  .login-brand .sub { display: block; margin-top: 2px; font-size: 11px; color: var(--text-3); letter-spacing: 2px; text-transform: uppercase; }
-  .login-card > h2 { margin: 0 0 4px; font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
-  .login-sub { margin: 0 0 22px; color: var(--text-3); font-size: 14px; }
+  .login-brand h1 { margin: 0; font-size: 17px; font-weight: 900; letter-spacing: .4px; }
+  .login-brand .sub { display: block; margin-top: 2px; font-size: 11px; color: var(--text-3); letter-spacing: 2.2px; text-transform: uppercase; }
+  .login-card > h2 { margin: 0 0 4px; font-size: 21px; font-weight: 900; letter-spacing: -.01em; }
+  .login-sub { margin: 0 0 22px; color: var(--text-2); font-size: 14px; }
   .login-card .field { margin-bottom: 16px; }
   .login-error {
     margin: 4px 0 14px; padding: 10px 12px; font-size: 13px;
-    border: 1px solid rgba(255,95,95,.4); background: var(--danger-soft);
-    color: #ffb3b3; border-radius: 8px;
+    border: 1px solid rgba(255, 112, 112, .4); background: var(--danger-soft);
+    color: #ffb3b3; border-radius: var(--radius);
   }
   .login-foot {
     margin: 18px 0 0; text-align: center; font-size: 12px; color: var(--text-3);
@@ -150,56 +154,57 @@
   }
 
   /* ============================================================
-     APP SHELL (header / nav)
+     APP SHELL (header / nav — INE navbar style)
      ============================================================ */
   .app-header {
     position: sticky; top: 0; z-index: 40;
-    display: flex; align-items: center; gap: 20px;
-    padding: 12px 28px; background: rgba(10,13,12,.9);
+    display: flex; align-items: center; gap: 22px;
+    padding: 12px 28px; background: rgba(21, 21, 21, .92);
     backdrop-filter: blur(14px); border-bottom: 1px solid var(--border-soft);
   }
   .app-brand { display: flex; align-items: center; gap: 11px; }
   .app-brand .mark {
     width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center;
-    border-radius: 9px; background: var(--accent-soft); border: 1px solid rgba(0,225,93,.28);
+    border-radius: 8px; background: var(--accent-soft); border: 1px solid rgba(239, 125, 34, .3);
   }
   .app-brand .mark svg { width: 19px; height: 19px; }
-  .app-brand .name { font-weight: 700; font-size: 15px; letter-spacing: .2px; }
-  .app-brand .sub { display: block; font-size: 10.5px; color: var(--text-3); letter-spacing: 1.5px; text-transform: uppercase; }
-  .app-nav { display: flex; gap: 4px; margin-left: 8px; }
+  .app-brand .name { font-weight: 900; font-size: 15px; letter-spacing: .2px; }
+  .app-brand .sub { display: block; font-size: 10px; color: var(--text-3); letter-spacing: 1.6px; text-transform: uppercase; }
+  .app-nav { display: flex; gap: 2px; margin-left: 10px; }
   .app-nav a {
-    padding: 7px 13px; border-radius: 7px; font-size: 14px; font-weight: 500;
-    color: var(--text-2); transition: background .14s, color .14s;
+    position: relative; padding: 8px 14px; border-radius: 6px;
+    font-size: 14px; font-weight: 700; color: var(--text-2);
+    transition: color .14s, background .14s;
   }
   .app-nav a:hover { color: var(--text); background: var(--surface-2); }
   .app-nav a.active { color: var(--accent); background: var(--accent-soft); }
   .app-user { margin-left: auto; display: flex; align-items: center; gap: 10px; }
   .user-chip {
     display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
-    border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 700;
     background: var(--surface); color: var(--text-2);
   }
-  .user-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px rgba(0,225,93,.8); }
+  .user-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
   .mode-pill {
-    font: 500 11px var(--mono); letter-spacing: .5px; color: var(--accent-2);
-    padding: 5px 10px; border: 1px solid rgba(0,225,93,.35); border-radius: 999px; text-transform: uppercase;
+    font: 500 11px var(--mono); letter-spacing: .6px; color: var(--accent);
+    padding: 5px 10px; border: 1px solid rgba(239, 125, 34, .35); border-radius: 999px; text-transform: uppercase;
     background: var(--accent-soft);
   }
 
   /* ---------- Page scaffolding ---------- */
-  .page { max-width: 1100px; margin: 0 auto; padding: 34px 28px 64px; }
+  .page { max-width: 1120px; margin: 0 auto; padding: 34px 28px 64px; }
   .page-head { margin-bottom: 26px; }
-  .page-head h1 { margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
-  .page-head p { margin: 0; color: var(--text-3); font-size: 14px; }
+  .page-head h1 { margin: 0 0 4px; font-size: 28px; font-weight: 900; letter-spacing: -.01em; }
+  .page-head p { margin: 0; color: var(--text-2); font-size: 14px; }
   .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-2); margin-bottom: 18px; }
   .back-link:hover { color: var(--accent); }
 
   .panel {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+    border-radius: var(--radius); padding: 20px;
   }
   .panel > h2 {
-    margin: 0 0 14px; font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+    margin: 0 0 14px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
     text-transform: uppercase; color: var(--text-3);
   }
   .panel > h2::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 2px; background: var(--accent); margin-right: 8px; vertical-align: 1px; }
@@ -209,23 +214,24 @@
   @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } }
   .stat {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 18px; transition: border-color .15s;
+    border-top: 2px solid var(--accent);
+    border-radius: var(--radius); padding: 18px 18px 16px;
+    transition: border-color .15s;
   }
-  .stat:hover { border-color: rgba(0,225,93,.35); }
-  .stat b { display: block; font-size: 30px; font-weight: 700; letter-spacing: -.02em; color: var(--accent); font-family: var(--mono); }
-  .stat span { font-size: 12.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: .6px; }
+  .stat:hover { border-color: #3a3a3a; }
+  .stat b { display: block; font-size: 29px; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
+  .stat span { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .7px; font-weight: 700; }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
 
   .prog-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-2); margin: 0 0 6px; }
-  .prog-row b { color: var(--text); font-weight: 600; }
-  .prog-row b.accent { color: var(--accent-2); }
+  .prog-row b { color: var(--text); font-weight: 700; }
+  .prog-row b.accent { color: var(--accent); }
   .progress-bar { height: 8px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
   .progress-bar > span {
     display: block; height: 100%;
-    background: linear-gradient(90deg, #00b84c, var(--accent));
-    border-radius: 999px; transition: width .5s cubic-bezier(.4,0,.2,1);
-    box-shadow: 0 0 10px rgba(0,225,93,.5);
+    background: linear-gradient(90deg, #d96a14, var(--accent-hi));
+    border-radius: 999px; transition: width .5s cubic-bezier(.4, 0, .2, 1);
   }
   .gate-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--border-soft); }
   .gate-row:last-child { border-bottom: 0; }
@@ -234,62 +240,126 @@
 
   .continue-card {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    margin-top: 8px; padding: 16px; border: 1px solid var(--border);
-    border-radius: var(--radius); background: var(--bg-soft);
+    margin-top: 8px; padding: 18px; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--bg-2);
+    border-left: 3px solid var(--accent);
   }
-  .continue-card .label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; }
-  .continue-card .title { font-size: 16px; font-weight: 600; margin-top: 2px; }
+  .continue-card .label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .continue-card .title { font-size: 16px; font-weight: 900; margin-top: 2px; }
 
-  /* ---------- Labs grid ---------- */
-  .labs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  @media (max-width: 640px) { .labs-grid { grid-template-columns: 1fr; } }
-  .lab-card {
-    display: flex; flex-direction: column; gap: 10px;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 18px; transition: border-color .15s, transform .15s, box-shadow .15s;
+  /* ============================================================
+     LABS — INE search-page style (facet sidebar + course rows)
+     ============================================================ */
+  .labs-layout { display: grid; grid-template-columns: 244px minmax(0, 1fr); gap: 22px; align-items: start; }
+  @media (max-width: 860px) { .labs-layout { grid-template-columns: 1fr; } }
+  .labs-filters { position: sticky; top: 84px; }
+  .labs-filters .filters-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
   }
-  .lab-card:hover { border-color: rgba(0,225,93,.4); transform: translateY(-2px); box-shadow: var(--shadow); }
-  .lab-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .facet-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-2); margin-bottom: 14px;
+  }
+  .facet-clear {
+    background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 700;
+    color: var(--accent); padding: 2px 0;
+  }
+  .facet-clear:hover { text-decoration: underline; }
+  .facet { padding: 12px 0; border-top: 1px solid var(--border-soft); }
+  .facet h4 {
+    margin: 0 0 8px; font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--text-3);
+  }
+  .facet-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    width: 100%; text-align: left; padding: 6px 8px; margin: 1px 0;
+    background: transparent; border: none; border-radius: 6px;
+    font-size: 13.5px; font-weight: 700; color: var(--text-2); cursor: pointer;
+    transition: background .12s, color .12s;
+  }
+  .facet-row:hover { background: var(--surface-2); color: var(--text); }
+  .facet-row.active { background: var(--accent-soft); color: var(--accent); }
+  .facet-row .cnt { font: 500 11.5px var(--mono); color: var(--text-3); }
+  .facet-row.active .cnt { color: var(--accent); }
+  .facet-static {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 6px 8px; font-size: 13.5px; font-weight: 700; color: var(--text-2);
+  }
+  .facet-static .cnt { font: 500 11.5px var(--mono); color: var(--text-3); }
+
+  .labs-main { min-width: 0; }
+  .lab-search-row { margin-bottom: 14px; }
+  .lab-search-row input { background: var(--surface); }
+  .results-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin: 0 0 10px; font-size: 13px; color: var(--text-2);
+  }
+  .results-count { font-weight: 700; }
+  .labs-list { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .lab-card {
+    display: block; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    transition: border-color .15s, transform .15s, box-shadow .15s;
+  }
+  .lab-card:hover { border-color: #3d3d3d; transform: translateY(-1px); box-shadow: var(--shadow); }
+  .lab-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .lab-type {
+    font: 700 10.5px var(--mono); letter-spacing: .6px; text-transform: uppercase;
+    color: var(--text-2); border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px;
+  }
   .lab-code {
     font: 700 12px var(--mono); letter-spacing: .5px; color: var(--accent);
-    background: var(--accent-soft); border-radius: 6px; padding: 3px 9px;
+    background: var(--accent-soft); border-radius: 5px; padding: 3px 9px;
   }
-  .lab-status { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .lab-status { margin-left: auto; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
   .lab-status.ok { color: var(--success); }
-  .lab-status.accent { color: var(--accent-2); }
+  .lab-status.accent { color: var(--accent); }
   .lab-status.muted { color: var(--text-3); }
-  .lab-card-title { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
-  .lab-card-sub { margin: 0; font-size: 13px; color: var(--text-3); }
-  .lab-card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; font-size: 12px; color: var(--text-3); font-family: var(--mono); }
-  .lab-arrow { color: var(--accent); transition: transform .15s; }
-  .lab-card:hover .lab-arrow { transform: translateX(3px); }
+  .lab-card-title { margin: 0; font-size: 17.5px; font-weight: 900; letter-spacing: -.01em; }
+  .lab-card-sub { margin: 3px 0 12px; font-size: 13px; color: var(--text-2); }
+  .lab-card-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font: 500 12px var(--mono); color: var(--text-3);
+  }
+  .lab-arrow { color: var(--text); font-weight: 700; transition: color .15s, transform .15s; }
+  .lab-card:hover .lab-arrow { color: var(--accent); transform: translateX(3px); }
 
-  /* ---------- Lab detail ---------- */
-  .lab-head-top { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
-  .lab-head-top .lab-code { font-size: 14px; padding: 6px 12px; }
-  .lab-title { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
-  .lab-meta { font-size: 13px; color: var(--text-3); margin-top: 2px; font-family: var(--mono); }
-  .lab-meta .ok { color: var(--success); font-weight: 600; }
-  .lab-meta .accent { color: var(--accent-2); font-weight: 600; }
+  /* ============================================================
+     LAB DETAIL — INE course-page style (hero + curriculum)
+     ============================================================ */
+  .lab-hero {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px 26px; margin-bottom: 18px;
+  }
+  .lab-head-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .lab-head-top .lab-code { font-size: 13px; padding: 5px 11px; }
+  .lab-title { margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -.01em; }
+  .lab-meta { font-size: 13px; color: var(--text-2); margin-top: 6px; font-family: var(--mono); }
+  .lab-meta .ok { color: var(--success); font-weight: 700; }
+  .lab-meta .accent { color: var(--accent); font-weight: 700; }
   .lab-meta .muted { color: var(--text-3); }
   .lab-layout { display: grid; grid-template-columns: 264px minmax(0, 1fr) 264px; gap: 16px; align-items: start; }
   @media (max-width: 1080px) { .lab-layout { grid-template-columns: 1fr; } }
   .lab-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
   .lab-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
-  /* scenario list (INE module-style sidebar) */
-  .scenario-list { display: flex; flex-direction: column; gap: 4px; }
+  /* curriculum / scenario list (INE lesson rows) */
+  .scenario-list { display: flex; flex-direction: column; }
   .scenario-row {
-    display: flex; align-items: center; gap: 10px; text-align: left;
-    padding: 10px 12px; border-radius: 8px; border: 1px solid transparent;
+    display: flex; align-items: center; gap: 11px; text-align: left;
+    padding: 11px 12px; border-radius: 6px; border: 1px solid transparent;
+    border-bottom: 1px solid var(--border-soft);
     background: transparent; cursor: pointer; width: 100%;
     transition: background .13s, border-color .13s;
   }
+  .scenario-row:last-child { border-bottom: 1px solid transparent; }
   .scenario-row:hover { background: var(--surface-2); }
-  .scenario-row.active { background: var(--accent-soft); border-color: rgba(0,225,93,.35); }
-  .sc-diff { flex: 0 0 auto; font: 700 11px var(--mono); color: var(--warn); background: var(--warn-soft); border: 1px solid rgba(240,163,42,.3); border-radius: 5px; padding: 1px 6px; }
-  .sc-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
-  .scenario-row.active .sc-title { color: var(--text); font-weight: 600; }
+  .scenario-row.active { background: var(--accent-soft); border-color: rgba(239, 125, 34, .4); }
+  .sc-diff { flex: 0 0 auto; font: 700 11px var(--mono); color: var(--accent); background: var(--accent-soft); border-radius: 5px; padding: 2px 7px; }
+  .sc-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: 700; }
+  .scenario-row.active .sc-title { color: var(--text); }
 
   /* status states (shared) */
   .state {
@@ -301,14 +371,14 @@
   .state.active { color: var(--warn); }
   .state.complete { color: var(--success); }
   .state.locked { color: var(--text-3); }
-  .state.unlocked { color: var(--accent-2); }
+  .state.unlocked { color: var(--accent); }
 
   /* scenario detail */
   .scenario-head { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
-  .scenario-title { margin: 4px 0 8px; font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+  .scenario-title { margin: 4px 0 8px; font-size: 19px; font-weight: 900; letter-spacing: -.01em; }
   .objective { color: var(--text-2); margin: 0 0 14px; font-size: 14px; }
-  details { border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; margin-top: 10px; background: var(--bg-soft); }
-  details summary { cursor: pointer; color: var(--text); font-weight: 600; font-size: 13px; list-style: none; display: flex; align-items: center; gap: 8px; }
+  details { border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 14px; margin-top: 10px; background: var(--bg-2); }
+  details summary { cursor: pointer; color: var(--text); font-weight: 700; font-size: 13px; list-style: none; display: flex; align-items: center; gap: 8px; }
   details summary::-webkit-details-marker { display: none; }
   details summary::before { content: "▸"; color: var(--text-3); transition: transform .15s; }
   details[open] summary::before { transform: rotate(90deg); color: var(--accent); }
@@ -317,8 +387,8 @@
 
   .row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
   .step-box {
-    margin-top: 13px; padding: 14px; background: var(--bg-soft);
-    border: 1px solid var(--border); border-radius: 8px; border-left: 3px solid var(--accent);
+    margin-top: 13px; padding: 14px; background: var(--bg-2);
+    border: 1px solid var(--border); border-radius: var(--radius); border-left: 3px solid var(--accent);
   }
   .step-box .event { font: 600 13px var(--mono); color: var(--accent); }
   .step-box .obs { color: var(--text); margin-top: 8px; font-size: 14px; }
@@ -335,10 +405,10 @@
   .candidate-chip {
     border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px;
     font: 600 12px var(--mono); background: var(--surface-2); color: var(--text); cursor: pointer;
-    transition: border-color .13s, background .13s, transform .05s;
+    transition: border-color .13s, background .13s, color .13s, transform .05s;
   }
-  .candidate-chip:hover { border-color: rgba(0,225,93,.5); }
-  .candidate-chip.selected { border-color: var(--accent); color: #06130b; background: var(--accent); font-weight: 700; }
+  .candidate-chip:hover { border-color: rgba(239, 125, 34, .5); }
+  .candidate-chip.selected { border-color: var(--accent); color: #ffffff; background: var(--accent); font-weight: 700; }
 
   /* chips + badges */
   .chip-grid { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -347,7 +417,7 @@
     border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px;
     font: 500 11.5px var(--mono); background: var(--surface-2); color: var(--text-2);
   }
-  .chip.checked { border-color: rgba(0,225,93,.45); color: var(--success); background: var(--success-soft); }
+  .chip.checked { border-color: rgba(87, 199, 133, .45); color: var(--success); background: var(--success-soft); }
   .badge {
     display: inline-flex; align-items: center; gap: 6px;
     font: 600 11px var(--mono); letter-spacing: .5px;
@@ -355,38 +425,38 @@
     color: var(--text-2); background: var(--surface-2);
   }
   .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-  .badge.ok { color: var(--success); border-color: rgba(0,225,93,.4); background: var(--success-soft); }
-  .badge.warn { color: var(--warn); border-color: rgba(240,163,42,.4); background: var(--warn-soft); }
-  .badge.accent { color: var(--accent); border-color: rgba(0,225,93,.4); background: var(--accent-soft); }
+  .badge.ok { color: var(--success); border-color: rgba(87, 199, 133, .4); background: var(--success-soft); }
+  .badge.warn { color: var(--warn); border-color: rgba(226, 163, 54, .4); background: var(--warn-soft); }
+  .badge.accent { color: var(--accent); border-color: rgba(239, 125, 34, .4); background: var(--accent-soft); }
 
   .token-line {
     font: 600 13px var(--mono); color: var(--accent); word-break: break-all;
-    background: var(--surface-3); border: 1px dashed rgba(0,225,93,.45); border-radius: 8px;
+    background: var(--surface-3); border: 1px dashed rgba(239, 125, 34, .45); border-radius: var(--radius);
     padding: 12px 14px; margin: 9px 0;
   }
   .kv { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--text-3); margin: 8px 0 4px; }
-  .kv b { color: var(--text); font-weight: 600; }
+  .kv b { color: var(--text); font-weight: 700; }
   .ok-text { color: var(--success); }
   .err-text { color: var(--danger); }
 
   /* mission */
   .mission-text { color: var(--text); font-size: 14px; margin: 0 0 12px; }
-  .hint-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 4px; }
+  .hint-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; margin: 14px 0 4px; }
   .hint-line { display: flex; gap: 11px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); font-size: 13px; color: var(--text-2); }
   .hint-line:last-child { border-bottom: 0; }
   .hint-level {
     flex: 0 0 auto; align-self: flex-start; min-width: 54px; text-align: center;
-    font: 700 10.5px var(--mono); letter-spacing: .5px; border-radius: 6px; padding: 3px 8px;
-    color: var(--warn); background: var(--warn-soft); border: 1px solid rgba(240,163,42,.3);
+    font: 700 10.5px var(--mono); letter-spacing: .5px; border-radius: 5px; padding: 3px 8px;
+    color: var(--warn); background: var(--warn-soft); border: 1px solid rgba(226, 163, 54, .3);
   }
 
-  /* ---------- Footer ---------- */
+  /* ---------- Footer (terminal status line) ---------- */
   .app-footer {
     display: flex; gap: 8px 20px; flex-wrap: wrap; align-items: center;
-    padding: 14px 28px; border-top: 1px solid var(--border-soft); background: var(--bg-soft);
+    padding: 14px 28px; border-top: 1px solid var(--border-soft); background: var(--bg-2);
     color: var(--text-3); font: 500 12px var(--mono);
   }
-  .app-footer b { color: var(--accent); font-weight: 600; }
+  .app-footer b { color: var(--accent); font-weight: 700; }
   .app-footer .ok-text { color: var(--success); }
   .app-footer .err-text { color: var(--danger); }
   .foot-right { margin-left: auto; color: var(--text-3); }
@@ -394,22 +464,23 @@
   /* ---------- Toast ---------- */
   #toast {
     position: fixed; right: 20px; bottom: 20px; z-index: 80; max-width: 460px;
-    padding: 13px 16px; border-radius: 9px;
+    padding: 13px 16px; border-radius: var(--radius);
     border: 1px solid var(--border); background: var(--surface-2);
     box-shadow: var(--shadow); display: none;
-    font: 600 13px var(--sans); color: var(--text); white-space: pre-wrap;
+    font: 700 13px var(--sans); color: var(--text); white-space: pre-wrap;
   }
-  #toast.error { border-color: rgba(255,95,95,.5); color: #ffb3b3; }
-  #toast.ok { border-color: rgba(0,225,93,.45); color: var(--success); }
+  #toast.error { border-color: rgba(255, 112, 112, .5); color: #ffb3b3; }
+  #toast.ok { border-color: rgba(87, 199, 133, .45); color: var(--success); }
 
   @media (max-width: 720px) {
-    .app-header { flex-wrap: wrap; padding: 12px 16px; }
-    .app-nav { order: 3; width: 100%; }
+    .app-header { flex-wrap: wrap; padding: 12px 16px; gap: 12px; }
+    .app-nav { order: 3; width: 100%; margin-left: 0; }
     .mode-pill { display: none; }
     .user-chip { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .page { padding: 24px 16px 56px; }
     .stats { gap: 10px; }
     .app-footer { padding: 12px 16px; }
+    .labs-filters { position: static; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -427,17 +498,17 @@
       <div class="login-brand">
         <span class="mark" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
-            <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#00e15d"/>
-            <path d="M8.5 15.5l2.2-4.6 2.2 2.3 2.6-5.2" stroke="#2ee87e"/>
+            <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#ef7d22"/>
+            <path d="M8.5 15.5l2.2-4.6 2.2 2.3 2.6-5.2" stroke="#ffb37a"/>
           </svg>
         </span>
         <div>
           <h1>Zodiac Bank</h1>
-          <span class="sub">AI Security Lab</span>
+          <span class="sub">AI Security Labs</span>
         </div>
       </div>
 
-      <h2>Learner sign in</h2>
+      <h2>Sign in</h2>
       <p class="login-sub">Enter your learner credentials to access the training range.</p>
 
       <div class="field">
@@ -473,12 +544,12 @@
     <div class="app-brand">
       <span class="mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
-          <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#00e15d"/>
+          <path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z" stroke="#ef7d22"/>
         </svg>
       </span>
       <div>
         <span class="name">Zodiac Bank</span>
-        <span class="sub">AI Security Lab</span>
+        <span class="sub">AI Security Labs</span>
       </div>
     </div>
     <nav class="app-nav" aria-label="Primary">
@@ -513,18 +584,28 @@
     </div>
   </section>
 
-  <!-- Labs -->
+  <!-- Labs (INE search-page layout) -->
   <section id="view-labs" class="view">
     <div class="page">
       <div class="page-head">
         <h1>Labs</h1>
         <p>10 stages · 100 scenarios · 50 hard gates</p>
       </div>
-      <div id="range-list" class="labs-grid"></div>
+      <div class="labs-layout">
+        <aside class="labs-filters">
+          <div class="filters-panel" id="lab-filters"></div>
+        </aside>
+        <div class="labs-main">
+          <div class="lab-search-row">
+            <input id="lab-search" type="search" placeholder="Search labs by name or stage…" autocomplete="off" spellcheck="false" aria-label="Search labs" />
+          </div>
+          <div id="range-list" class="labs-list"></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Lab detail -->
+  <!-- Lab detail (INE course-page layout) -->
   <section id="view-lab" class="view">
     <div class="page">
       <a href="#/labs" class="back-link">← Back to labs</a>
@@ -532,13 +613,13 @@
       <div class="lab-layout">
         <aside class="lab-side">
           <div class="panel">
-            <h2>Scenarios</h2>
+            <h2>Course curriculum</h2>
             <div id="lab-scenarios" class="scenario-list"></div>
           </div>
         </aside>
         <main class="lab-main">
           <div class="panel">
-            <h2>Mission</h2>
+            <h2>Overview</h2>
             <div id="mission-body"><p class="muted">—</p></div>
           </div>
           <div class="panel">
@@ -567,7 +648,7 @@
   <span id="status-stage">current stage: —</span>
   <span id="status-gate">gate: —</span>
   <span id="status-range">range: —</span>
-  <span class="foot-right">Zodiac Bank · AI Security Lab</span>
+  <span class="foot-right">Zodiac Bank · AI Security Labs</span>
 </footer>
 
 <div id="toast" role="status" aria-live="polite"></div>
@@ -589,6 +670,7 @@ const state = {
   gateMeta: null,
   curriculum: null,   // gate /api/curriculum (stage status + hints)
   currentLab: null,   // lab (stage) being viewed on the lab page
+  labFilters: { status: "all", difficulty: "all", q: "" },
 };
 
 function toast(message, kind) {
@@ -712,33 +794,136 @@ function maxDifficulty(stage) {
   return Math.max.apply(null, (stage.scenarios || []).map((s) => s.difficulty));
 }
 
-/* ---------- Render: labs grid ---------- */
+/* ---------- Render: labs (INE search-style, with facets) ---------- */
+
+function stageDifficultyBand(stage) {
+  const hi = maxDifficulty(stage);
+  if (hi <= 3) return "novice";
+  if (hi <= 7) return "professional";
+  return "advanced";
+}
+
+function matchesLabFilters(stage) {
+  const f = state.labFilters;
+  if (f.status !== "all") {
+    const curriculumStages = (state.curriculum && state.curriculum.stages) || [];
+    const cur = curriculumStages.find((s) => s.id === stage.stage_id);
+    const isCurrent = stage.stage_id === state.currentStageId;
+    const status = (cur && cur.status === "completed") ? "completed" : isCurrent ? "in-progress" : "locked";
+    if (status !== f.status) return false;
+  }
+  if (f.difficulty !== "all" && stageDifficultyBand(stage) !== f.difficulty) return false;
+  if (f.q) {
+    const hay = (stageTitle(stage.stage_id) + " " + stage.stage_id).toLowerCase();
+    if (!hay.includes(f.q)) return false;
+  }
+  return true;
+}
+
+function renderLabFilters() {
+  const box = $("lab-filters");
+  if (!box) return;
+  if (!state.range) { box.innerHTML = '<p class="muted">No labs loaded.</p>'; return; }
+  const all = state.range.stages;
+  const curriculumStages = (state.curriculum && state.curriculum.stages) || [];
+  const counts = { "in-progress": 0, completed: 0, locked: 0 };
+  const diff = { novice: 0, professional: 0, advanced: 0 };
+  all.forEach((stage) => {
+    const cur = curriculumStages.find((s) => s.id === stage.stage_id);
+    const isCurrent = stage.stage_id === state.currentStageId;
+    const status = (cur && cur.status === "completed") ? "completed" : isCurrent ? "in-progress" : "locked";
+    counts[status] += 1;
+    diff[stageDifficultyBand(stage)] += 1;
+  });
+  const f = state.labFilters;
+  const row = (group, value, label, n) => `
+    <button type="button" class="facet-row ${f[group] === value ? "active" : ""}" data-group="${group}" data-value="${value}">
+      <span>${label}</span><span class="cnt">${n}</span>
+    </button>`;
+  const activeFilters = f.status !== "all" || f.difficulty !== "all";
+  box.innerHTML = `
+    <div class="facet-head">
+      <span>Filters</span>
+      ${activeFilters ? `<button type="button" class="facet-clear" data-clear="1">Clear all</button>` : ""}
+    </div>
+    <div class="facet">
+      <h4>Status</h4>
+      ${row("status", "all", "All", all.length)}
+      ${row("status", "in-progress", "In progress", counts["in-progress"])}
+      ${row("status", "completed", "Completed", counts.completed)}
+      ${row("status", "locked", "Locked", counts.locked)}
+    </div>
+    <div class="facet">
+      <h4>Difficulty</h4>
+      ${row("difficulty", "all", "All", all.length)}
+      ${row("difficulty", "novice", "Novice", diff.novice)}
+      ${row("difficulty", "professional", "Professional", diff.professional)}
+      ${row("difficulty", "advanced", "Advanced", diff.advanced)}
+    </div>
+    <div class="facet">
+      <h4>Features</h4>
+      <div class="facet-static"><span>Hands-on labs</span><span class="cnt">${all.length}</span></div>
+      <div class="facet-static"><span>No external egress</span><span class="cnt">${all.length}</span></div>
+      <div class="facet-static"><span>Synthetic data only</span><span class="cnt">${all.length}</span></div>
+    </div>`;
+  box.querySelectorAll(".facet-row").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.labFilters[btn.dataset.group] = btn.dataset.value;
+      renderRange();
+    });
+  });
+  const clear = box.querySelector(".facet-clear");
+  if (clear) clear.addEventListener("click", () => {
+    state.labFilters.status = "all";
+    state.labFilters.difficulty = "all";
+    renderRange();
+  });
+}
 
 function renderRange() {
   const list = $("range-list");
   if (!list) return;
   if (!state.range) { list.innerHTML = '<p class="muted">No labs loaded.</p>'; return; }
+  renderLabFilters();
   const curriculumStages = (state.curriculum && state.curriculum.stages) || [];
-  list.innerHTML = state.range.stages.map((stage) => {
-    const cur = curriculumStages.find((s) => s.id === stage.stage_id);
-    const isCurrent = stage.stage_id === state.currentStageId;
-    const isCompleted = cur && cur.status === "completed";
-    const status = isCompleted ? "Completed" : isCurrent ? "In progress" : "Locked";
-    const statusClass = isCompleted ? "ok" : isCurrent ? "accent" : "muted";
-    const code = stage.stage_id.split("-")[0];
-    return `<a class="lab-card" href="#/lab/${encodeURIComponent(stage.stage_id)}">
-      <div class="lab-card-top">
-        <span class="lab-code">${esc(code)}</span>
-        <span class="lab-status ${statusClass}">${status}</span>
-      </div>
-      <h3 class="lab-card-title">${esc(stageTitle(stage.stage_id))}</h3>
-      <p class="lab-card-sub">${stage.scenarios.length} scenarios${isCurrent ? " · current lab" : ""}</p>
-      <div class="lab-card-foot">
-        <span>D${minDifficulty(stage)}–D${maxDifficulty(stage)} · ${stage.scenarios.length} exercises</span>
-        <span class="lab-arrow">→</span>
-      </div>
-    </a>`;
-  }).join("");
+  const all = state.range.stages;
+  const shown = all.filter(matchesLabFilters);
+  const hasFilters = state.labFilters.status !== "all" || state.labFilters.difficulty !== "all" || state.labFilters.q;
+  list.innerHTML = `
+    <div class="results-row">
+      <span class="results-count">${shown.length} ${shown.length === 1 ? "lab" : "labs"} <span class="muted">· ${all.reduce((n, s) => n + s.scenarios.length, 0)} scenarios · 50 hard gates</span></span>
+      ${hasFilters ? `<button type="button" class="facet-clear" data-clear-top="1">Clear filters</button>` : ""}
+    </div>
+    ${shown.map((stage) => {
+      const cur = curriculumStages.find((s) => s.id === stage.stage_id);
+      const isCurrent = stage.stage_id === state.currentStageId;
+      const isCompleted = cur && cur.status === "completed";
+      const status = isCompleted ? "Completed" : isCurrent ? "In progress" : "Locked";
+      const statusClass = isCompleted ? "ok" : isCurrent ? "accent" : "muted";
+      const code = stage.stage_id.split("-")[0];
+      const lo = String(minDifficulty(stage)).padStart(2, "0");
+      const hi = String(maxDifficulty(stage)).padStart(2, "0");
+      return `<a class="lab-card" href="#/lab/${encodeURIComponent(stage.stage_id)}">
+        <div class="lab-card-top">
+          <span class="lab-type">Lab</span>
+          <span class="lab-code">${esc(code)}</span>
+          <span class="lab-status ${statusClass}">${status}</span>
+        </div>
+        <h3 class="lab-card-title">${esc(stageTitle(stage.stage_id))}</h3>
+        <p class="lab-card-sub">${stage.scenarios.length} hands-on scenarios · ${esc(stage.stage_id)}</p>
+        <div class="lab-card-foot">
+          <span>D${lo}–D${hi} · ${stage.scenarios.length} exercises${isCurrent ? " · current lab" : ""}</span>
+          <span class="lab-arrow">Learn more →</span>
+        </div>
+      </a>`;
+    }).join("") || '<p class="muted" style="margin-top:12px">No labs match your filters.</p>'}`;
+  const clearTop = list.querySelector("[data-clear-top]");
+  if (clearTop) clearTop.addEventListener("click", () => {
+    state.labFilters = { status: "all", difficulty: "all", q: "" };
+    const search = $("lab-search");
+    if (search) search.value = "";
+    renderRange();
+  });
 }
 
 /* ---------- Stage / gates / synthesis ---------- */
@@ -874,7 +1059,7 @@ function renderScenario() {
     </details>
     <div class="row">
       <button id="start-btn" class="btn btn-primary" type="button" ${status === "active" || status === "complete" ? "disabled" : ""}>Start scenario</button>
-      <button id="hint-btn" class="btn" type="button">Next-step hint</button>
+      <button id="hint-btn" class="btn btn-secondary" type="button">Next-step hint</button>
       <button id="reset-btn" class="btn btn-danger" type="button" style="display:${status === "active" ? "inline-flex" : "none"}">Reset run</button>
     </div>
     <div id="hint-box"></div>
@@ -1092,7 +1277,7 @@ async function runSynthesis() {
         <div class="hint">Hard-gate flag (submit to unlock the next gate):</div>
         <div class="token-line">${esc(flag)}</div>
         <div class="row">
-          <button id="copy-flag" class="btn" type="button">Copy</button>
+          <button id="copy-flag" class="btn btn-secondary" type="button">Copy</button>
           <button id="submit-gate" class="btn btn-primary" type="button">Submit to gate</button>
         </div>
       </div>`;
@@ -1155,12 +1340,13 @@ function renderLab(stageId) {
   const head = $("lab-head");
   if (head) {
     head.innerHTML = `
-      <div class="lab-head-top">
-        <span class="lab-code">${esc(stageId.split("-")[0])}</span>
-        <div>
-          <h1 class="lab-title">${esc(stageTitle(stageId))}</h1>
-          <div class="lab-meta">${esc(stageId)} · ${stage ? stage.scenarios.length : 0} scenarios · <span class="${statusClass}">${status}</span></div>
+      <div class="lab-hero">
+        <div class="lab-head-top">
+          <span class="lab-code">${esc(stageId.split("-")[0])}</span>
+          <span class="lab-status ${statusClass}">${status}</span>
         </div>
+        <h1 class="lab-title">${esc(stageTitle(stageId))}</h1>
+        <div class="lab-meta">${esc(stageId)} · ${stage ? stage.scenarios.length : 0} scenarios · D${stage ? String(minDifficulty(stage)).padStart(2, "0") : "—"}–D${stage ? String(maxDifficulty(stage)).padStart(2, "0") : "—"} · <span class="${statusClass}">${status}</span></div>
       </div>`;
   }
   renderMission(stageId);
@@ -1327,6 +1513,12 @@ $("gate-url").value = state.gateUrl;
 $("login-btn").addEventListener("click", login);
 $("logout-btn").addEventListener("click", logout);
 $("password-toggle").addEventListener("click", togglePassword);
+
+const labSearch = $("lab-search");
+if (labSearch) labSearch.addEventListener("input", () => {
+  state.labFilters.q = labSearch.value.trim().toLowerCase();
+  renderRange();
+});
 
 fetch("/health")
   .then((r) => r.json())
