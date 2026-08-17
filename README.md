@@ -89,7 +89,7 @@ The lab models a complete training environment: branches, employees, staff roles
 
 ### What makes it different
 
-- **Progressive by design:** 10 hard-gated stages, 50 sequential hard gates, and 100 multi-step scenarios require evidence discovery before advancement.
+- **Progressive by design:** 10 hard-gated stages, 75 sequential hard gates, and 150 multi-step scenarios require evidence discovery before advancement.
 - **System-level AI security:** prompt injection, retrieval poisoning, memory persistence, tool misuse, identity, orchestration, fraud, and APT response are tested as connected attack paths.
 - **Operationally realistic:** deterministic intent → authorization → virtual settlement boundaries, maker/checker controls, branch isolation, risk escalation, receipts, and audit evidence.
 - **Threat-to-control mapping:** current agentic, financial-services, payment-fraud, and AI supply-chain risks become reproducible, gated exercises and machine-checked controls that students learn to bypass and then defend.
@@ -103,15 +103,26 @@ The lab models a complete training environment: branches, employees, staff roles
 
 | 🎯 Scenarios | 🚪 Hard gates | 🪜 Stages | 🏦 Branches / staff | 🛡️ Security phases |
 | --- | --- | --- | --- | --- |
-| **100** | **50** | **10** | **3 / 12** | **4** |
+| **150** | **75** | **10** | **3 / 12** | **4** |
 
 | 💥 Attack surface | 🧠 System coverage | 🛰️ Telemetry | 🧱 Runtime profiles |
 | --- | --- | --- | --- |
 | Prompt injection · RAG/memory poisoning · MCP/A2A abuse · fraud · APT | Graph · RAG · memory · agents · loops | Fraud trace · event envelope · alert correlation | Core · Lite · Full |
 
+### 🆕 2026 scenario catalog release
+
+The current catalog covers **January 1, 2026 through August 17, 2026** and expands the original range to 150 bounded scenarios. The added material is research-informed rather than a claim that the lab reproduces any named incident or vendor vulnerability.
+
+- **50 new scenarios** are loaded from `training-config/scenario-expansion-2026.json`.
+- **9 CWF-style investigation labs** are included: LLM Vault Breach, Zero-Click Email Injection, AI Resume Screening Injection, AI Certificate Heist, AI Mail Assassin, Kerberos TGT Fabrication, Agentic Spy Journaling, AI Shadow Credential Chain, and Agent Impersonation/RBCD.
+- Current themes include agent sandbox boundaries, prompt-queue isolation, MCP and agent-card drift, shell-tool prompt injection, RAG cache isolation, workload identity, token exposure, AI dependency confusion, model-layer tampering, detector drift, low-and-slow evasion, multi-agent correlation, and agentic payment authorization.
+- Every new lab remains **synthetic-training-only**, uses bounded evidence types, forbids external egress, and has no real credentials, real targets, or financial side effects.
+
+Research context is maintained from CISA 2026 vulnerability bulletins, the [Check Point AI Security Report 2026](https://research.checkpoint.com/2026/ai-security-report-2026/), the [Cloud Security Alliance July 2026 research archive](https://labs.cloudsecurityalliance.org/research/archive-2026-07/), OWASP agentic/MCP guidance, and MITRE ATLAS. These sources inform control themes; they are not treated as executable lab instructions.
+
 ```mermaid
 flowchart LR
-  A["🎯 100 Scenarios"] --> B["🚪 50 Hard Gates"]
+  A["🎯 150 Scenarios"] --> B["🚪 75 Hard Gates"]
   B --> C["🪜 10 Stages"]
   C --> D["🛡️ Phase 1-4 Hardening"]
   D --> E["🧨 APT Capstone"]
@@ -147,7 +158,7 @@ flowchart LR
 
 The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Spartan defense emblem, hard-gated progression, graph RAG, and APT-range training.
 
-The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a Spartan defense emblem. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 100-scenario and 50-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
+The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a Spartan defense emblem. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 150-scenario and 75-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
@@ -517,6 +528,19 @@ RUNTIME=1 LAB_MODE=core ./scripts/start_all.sh
 
 The model check is local-only and never performs a model pull. The startup helper may download/build container images on the first run.
 
+### Catalog updates and rebuilds
+
+The scenario loader merges the canonical pack, the reviewed research expansion, the 2026 catalog, and the hard-gate manifest at startup. After changing scenario files or the loader, rebuild both progression services:
+
+```bash
+docker compose build training-gate training-challenges
+docker compose up -d training-gate training-challenges
+curl --fail http://127.0.0.1:5050/health
+curl --fail http://127.0.0.1:8060/health
+```
+
+The health responses should report `150` scenarios and `75` hard gates. The browser trainer also exposes the current lab URL, a step-by-step solution guide with generated figures, the Questions evidence panel, and the flag-submission panel.
+
 ### 1. Start the smallest core
 
 Use the branded helper so the ZODIAC Spartan activation appears in the terminal:
@@ -569,7 +593,7 @@ The bank is dynamic rather than a static lesson list. Each accepted flag atomica
 python3 scripts/zodiac_bank_progression_test.py
 ```
 
-The walkthrough solves all 100 scenarios across 50 hard gates, confirms each hard-gate synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
+The walkthrough solves all 150 scenarios across 75 hard gates, confirms each hard-gate synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
 
 Once the core profile is running, a real learner walks the same journey in the browser:
 
@@ -916,7 +940,7 @@ curl --fail http://127.0.0.1:5050/api/flags/submit \\
   -d '{"learner_id":"analyst-01","stage_id":"L00-foundation","flag":"ZODIAC-BANK-..."}'
 ```
 
-Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. In strict mode, legacy challenge routes do not issue flags: complete the required multi-step scenarios at `http://127.0.0.1:8060`, synthesize the evidence, then submit the returned gate flag to `/api/gates/submit` (each stage auto-completes after its fifth and final gate).
+Only the current unlocked stage accepts submissions; later-stage flags are rejected even when valid. Open `/api/lessons/{stage_id}` to receive that stage's three safe progressive hints. In strict mode, legacy challenge routes do not issue flags: complete the required multi-step scenarios at `http://127.0.0.1:8060`, synthesize the evidence, then submit the returned gate flag to `/api/gates/submit` (each stage auto-completes after its final gate; stages contain seven or eight gates based on their scenario count).
 
 Flag submission is forgiving and auditable:
 
@@ -1182,7 +1206,7 @@ style L08 fill:#111827,stroke:#64748b,color:#cbd5e1
 style L09 fill:#3a0d2e,stroke:#f97316,color:#ffedd5
 ```
 
-- **100 scenarios** across all 10 stages, organized into **50 hard gates** (including employee-loop and virtual-settlement paths);
+- **150 scenarios** across all 10 stages, organized into **75 hard gates** (including employee-loop, virtual-settlement, CWF-style investigation, and 2026 research-informed paths);
 - **dynamic bank posture**: each accepted stage flag promotes a persistent learner profile with stricter controls, narrower synthetic data scope, changing branch visibility, smaller agent budgets, and a new active service surface;
 - **per-run evidence**: every run derives its expected values server-side from the flag secret, learner, scenario, step, and a fresh nonce — the repository contains **no literal answers**, and each learner/run sees different values;
 - **candidate pools**: each step exposes the correct value among distractors from a bounded vocabulary; static values from another run are rejected;
@@ -1197,11 +1221,15 @@ style L09 fill:#3a0d2e,stroke:#f97316,color:#ffedd5
 
 The challenge service serves a browser-based trainer console at `http://127.0.0.1:8060` (no extra dependencies). The console provides:
 
-- a full 100-scenario / 50-hard-gate range map across all 10 stages with per-stage status;
+- a full 150-scenario / 75-hard-gate range map across all 10 stages with per-stage status;
 - progressive objective clues, detection rules, and required controls per scenario;
 - start, next-step hint, candidate-chip evidence picker, and reset controls for the current stage;
 - hard-gate synthesis with required evidence tokens, detection coverage, controls, timeline, and concept checks;
 - one-click hard-flag submission to the Training Gate to unlock the next stage;
+- clickable localhost URLs for the current lab's target services after starting a scenario;
+- a full-width Questions panel with evidence selection and Submit evidence controls;
+- a step-by-step Solution guide with generated figures for every scenario step;
+- a visible Flag submission panel for stage and hard-gate flags;
 - gate progression status and mission summaries.
 
 The trainer UI reads the same learner token as the API. Hints expose only the current step's event name, the evidence keys, and a candidate pool containing the correct value among distractors; future steps and other learners' runs are never exposed.
@@ -1269,7 +1297,7 @@ python3 scripts/validate_zodiac_bank.py
 python3 scripts/zodiac_bank_progression_test.py
 ```
 
-The suite validates 11 evaluator checks, all 10 hard-gated stages, 100 scenarios and 50 hard gates, financial ledger invariants, negative authorization paths, RAG/memory tenant boundaries, and concurrency controls. It is offline-safe and does not require an inference model. n8n is intentionally not part of this stage; if added later, it must remain an optional event-routing or approval UI layer and never become the ledger or authorization authority.
+The suite validates 11 evaluator checks, all 10 hard-gated stages, 150 scenarios and 75 hard gates, financial ledger invariants, negative authorization paths, RAG/memory tenant boundaries, and concurrency controls. It is offline-safe and does not require an inference model. n8n is intentionally not part of this stage; if added later, it must remain an optional event-routing or approval UI layer and never become the ledger or authorization authority.
 
 ## 🧪 Run the training exercises
 
@@ -1383,7 +1411,7 @@ docs/
 ```text
 apps/                  Aurora, Phoenix, and Assistant
 training-gate/         Zodiac Bank hard-flag progression service
-training-challenges/   Hard-range API and browser trainer UI (100 scenarios / 50 gates + dynamic bank state)
+training-challenges/   Hard-range API and browser trainer UI (150 scenarios / 75 gates + dynamic bank state)
 bank-data/             Canonical branches, employees, customers, accounts, cases, operations, and workflows
 mcp-server/            Deliberately vulnerable MCP server
 mcp-wrapper/           HTTP wrapper for MCP tools
@@ -1397,7 +1425,7 @@ docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
 loop-config/           Synthetic workflow inputs for Loop Engineering
 mem0-config/           Optional Mem0 configuration
-training-config/       Zodiac Bank curriculum, gate, threat model, profiles, 100 scenarios, and 50 hard gates (evidence types only)
+training-config/       Zodiac Bank curriculum, gate, threat model, profiles, 150 scenarios, and 75 hard gates (evidence types only)
 detection-config/       Synthetic Sigma-like AI/APT detection rules
 scripts/zodiac_scenario_engine.py  Shared scenario validation and evidence primitives
 models/                Local GGUF files; ignored by Git

@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent / "scripts"
@@ -360,6 +360,138 @@ def flow_steps_view(scenario: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+BRANCH_COLORS = {
+    "attack": "#ff3366",
+    "defense": "#00ff88",
+    "forensics": "#fbbf24",
+    "recovery": "#00d4ff",
+    "other": "#7c3aed",
+}
+
+
+def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
+    """Build the readable walkthrough for a scenario from its machine-checkable steps.
+
+    Every step maps one-to-one to an evidence submission in the Questions panel;
+    the figure URL points at a generated step diagram so each lab has visual
+    guidance without shipping screenshots of the running surface.
+    """
+    steps = []
+    for index, step in enumerate(scenario.get("steps", [])):
+        event = str(step.get("event", f"step-{index + 1}"))
+        title = " ".join(word.capitalize() for word in re.split(r"[_-]+", event) if word)
+        steps.append(
+            {
+                "step": index + 1,
+                "event": event,
+                "title": title or f"Step {index + 1}",
+                "text": str(step.get("observation", "")),
+                "evidence_keys": sorted(str(key) for key in step.get("evidence", {}).keys()),
+                "figure": f"/assets/solution/{scenario['id']}/{index + 1}.svg",
+            }
+        )
+    return {
+        "intro": "Complete the lab in order. Every step below maps 1:1 to a machine-checked evidence submission in the Questions panel — the figure shows what to observe, and the chips list the evidence keys that step validates.",
+        "steps": steps,
+    }
+
+
+def _wrap_svg_text(text: str, max_chars: int = 60) -> list[str]:
+    words = str(text).split()
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if len(candidate) <= max_chars:
+            current = candidate
+        else:
+            if current:
+                lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines[:4] or [""]
+
+
+def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
+    """Render a step diagram in the lab's visual language (dark surface, accent per branch)."""
+    steps = scenario.get("steps", [])
+    if step_number < 1 or step_number > len(steps):
+        raise HTTPException(status_code=404, detail="solution figure not found")
+    step = steps[step_number - 1]
+    event = str(step.get("event", f"step {step_number}"))
+    observation = str(step.get("observation", ""))
+    evidence_keys = sorted(str(key) for key in step.get("evidence", {}).keys())
+    branch = str(scenario.get("branch", "other"))
+    accent = BRANCH_COLORS.get(branch, BRANCH_COLORS["other"])
+    stage_id = str(scenario.get("stage_id", ""))
+    scenario_id = str(scenario.get("id", ""))
+    width, height = 840, 400
+    lines = _wrap_svg_text(observation)
+    esc_text = lambda value: (  # noqa: E731 - tiny local escaper for SVG text
+        value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+    )
+    chip_y = 196
+    chip_x = 44
+    chip_count = len(evidence_keys)
+    chip_rows = max(1, (chip_count + 3) // 4)
+    chips = []
+    for index, key in enumerate(evidence_keys):
+        column = index % 4
+        row = index // 4
+        cx = chip_x + column * 190
+        cy = chip_y + row * 38
+        label = key.upper()
+        chips.append(
+            f'<g><rect x="{cx}" y="{cy}" width="178" height="28" rx="8" fill="#12333d" stroke="{accent}" stroke-opacity=".55" stroke-width="1.2"/>'
+            f'<text x="{cx + 89}" y="{cy + 19}" text-anchor="middle" fill="#7df3ff" font-family="monospace" font-size="13" font-weight="700" letter-spacing="1">{esc_text(label)}</text></g>'
+        )
+    text_y = 96
+    body_lines = "".join(
+        f'<text x="44" y="{text_y + index * 26}" fill="#d7d7e2" font-family="Arial, sans-serif" font-size="17">{esc_text(line)}</text>'
+        for index, line in enumerate(lines)
+    )
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">
+<defs>
+  <radialGradient id="g" cx="0.82" cy="0.06" r="0.9">
+    <stop offset="0" stop-color="{accent}" stop-opacity=".28"/>
+    <stop offset="1" stop-color="#0a0a0f" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="{accent}"/>
+    <stop offset="1" stop-color="#7c3aed"/>
+  </linearGradient>
+</defs>
+<rect width="{width}" height="{height}" fill="#0a0a0f"/>
+<rect width="{width}" height="{height}" fill="url(#g)"/>
+<rect y="0" width="{width}" height="4" fill="url(#bar)" opacity=".85"/>
+<g stroke="#1d1d28" stroke-width="1">
+  <path d="M0 94h{width}"/><path d="M0 176h{width}"/><path d="M0 258h{width}"/><path d="M0 344h{width}"/>
+  <path d="M210 0v{height}"/><path d="M420 0v{height}"/><path d="M630 0v{height}"/>
+</g>
+<rect x="40" y="36" width="58" height="30" rx="9" fill="{accent}" opacity=".16"/>
+<text x="69" y="56" text-anchor="middle" fill="{accent}" font-family="monospace" font-size="15" font-weight="700" letter-spacing="1.5">STEP {step_number}</text>
+<text x="112" y="57" fill="#ffffff" font-family="monospace" font-size="21" font-weight="700" letter-spacing="1.2">{esc_text(event.upper())}</text>
+<g transform="translate(666, 52) scale(1.15)">
+  <circle cx="0" cy="0" r="11" fill="none" stroke="{accent}" stroke-width="2.6"/>
+  <path d="M0 -5 L0 2 M0 5.5 L0 6.5" stroke="{accent}" stroke-width="2.2" stroke-linecap="round"/>
+</g>
+{body_lines}
+<text x="44" y="{chip_y + chip_rows * 38 + 30}" fill="#8f8fa3" font-family="monospace" font-size="11.5" letter-spacing="1.6">EVIDENCE KEYS REQUIRED</text>
+{''.join(chips)}
+<text x="44" y="{height - 22}" fill="#5c5c70" font-family="monospace" font-size="11.5" letter-spacing="1" >{esc_text(scenario_id)} · {esc_text(stage_id)} · {esc_text(branch)} lane</text>
+<text x="{width - 44}" y="{height - 22}" text-anchor="end" fill="#5c5c70" font-family="monospace" font-size="11.5" letter-spacing="1">ZODIAC BANK · AI SECURITY RANGE</text>
+</svg>"""
+
+
+def scenario_target_services(stage_id: str) -> list[str]:
+    """Return the documented localhost services for a scenario's stage."""
+    return next(
+        (list(stage.get("target_services", [])) for stage in CURRICULUM.get("stages", []) if stage.get("id") == stage_id),
+        [],
+    )
+
+
 def scenario_view(scenario: dict[str, Any], run: sqlite3.Row | None = None) -> dict[str, Any]:
     return {
         "scenario_id": scenario["id"],
@@ -369,11 +501,13 @@ def scenario_view(scenario: dict[str, Any], run: sqlite3.Row | None = None) -> d
         "branch": scenario["branch"],
         "title": scenario["title"],
         "objective": scenario["objective"],
+        "target_services": scenario_target_services(str(scenario["stage_id"])),
         "clues": scenario["clues"],
         "step_count": len(scenario["steps"]),
         "detection_rule_ids": scenario["detection_rule_ids"],
         "required_controls": scenario["required_controls"],
         "flow_steps": flow_steps_view(scenario),
+        "solution_guide": solution_guide_view(scenario),
         "status": run["status"] if run else "not-started",
         "progress": f"{run['step_index']}/{len(scenario['steps'])}" if run else f"0/{len(scenario['steps'])}",
         "attempts": int(run["attempts"]) if run else 0,
@@ -447,6 +581,19 @@ def flow_asset(asset_name: str) -> Any:
     return FileResponse(flow, media_type="image/svg+xml")
 
 
+@app.get("/assets/solution/{scenario_id}/{step_number}.svg")
+def solution_figure(scenario_id: str, step_number: int) -> Response:
+    """Serve a generated step diagram for a scenario's solution guide."""
+    scenario = SCENARIO_BY_ID.get(scenario_id)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail="unknown scenario")
+    return Response(
+        content=solution_figure_svg(scenario, step_number),
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
 @app.get("/api/range")
 def trainer_range(x_training_learner_token: str = Header(default=""), learner_id: str = "") -> dict[str, Any]:
     """Read-only range map for the trainer UI; never returns step matchers or flags."""
@@ -469,11 +616,13 @@ def trainer_range(x_training_learner_token: str = Header(default=""), learner_id
                         "branch": item["branch"],
                         "title": item["title"],
                         "objective": item["objective"],
+                        "target_services": scenario_target_services(str(item["stage_id"])),
                         "clues": item["clues"],
                         "step_count": len(item["steps"]),
                         "detection_rule_ids": item["detection_rule_ids"],
                         "required_controls": item["required_controls"],
                         "flow_steps": flow_steps_view(item),
+                        "solution_guide": solution_guide_view(item),
                     }
                     for item in SCENARIO_BY_ID.values()
                     if item["stage_id"] == stage_id

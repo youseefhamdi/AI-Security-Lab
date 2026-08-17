@@ -19,6 +19,7 @@ COPY scripts/zodiac_privacy.py .
 COPY scripts/zodiac_resilience.py .
 COPY training-config/scenarios.json /app/config/scenarios.json
 COPY training-config/scenario-expansion.json /app/config/scenario-expansion.json
+COPY training-config/scenario-expansion-2026.json /app/config/scenario-expansion-2026.json
 COPY training-config/hard-gates.json /app/config/hard-gates.json
 COPY training-config/bank-profiles.json /app/config/bank-profiles.json
 COPY bank-data/zodiac-bank.json /app/bank-data/zodiac-bank.json

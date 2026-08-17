@@ -802,7 +802,7 @@ def submit_flag(submission: FlagSubmission, x_training_learner_token: str = Head
         if SECURITY_MODE == "strict" and status == "unlocked":
             completed_gate_ids = completed_gates(db, learner_id)
             if not {gate["gate_id"] for gate in GATES_BY_STAGE.get(stage["id"], [])}.issubset(completed_gate_ids):
-                raise HTTPException(status_code=403, detail="complete all five hard gates in the current stage first")
+                raise HTTPException(status_code=403, detail="complete all hard gates in the current stage first")
         if status == "locked":
             raise HTTPException(status_code=403, detail="complete prerequisite stages first")
         if status == "completed":

@@ -864,52 +864,63 @@
     color: var(--green); font: 600 12.5px var(--sans);
   }
 
-  /* questions panel */
-  .q-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .q-panel > h3 {
-    margin: 0; padding: 16px 18px 14px;
-    font: 700 13px var(--display); letter-spacing: 1.6px; text-transform: uppercase; color: var(--text);
-    border-bottom: 1px solid var(--border-soft);
-    display: flex; align-items: center; gap: 9px;
+  /* questions panel — full-width lab steps */
+  .q-panel {
+    background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden;
   }
-  .q-panel > h3 svg { color: var(--purple-2); }
-  #questions-list { padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .q-panel > h2 {
+    margin: 0; padding: 18px 22px 15px;
+    font: 700 14px var(--display); letter-spacing: 1.4px; text-transform: uppercase; color: var(--text);
+    border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .q-panel > h2 svg { color: var(--cyan); }
+  .q-panel > h2 .q-panel-sub { margin-left: auto; font: 500 11px var(--mono); letter-spacing: .4px; text-transform: none; color: var(--faint); }
+  #questions-list { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 18px; }
   .q-card {
-    border: 1px solid var(--border); border-radius: 12px;
-    background: var(--card); padding: 14px 15px;
+    border: 1px solid var(--border); border-radius: 14px;
+    background: var(--surface); padding: 18px 20px;
     transition: border-color .15s, box-shadow .15s;
   }
-  .q-card.current { border-color: rgba(124, 58, 237, .55); box-shadow: 0 0 0 1px rgba(124, 58, 237, .15), 0 10px 26px rgba(0, 0, 0, .3); }
-  .q-card.done { border-color: rgba(0, 255, 136, .28); }
+  .q-card.current { border-color: rgba(124, 58, 237, .55); box-shadow: 0 0 0 1px rgba(124, 58, 237, .15), 0 14px 30px rgba(0, 0, 0, .25); }
+  .q-card.done { border-color: rgba(0, 255, 136, .3); }
   .q-card.locked { opacity: .55; }
-  .q-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
-  .q-head .q-flag { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 6px; display: grid; place-items: center; background: var(--glass-2); border: 1px solid var(--border); }
-  .q-head .q-flag svg { width: 12px; height: 12px; color: var(--purple-2); }
-  .q-head .q-num { font: 700 10px var(--mono); letter-spacing: 1px; color: var(--text-3); text-transform: uppercase; }
-  .q-pill { margin-left: auto; font: 700 9px var(--mono); letter-spacing: .8px; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
+  .q-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .q-head .q-flag {
+    width: 26px; height: 26px; flex: 0 0 26px; border-radius: 8px;
+    display: grid; place-items: center;
+    background: rgba(124, 58, 237, .14); border: 1px solid rgba(124, 58, 237, .4);
+  }
+  .q-head .q-flag svg { width: 13px; height: 13px; color: var(--purple-2); }
+  .q-card.done .q-head .q-flag { background: var(--success-soft); border-color: rgba(0, 255, 136, .45); }
+  .q-card.done .q-head .q-flag svg { color: var(--green); }
+  .q-head .q-num { font: 700 11px var(--mono); letter-spacing: 1.2px; color: var(--text-2); text-transform: uppercase; }
+  .q-pill { margin-left: auto; font: 700 9.5px var(--mono); letter-spacing: .8px; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
   .q-pill.current { color: var(--purple-2); background: rgba(124, 58, 237, .15); border: 1px solid rgba(124, 58, 237, .45); }
   .q-pill.ok { color: var(--green); background: var(--success-soft); border: 1px solid rgba(0, 255, 136, .4); }
   .q-pill.locked { color: var(--faint); background: var(--glass-2); border: 1px solid var(--border); }
-  .q-text { margin: 0 0 6px; font-size: 13.5px; font-weight: 600; color: var(--text-2); line-height: 1.5; }
-  .q-event { margin: 0 0 10px; font: 500 11.5px var(--mono); color: var(--faint); }
+  .q-text { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: var(--text-2); line-height: 1.55; }
+  .q-event { margin: 0 0 12px; font: 500 12.5px var(--mono); color: var(--faint); }
   .q-event code { color: var(--cyan); background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .2); border-radius: 5px; padding: 1px 7px; }
-  .q-locked-text { margin: 0; font-size: 12.5px; color: var(--faint); font-style: italic; }
+  .q-locked-text { margin: 0; font-size: 13px; color: var(--faint); font-style: italic; }
   .q-hint-btn {
-    margin-top: 10px; display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 12px; display: inline-flex; align-items: center; gap: 7px;
     border: 1px solid rgba(124, 58, 237, .5); background: transparent; color: var(--purple-2);
-    border-radius: 9px; padding: 7px 13px; font: 600 12px var(--sans); cursor: pointer;
+    border-radius: 9px; padding: 8px 14px; font: 600 12.5px var(--sans); cursor: pointer;
     transition: background .13s, filter .13s;
   }
   .q-hint-btn:hover { background: rgba(124, 58, 237, .14); filter: brightness(1.1); }
   .q-hint-btn svg { width: 14px; height: 14px; }
 
   /* evidence form inside question card */
-  .ev-row { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px; margin-top: 9px; align-items: center; }
+  .ev-row { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr); gap: 10px; margin-top: 10px; align-items: center; }
   .ev-row input { font: 12px var(--mono); }
-  .candidate-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .candidate-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
   .candidate-chip {
-    border: 1px solid var(--border); border-radius: 9px; padding: 7px 13px;
-    font: 600 12px var(--mono); background: var(--glass-2); color: var(--text); cursor: pointer;
+    border: 1px solid var(--border); border-radius: 9px; padding: 8px 14px;
+    font: 600 12.5px var(--mono); background: var(--glass-2); color: var(--text); cursor: pointer;
     transition: border-color .13s, background .13s, color .13s, transform .05s;
   }
   .candidate-chip:hover { border-color: rgba(124, 58, 237, .6); }
@@ -917,8 +928,77 @@
     border-color: var(--purple-2); color: #fff; background: var(--grad-purple); font-weight: 700;
     box-shadow: 0 0 10px rgba(124, 58, 237, .4);
   }
-  .q-submit { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
+  .q-submit { margin-top: 14px; display: flex; gap: 8px; align-items: center; }
   .q-submit .btn { flex: 1; }
+
+  /* solution guide — step-by-step walkthrough with figures */
+  .sol-guide-intro { margin: 0 0 16px; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+  .sol-step {
+    border: 1px solid var(--border); border-radius: 14px;
+    background: var(--surface); padding: 18px 20px; margin-bottom: 16px;
+    transition: border-color .15s;
+  }
+  .sol-step:last-child { margin-bottom: 0; }
+  .sol-step:hover { border-color: rgba(0, 212, 255, .3); }
+  .sol-step-head { display: flex; align-items: center; gap: 13px; margin-bottom: 4px; }
+  .sol-step-num {
+    flex: 0 0 auto; width: 36px; height: 36px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: var(--grad); color: #fff;
+    font: 700 13px var(--mono); letter-spacing: .5px;
+    box-shadow: 0 6px 18px rgba(0, 212, 255, .25);
+  }
+  .sol-step-head h4 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); }
+  .sol-step-event { display: block; margin-top: 1px; font: 500 11px var(--mono); color: var(--faint); }
+  .sol-step-event code { color: var(--cyan); background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .2); border-radius: 5px; padding: 1px 6px; }
+  .sol-step-text { margin: 10px 0 14px; font-size: 13.5px; color: var(--text-3); line-height: 1.6; }
+  .sol-step-figure { margin-bottom: 14px; }
+  .sol-step-figure img {
+    width: 100%; max-width: 860px; display: block;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--bg); box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+  }
+
+  /* flag submission panel (sidebar) */
+  .flag-panel {
+    position: relative; overflow: hidden;
+    background: rgba(255, 255, 255, .05);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px;
+  }
+  .flag-panel::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad-danger); opacity: .9; }
+  .flag-panel h3 { margin: 0 0 6px; font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 9px; }
+  .flag-panel h3 svg { color: var(--red); }
+  .flag-panel .fp-sub { margin: 0 0 14px; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .flag-panel input { font: 600 12.5px var(--mono); letter-spacing: .4px; }
+  .flag-panel .fp-btn { margin-top: 10px; width: 100%; }
+  .flag-panel .fp-format {
+    margin: 12px 0 0; font: 500 10.5px var(--mono); color: var(--faint); line-height: 1.6; word-break: break-all;
+  }
+  .flag-panel .fp-format code { color: var(--yellow); background: rgba(245, 165, 36, .1); border: 1px solid rgba(245, 165, 36, .25); border-radius: 5px; padding: 1px 6px; }
+  #flag-result { margin-top: 12px; }
+  #flag-result .step-box { margin-top: 0; }
+
+  /* lab target URL links */
+  .la-targets { margin-top: 14px; }
+  .la-targets .la-label {
+    display: block; margin-bottom: 8px;
+    font: 700 9.5px var(--mono); letter-spacing: 1.4px; text-transform: uppercase; color: var(--cyan);
+  }
+  .la-targets .la-label b { color: var(--green); }
+  .la-target-list { display: flex; flex-direction: column; gap: 7px; }
+  .la-target-link {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); border-radius: 9px;
+    background: rgba(0, 212, 255, .06); padding: 8px 12px;
+    font: 600 12px var(--mono); color: var(--cyan);
+    transition: border-color .13s, background .13s, transform .05s;
+  }
+  .la-target-link:hover { border-color: rgba(0, 212, 255, .55); background: rgba(0, 212, 255, .12); transform: translateY(-1px); }
+  .la-target-link svg { width: 13px; height: 13px; flex: 0 0 13px; opacity: .8; }
+  .la-target-link .lt-url { margin-left: auto; color: var(--text-3); font-size: 11px; }
+  .la-target-link:hover .lt-url { color: var(--cyan); }
 
   /* ============================================================
      FOOTER + TOAST
@@ -1349,6 +1429,68 @@ const state = {
 };
 
 const PAGE_SIZE = 9;
+
+/** Localhost port map for every target service in the compose stack. */
+const SERVICE_URLS = {
+  "training-challenges": "http://127.0.0.1:8060",
+  "training-gate": "http://127.0.0.1:5050",
+  "aurora": "http://127.0.0.1:5000",
+  "phoenix": "http://127.0.0.1:5001",
+  "assistant": "http://127.0.0.1:5002",
+  "a2a-router": "http://127.0.0.1:5010",
+  "a2a-knowledge": "http://127.0.0.1:5011",
+  "mcp-server": "http://127.0.0.1:3000",
+  "mcp-wrapper": "http://127.0.0.1:3001",
+  "mcp-memory": "http://127.0.0.1:3004",
+  "mcp-filesystem": "http://127.0.0.1:3002",
+  "mcp-fetch": "http://127.0.0.1:3003",
+  "zodiac-context": "http://127.0.0.1:5070",
+  "elasticsearch": "http://127.0.0.1:9200",
+  "kibana": "http://127.0.0.1:5601",
+  "chromadb": "http://127.0.0.1:8010",
+  "lightrag": "http://127.0.0.1:9621",
+  "mem0": "http://127.0.0.1:8888",
+  "kong": "http://127.0.0.1:8000",
+};
+
+/* Fallback keeps the start URL visible even when the gate API is offline. */
+const STAGE_TARGET_SERVICES = {
+  "L00-foundation": ["training-challenges", "training-gate", "aurora"],
+  "L01-recon": ["training-challenges", "aurora", "phoenix", "assistant"],
+  "L02-prompt-injection": ["training-challenges", "aurora"],
+  "L03-rag": ["training-challenges", "aurora", "a2a-knowledge", "chromadb", "lightrag"],
+  "L04-agent-protocols": ["training-challenges", "a2a-router", "a2a-knowledge", "mcp-server", "mcp-wrapper"],
+  "L05-memory": ["training-challenges", "mem0", "aurora", "mcp-memory"],
+  "L06-identity-control-plane": ["training-challenges", "kong", "aurora", "a2a-router", "mem0"],
+  "L07-supply-chain": ["training-challenges", "filebeat"],
+  "L08-detection-evasion": ["training-challenges", "aurora", "elasticsearch", "kibana", "filebeat"],
+  "L09-apt-capstone": ["training-challenges"],
+};
+
+/**
+ * Render clickable lab-target links for a scenario's stage services.
+ * @param {{target_services?: string[]}|null} stage
+ * @param {string} status
+ * @returns {string}
+ */
+function labTargetLinks(stage, status) {
+  const services = (stage && stage.target_services && stage.target_services.length)
+    ? stage.target_services
+    : STAGE_TARGET_SERVICES[stage && stage.id] || ["training-challenges"];
+  const targets = services.map((name) => ({ name, url: SERVICE_URLS[name] })).filter((t) => t.url);
+  if (!targets.length) return "";
+  return `
+    <div class="la-targets">
+      <span class="la-label">${status === "active" ? "Lab URL<b> — open to start</b>" : "Lab target URL(s)"}</span>
+      <div class="la-target-list">
+        ${targets.map((t) => `
+          <a class="la-target-link" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+            <span>${esc(t.name)}</span><span class="lt-url">${esc(t.url)}</span>
+          </a>`).join("")}
+      </div>
+    </div>`;
+}
 
 /** @type {Record<string, string>} */
 const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -1821,6 +1963,8 @@ function renderLabAccess(sc) {
   const run = findRun(sc.scenario_id);
   const status = run ? run.status : "not-started";
   const band = difficultyBand(sc.difficulty);
+  const stage = stageContext(sc.stage_id);
+  const targetHtml = labTargetLinks(sc.target_services ? { target_services: sc.target_services, id: sc.stage_id } : (stage || { id: sc.stage_id }), status);
   let inner;
   if (status === "complete") {
     inner = `
@@ -1860,6 +2004,7 @@ function renderLabAccess(sc) {
       <h3>Lab Access</h3>
       <p class="la-question">Are you ready for the challenge?</p>
       <p class="la-sub">One per-run evidence set. Every accepted step chains its token into the next observation.</p>
+      ${targetHtml}
       ${inner}
       <div class="la-meta">
         <span class="pill ${band === "hard" ? "danger" : band === "medium" ? "warn" : "ok"}">${bandLabel(band)}</span>
@@ -1926,6 +2071,9 @@ function renderDescription(sc) {
   if (!box) return;
   const stage = stageContext(sc.stage_id || "");
   const brief = stageBrief(sc.stage_id || "");
+  const guide = sc.solution_guide || { steps: [] };
+  const objectives = (guide.steps || []).map((s) => `
+    <li><b>Step ${String(s.step).padStart(2, "0")}</b><span>${esc(s.title)} — ${esc(s.text)}</span></li>`).join("");
   const clues = (sc.clues || []).map((clue, index) => `
     <li><b>Signal ${index + 1}</b><span>${esc(clue)}</span></li>`).join("");
   const outcome = stage && stage.success_criteria ? stage.success_criteria : [];
@@ -1950,6 +2098,10 @@ function renderDescription(sc) {
         <div><span>Elite deliverable</span><p>${esc(brief.deliverable)}</p></div>
         <div><span>Defender lens</span><p>${esc(brief.defender)}</p></div>
       </div>
+    </div>
+    <div class="desc-section">
+      <h4>Objective</h4>
+      <ol class="clue-list">${objectives || '<li>Preserve bounded evidence and explain the control decision.</li>'}</ol>
     </div>
     ${stage && stage.mission ? `<div class="desc-section"><h4>Stage commander’s intent</h4><p>${esc(stage.mission)}</p></div>` : ""}
     <div class="desc-section">
@@ -2246,6 +2398,8 @@ function renderQuestions(sc, run, hint) {
   const total = sc.step_count || 1;
   const status = run ? run.status : "not-started";
   const current = status === "active" ? runStepIndex(run) : status === "complete" ? total : -1;
+  const sub = $("questions-sub");
+  if (sub) sub.textContent = `${status === "complete" ? total : status === "active" ? Math.max(1, current + 1) : 0}/${total} steps`;
   const cards = [];
   for (let i = 0; i < total; i++) {
     const isDone = status === "complete" || (status === "active" && i < current);
@@ -2278,7 +2432,7 @@ function renderQuestions(sc, run, hint) {
       <div class="q-card ${isCurrent ? "current" : isDone ? "done" : "locked"}">
         <div class="q-head">
           <span class="q-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h11l-2.5 3.5L17 11H6"/></svg></span>
-          <span class="q-num">Question ${i + 1}</span>
+          <span class="q-num">Question ${i + 1} of ${total}</span>
           ${pill}
         </div>
         ${body}
@@ -2335,6 +2489,31 @@ function buildEvidenceForm(hint) {
   });
   const submit = $("submit-event");
   if (submit) submit.addEventListener("click", () => submitEvent(hint));
+}
+
+/** Render the step-by-step solution guide with figures for the open lab. */
+function renderSolutionGuide(sc) {
+  const box = $("guide-body");
+  if (!box) return;
+  const guide = sc.solution_guide || { steps: [] };
+  const steps = (guide.steps || []).map((s) => `
+    <div class="sol-step">
+      <div class="sol-step-head">
+        <span class="sol-step-num">${String(s.step).padStart(2, "0")}</span>
+        <div>
+          <h4>${esc(s.title)}</h4>
+          <span class="sol-step-event">event: <code>${esc(s.event)}</code></span>
+        </div>
+      </div>
+      <p class="sol-step-text">${esc(s.text)}</p>
+      <div class="sol-step-figure">
+        <img src="${esc(s.figure)}" alt="Figure for ${esc(s.title)}" loading="lazy" width="840" height="400" />
+      </div>
+      <div class="chip-grid">${chips(s.evidence_keys, "no evidence keys required")}</div>
+    </div>`).join("");
+  box.innerHTML = `
+    ${guide.intro ? `<p class="sol-guide-intro">${esc(guide.intro)}</p>` : ""}
+    ${steps || '<p class="muted">No solution guide for this lab yet.</p>'}`;
 }
 
 /** Render the synthesis (solution) panel for the currently unlocked hard gate. */
@@ -2448,6 +2627,57 @@ async function submitFlagToGate(flag) {
   }
 }
 
+/** Show the accepted flag formats for the current stage/gate in the flag panel. */
+function renderFlagFormat() {
+  const el = $("flag-format");
+  if (!el) return;
+  const gate = state.synthesis || (state.gateMeta && state.gateMeta.gates && state.gateMeta.gates.find((g) => g.status === "unlocked")) || null;
+  const parts = [];
+  if (state.currentStageId) parts.push(`stage: <code>ZODIAC-BANK-${esc(String(state.currentStageId).toUpperCase())}-&lt;32 HEX&gt;</code>`);
+  if (gate && gate.gate_id) parts.push(`gate: <code>ZODIAC-BANK-GATE-${esc(String(gate.gate_id).toUpperCase())}-&lt;32 HEX&gt;</code>`);
+  el.innerHTML = (parts.length ? "flag format:<br/>" : "flag format: ") + (parts.join("<br/>") || "<code>ZODIAC-BANK-…</code>");
+}
+
+/** Submit a pasted flag: hard-gate flags go to /api/gates/submit, stage flags to /api/flags/submit. */
+async function submitFlag() {
+  const input = $("flag-input");
+  const box = $("flag-result");
+  const flag = (input && input.value || "").trim();
+  if (!flag) {
+    toast("paste a flag first", "error");
+    return;
+  }
+  try {
+    if (/^ZODIAC-BANK-GATE-/i.test(flag)) {
+      const gateId = (state.synthesis && state.synthesis.gate_id) || (state.gateMeta && state.gateMeta.current_gate_id);
+      if (!gateId) throw new Error("no unlocked hard gate for this stage");
+      const result = await gateApi("/api/gates/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ learner_id: state.learner, gate_id: gateId, flag }),
+      });
+      toast(result.message || "hard-gate flag accepted", "ok");
+      if (box) box.innerHTML = `<div class="step-box"><div class="pill ok">Gate accepted — ${esc(result.next_gate_id || result.next_stage_id || "curriculum complete")}</div></div>`;
+    } else {
+      const stageId = state.currentStageId;
+      if (!stageId) throw new Error("no active stage");
+      const result = await gateApi("/api/flags/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ learner_id: state.learner, stage_id: stageId, flag }),
+      });
+      toast(result.message || "flag accepted", "ok");
+      if (box) box.innerHTML = `<div class="step-box"><div class="pill ok">Flag accepted — ${esc(result.next_stage_id || "curriculum complete")}</div></div>`;
+    }
+    if (input) input.value = "";
+    await refreshStage();
+    await loadAll();
+  } catch (error) {
+    toast("flag rejected: " + error.message, "error");
+    if (box) box.innerHTML = `<div class="step-box"><span class="pill danger">Rejected</span><div class="obs">${esc(error.message)}</div></div>`;
+  }
+}
+
 /** Main detail renderer. */
 async function renderChallenge(scenarioId) {
   const sc = findScenario(scenarioId);
@@ -2482,6 +2712,14 @@ async function renderChallenge(scenarioId) {
       </summary>
       <div class="card-body" id="detail-flow"></div>
     </details>
+    <details class="detail-card" open>
+      <summary>
+        <span class="sum-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5v.5"/></svg></span>
+        Solution guide — step by step
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="card-body" id="guide-body"></div>
+    </details>
     <details class="detail-card">
       <summary>
         <span class="sum-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.6V11c0 4.4-3 7.6-7 9.4-4-1.8-7-5-7-9.4V5.6L12 3z"/><path d="M9 11.5l2 2 4-4"/></svg></span>
@@ -2489,23 +2727,41 @@ async function renderChallenge(scenarioId) {
         <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </summary>
       <div class="card-body" id="solution-body"></div>
-    </details>`;
+    </details>
+    <div class="q-panel">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h11l-2.5 3.5L17 11H6"/></svg>
+        Questions
+        <span class="q-panel-sub" id="questions-sub"></span>
+      </h2>
+      <div id="questions-list"></div>
+    </div>`;
 
   const side = $("challenge-side");
   side.innerHTML = `
     <div id="lab-access"></div>
-    <div class="q-panel">
+    <div class="flag-panel">
       <h3>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h11l-2.5 3.5L17 11H6"/></svg>
-        Questions
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h11l-2.5 3.5L17 11H6"/></svg>
+        Flag submission
       </h3>
-      <div id="questions-list"></div>
+      <p class="fp-sub">Paste the flag you discovered and submit it to advance. Stage flags use <code>ZODIAC-BANK-…</code>, hard-gate flags use <code>ZODIAC-BANK-GATE-…</code>.</p>
+      <input id="flag-input" placeholder="ZODIAC-BANK-…" autocomplete="off" spellcheck="false" />
+      <button id="flag-submit" class="btn btn-primary fp-btn" type="button">Submit flag</button>
+      <div id="flag-result"></div>
+      <p class="fp-format" id="flag-format"></p>
     </div>`;
+  const flagBtn = $("flag-submit");
+  if (flagBtn) flagBtn.addEventListener("click", submitFlag);
+  const flagInput = $("flag-input");
+  if (flagInput) flagInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submitFlag(); });
 
   renderChallengeHero(sc);
   renderDescription(sc);
   renderFlow(sc);
+  renderSolutionGuide(sc);
   renderSynthesis();
+  renderFlagFormat();
   renderLabAccess(sc);
   const run = findRun(sc.scenario_id);
   renderQuestions(sc, run, null);
@@ -2552,7 +2808,10 @@ async function startScenario() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ learner_id: state.learner }),
     });
-    toast(result.message || "scenario started", "ok");
+    const stage = stageContext(state.selected.stage_id);
+    const services = state.selected.target_services || (stage && stage.target_services) || STAGE_TARGET_SERVICES[state.selected.stage_id] || ["training-challenges"];
+    const labUrl = services.map((n) => SERVICE_URLS[n]).filter(Boolean)[0];
+    toast(labUrl ? `scenario started — open ${labUrl} to begin` : (result.message || "scenario started"), "ok");
     await refreshStage();
   } catch (error) {
     toast("start failed: " + error.message, "error");

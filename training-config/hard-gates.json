@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "gate_pack_id": "zodiac-bank-50-hard-gates-2026",
+  "gate_pack_id": "zodiac-bank-75-hard-gates-2026",
   "definition": "A hard gate is a bounded evidence checkpoint. Its flag is issued only after its assigned scenarios, controls, detections, concepts, and timeline are synthesized.",
   "gates": [
     {"gate_id":"G01-scope-baseline","stage_id":"L00-foundation","rank":1,"title":"Scope Baseline Gate","scenario_ids":["scope-integrity","asset-classification"],"detection_rule_ids":["ZB-AI-003"],"required_controls":["scope","evidence-custody"],"concepts":["scope","asset"]},

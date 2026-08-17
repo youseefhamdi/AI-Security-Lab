@@ -98,31 +98,40 @@ def _generated_scenario(spec: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_scenario_pack(path: Path) -> dict[str, Any]:
-    """Load the canonical pack plus the research expansion and hard-gate manifest.
-
-    The original pack remains readable and answer-free. The expansion is kept in
-    a separate reviewed manifest so curriculum additions can be audited without
-    hand-editing a very large generated JSON document.
-    """
+    """Load canonical, research, CWF-style, and generated hard-gate manifests."""
     document = json.loads(path.read_text(encoding="utf-8"))
-    expansion_path = path.with_name("scenario-expansion.json")
+    expansion_paths = [
+        path.with_name("scenario-expansion.json"),
+        path.with_name("scenario-expansion-2026.json"),
+    ]
     gates_path = path.with_name("hard-gates.json")
     existing_ids = {str(item["id"]) for item in document.get("scenarios", [])}
-    if expansion_path.is_file():
+    expansion_pack_ids: list[str] = []
+    research_basis: list[str] = []
+    for expansion_path in expansion_paths:
+        if not expansion_path.is_file():
+            continue
         expansion = json.loads(expansion_path.read_text(encoding="utf-8"))
         for spec in expansion.get("scenarios", []):
             scenario_id = str(spec.get("id", ""))
             if scenario_id in existing_ids:
                 raise ValueError(f"duplicate expanded scenario ID: {scenario_id}")
             existing_ids.add(scenario_id)
-            document.setdefault("scenarios", []).append(_generated_scenario(spec))
+            materialized = _generated_scenario(spec)
+            materialized["research_window"] = expansion.get("research_window", "2026-01-01/2026-08-17")
+            materialized["research_basis"] = expansion.get("research_basis", [])
+            document.setdefault("scenarios", []).append(materialized)
             requirement = document.setdefault("stage_requirements", {}).setdefault(spec["stage_id"], {})
             requirement.setdefault("scenario_ids", []).append(scenario_id)
-        document["expansion_pack_id"] = expansion.get("pack_id")
-        document["research_basis"] = expansion.get("research_basis", [])
+        if expansion.get("pack_id"):
+            expansion_pack_ids.append(str(expansion["pack_id"]))
+        research_basis.extend(str(value) for value in expansion.get("research_basis", []))
+    if expansion_pack_ids:
+        document["expansion_pack_id"] = "+".join(expansion_pack_ids)
+    if research_basis:
+        document["research_basis"] = list(dict.fromkeys(research_basis))
     if gates_path.is_file():
         gates = json.loads(gates_path.read_text(encoding="utf-8")).get("gates", [])
-        document["hard_gates"] = gates
         by_stage: dict[str, list[str]] = {}
         gate_by_scenario: dict[str, str] = {}
         for gate in gates:
@@ -131,11 +140,40 @@ def load_scenario_pack(path: Path) -> dict[str, Any]:
                 if scenario_id in gate_by_scenario:
                     raise ValueError(f"scenario belongs to multiple hard gates: {scenario_id}")
                 gate_by_scenario[str(scenario_id)] = str(gate["gate_id"])
+        next_rank = max((int(gate.get("rank", 0)) for gate in gates), default=0) + 1
+        scenario_lookup = {str(item["id"]): item for item in document.get("scenarios", [])}
+        for stage_id, requirement in document.get("stage_requirements", {}).items():
+            unassigned = [scenario_id for scenario_id in requirement.get("scenario_ids", []) if scenario_id not in gate_by_scenario]
+            if len(unassigned) % 2:
+                raise ValueError(f"new scenarios for {stage_id} must be added in pairs for hard gates")
+            for index in range(0, len(unassigned), 2):
+                pair = unassigned[index:index + 2]
+                first = scenario_lookup[pair[0]]
+                second = scenario_lookup[pair[1]]
+                gate_slug = re.sub(r"[^a-z0-9]+", "-", pair[0].lower()).strip("-")[:48]
+                gate_id = f"G{next_rank:02d}-research-{gate_slug}"
+                gates.append(
+                    {
+                        "gate_id": gate_id,
+                        "stage_id": stage_id,
+                        "rank": next_rank,
+                        "title": f"2026 Research Gate: {first['title']} + {second['title']}",
+                        "scenario_ids": pair,
+                        "detection_rule_ids": sorted(set(requirement.get("detection_rule_ids", []))),
+                        "required_controls": list(requirement.get("required_controls", [])),
+                        "concepts": list(dict.fromkeys((first.get("concepts", []) + second.get("concepts", []))))[:4],
+                    }
+                )
+                by_stage.setdefault(stage_id, []).append(gate_id)
+                for scenario_id in pair:
+                    gate_by_scenario[scenario_id] = gate_id
+                next_rank += 1
         for scenario in document.get("scenarios", []):
             if scenario["id"] in gate_by_scenario:
                 scenario["gate_id"] = gate_by_scenario[scenario["id"]]
         for stage_id, requirement in document.get("stage_requirements", {}).items():
             requirement["hard_gate_ids"] = by_stage.get(stage_id, [])
+        document["hard_gates"] = gates
     return document
 
 
@@ -228,13 +266,13 @@ def validate_scenarios(document: dict[str, Any], curriculum: dict[str, Any]) -> 
             errors.append(f"hard gate {gate_id} lacks detection, control, or concept requirements")
     # Gate IDs carry readable suffixes, so validate order/rank and count
     # separately rather than requiring opaque IDs.
-    if len(gates) != 50:
-        errors.append(f"expected exactly 50 hard gates, found {len(gates)}")
+    if len(gates) != 75:
+        errors.append(f"expected exactly 75 hard gates for 150 scenarios, found {len(gates)}")
     ranks = [gate.get("rank") for gate in gates]
     if ranks != list(range(1, len(gates) + 1)):
         errors.append("hard gate ranks must be contiguous and ordered")
-    if set(gates_by_stage) != curriculum_ids or any(len(values) != 5 for values in gates_by_stage.values()):
-        errors.append("each curriculum stage must contain exactly five hard gates")
+    if set(gates_by_stage) != curriculum_ids or any(len(values) not in {7, 8} for values in gates_by_stage.values()):
+        errors.append("each curriculum stage must contain seven or eight hard gates for its even scenario count")
     if gated_scenarios != scenario_ids:
         errors.append("every scenario must belong to exactly one hard gate")
     for stage_id, requirement in requirements.items():
