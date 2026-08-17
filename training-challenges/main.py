@@ -370,28 +370,45 @@ BRANCH_COLORS = {
 
 
 def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
-    """Build the readable walkthrough for a scenario from its machine-checkable steps.
+    """Build a premium, answer-safe walkthrough from machine-checkable steps.
 
-    Every step maps one-to-one to an evidence submission in the Questions panel;
-    the figure URL points at a generated step diagram so each lab has visual
-    guidance without shipping screenshots of the running surface.
+    The guide teaches a repeatable method rather than leaking expected values:
+    orient on the local surface, observe the signal, validate the evidence, and
+    make a bounded defender decision. The animated reel and step figures are
+    generated from the same scenario metadata for every lab.
     """
+    branch = str(scenario.get("branch", "forensics"))
+    method_by_branch = {
+        "attack": "Reproduce the declared signal on the localhost target, then stop before any real side effect.",
+        "defense": "Establish the clean baseline first, introduce one controlled variation, and compare the resulting signal.",
+        "forensics": "Preserve the observation, validate its provenance, and correlate it before drawing a conclusion.",
+        "recovery": "Contain the synthetic impact, verify the control boundary, and document the recovery proof.",
+    }
+    phases = ["Orient", "Observe", "Validate", "Contain", "Recover"]
     steps = []
     for index, step in enumerate(scenario.get("steps", [])):
         event = str(step.get("event", f"step-{index + 1}"))
         title = " ".join(word.capitalize() for word in re.split(r"[_-]+", event) if word)
+        evidence_keys = sorted(str(key) for key in step.get("evidence", {}).keys())
+        phase = phases[min(index, len(phases) - 1)]
         steps.append(
             {
                 "step": index + 1,
                 "event": event,
                 "title": title or f"Step {index + 1}",
+                "phase": phase,
                 "text": str(step.get("observation", "")),
-                "evidence_keys": sorted(str(key) for key in step.get("evidence", {}).keys()),
+                "method": method_by_branch.get(branch, method_by_branch["forensics"]),
+                "success_look": f"Record the {', '.join(evidence_keys) or 'bounded observation'} evidence, then continue only when the signal is explained.",
+                "evidence_keys": evidence_keys,
                 "figure": f"/assets/solution/{scenario['id']}/{index + 1}.svg",
             }
         )
     return {
-        "intro": "Complete the lab in order. Every step below maps 1:1 to a machine-checked evidence submission in the Questions panel — the figure shows what to observe, and the chips list the evidence keys that step validates.",
+        "intro": "This is a guided investigation, not an answer dump. Watch the motion reel, follow the method, inspect the disclosed localhost surface, and submit only evidence you can explain.",
+        "reel": f"/assets/solution/{scenario['id']}/reel.svg",
+        "motion": {"duration_seconds": 8, "format": "animated-svg", "reduced_motion_supported": True},
+        "method": "Orient → observe → validate → decide. Each chapter maps 1:1 to a machine-checked question.",
         "steps": steps,
     }
 
@@ -453,6 +470,15 @@ def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
     )
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">
 <defs>
+  <style>
+    @keyframes solutionScan {{ from {{ transform: translateX(-120px); }} to {{ transform: translateX(920px); }} }}
+    @keyframes solutionPulse {{ 0%, 100% {{ opacity: .45; }} 50% {{ opacity: 1; }} }}
+    @keyframes solutionDraw {{ from {{ stroke-dashoffset: 700; }} to {{ stroke-dashoffset: 0; }} }}
+    .solution-scan {{ animation: solutionScan 4.5s linear infinite; opacity: .1; }}
+    .solution-pulse {{ animation: solutionPulse 2.2s ease-in-out infinite; }}
+    .solution-draw {{ stroke-dasharray: 700; animation: solutionDraw 3.5s ease-out infinite alternate; }}
+    @media (prefers-reduced-motion: reduce) {{ .solution-scan, .solution-pulse, .solution-draw {{ animation: none; }} }}
+  </style>
   <radialGradient id="g" cx="0.82" cy="0.06" r="0.9">
     <stop offset="0" stop-color="{accent}" stop-opacity=".28"/>
     <stop offset="1" stop-color="#0a0a0f" stop-opacity="0"/>
@@ -464,6 +490,8 @@ def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
 </defs>
 <rect width="{width}" height="{height}" fill="#0a0a0f"/>
 <rect width="{width}" height="{height}" fill="url(#g)"/>
+<path class="solution-scan" d="M0 0V400" stroke="{accent}" stroke-width="150"/>
+<path class="solution-draw" d="M44 178 C220 120 360 240 520 170 S720 120 796 178" fill="none" stroke="{accent}" stroke-opacity=".5" stroke-width="2"/>
 <rect y="0" width="{width}" height="4" fill="url(#bar)" opacity=".85"/>
 <g stroke="#1d1d28" stroke-width="1">
   <path d="M0 94h{width}"/><path d="M0 176h{width}"/><path d="M0 258h{width}"/><path d="M0 344h{width}"/>
@@ -472,7 +500,7 @@ def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
 <rect x="40" y="36" width="58" height="30" rx="9" fill="{accent}" opacity=".16"/>
 <text x="69" y="56" text-anchor="middle" fill="{accent}" font-family="monospace" font-size="15" font-weight="700" letter-spacing="1.5">STEP {step_number}</text>
 <text x="112" y="57" fill="#ffffff" font-family="monospace" font-size="21" font-weight="700" letter-spacing="1.2">{esc_text(event.upper())}</text>
-<g transform="translate(666, 52) scale(1.15)">
+<g class="solution-pulse" transform="translate(666, 52) scale(1.15)">
   <circle cx="0" cy="0" r="11" fill="none" stroke="{accent}" stroke-width="2.6"/>
   <path d="M0 -5 L0 2 M0 5.5 L0 6.5" stroke="{accent}" stroke-width="2.2" stroke-linecap="round"/>
 </g>
@@ -481,6 +509,52 @@ def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
 {''.join(chips)}
 <text x="44" y="{height - 22}" fill="#5c5c70" font-family="monospace" font-size="11.5" letter-spacing="1" >{esc_text(scenario_id)} · {esc_text(stage_id)} · {esc_text(branch)} lane</text>
 <text x="{width - 44}" y="{height - 22}" text-anchor="end" fill="#5c5c70" font-family="monospace" font-size="11.5" letter-spacing="1">ZODIAC BANK · AI SECURITY RANGE</text>
+</svg>"""
+
+
+def solution_reel_svg(scenario: dict[str, Any]) -> str:
+    """Render an answer-safe animated storyboard for the solution guide."""
+    steps = list(scenario.get("steps", []))
+    if not steps:
+        raise HTTPException(status_code=404, detail="solution reel not found")
+    branch = str(scenario.get("branch", "other"))
+    accent = BRANCH_COLORS.get(branch, BRANCH_COLORS["other"])
+    scenario_id = str(scenario.get("id", ""))
+    esc_text = lambda value: (  # noqa: E731 - tiny local escaper for SVG text
+        str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+    )
+    width, height = 960, 420
+    count = len(steps)
+    points = []
+    labels = []
+    for index, step in enumerate(steps):
+        x = 90 + (790 * index / max(count - 1, 1))
+        points.append(f"{x:.1f},220")
+        label = " ".join(word.capitalize() for word in re.split(r"[_-]+", str(step.get("event", "step"))) if word)
+        labels.append(
+            f'<g class="reel-node" style="--delay:{index * 1.2:.1f}s"><circle cx="{x:.1f}" cy="220" r="22"/><text x="{x:.1f}" y="226" text-anchor="middle">{index + 1:02d}</text><text class="reel-label" x="{x:.1f}" y="278" text-anchor="middle">{esc_text(label[:22])}</text></g>'
+        )
+    polyline = " ".join(points)
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">
+<title id="title">Animated solution method for {esc_text(scenario_id)}</title>
+<desc id="desc">A looping evidence path moving through {count} ordered solution steps.</desc>
+<style>
+  :root {{ color-scheme: dark; }}
+  @keyframes reelPulse {{ 0%, 100% {{ opacity: .55; transform: scale(1); }} 50% {{ opacity: 1; transform: scale(1.18); }} }}
+  @keyframes reelTravel {{ from {{ stroke-dashoffset: 900; }} to {{ stroke-dashoffset: 0; }} }}
+  @keyframes reelScan {{ from {{ transform: translateX(-80px); }} to {{ transform: translateX(1040px); }} }}
+  .reel-node {{ transform-box: fill-box; transform-origin: center; animation: reelPulse 2.4s ease-in-out var(--delay) infinite; }}
+  .reel-path {{ fill: none; stroke: {accent}; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 8 14; animation: reelTravel 8s linear infinite; }}
+  .reel-scan {{ opacity: .12; animation: reelScan 4.8s linear infinite; }}
+  text {{ font-family: 'Fira Code', monospace; fill: #f8fafc; }}
+  .reel-label {{ font-size: 13px; fill: #a8b2c7; }}
+  @media (prefers-reduced-motion: reduce) {{ .reel-node, .reel-path, .reel-scan {{ animation: none; }} }}
+</style>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#08121c"/><stop offset=".55" stop-color="#111827"/><stop offset="1" stop-color="#1b1034"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="7" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<rect width="{width}" height="{height}" rx="24" fill="url(#bg)"/><path d="M0 74H{width}M0 344H{width}" stroke="#ffffff" stroke-opacity=".08"/><path class="reel-scan" d="M0 0V420" stroke="{accent}" stroke-width="120" filter="url(#glow)"/>
+<text x="42" y="48" font-size="12" letter-spacing="2.5" fill="{accent}">MOTION STUDY · EVIDENCE METHOD</text><text x="42" y="82" font-size="24" font-weight="700">Follow the signal. Prove the decision.</text>
+<polyline class="reel-path" points="{polyline}" filter="url(#glow)"/>{''.join(labels)}
+<circle cx="90" cy="220" r="7" fill="#ffffff" filter="url(#glow)"/><text x="42" y="386" font-size="12" fill="#7f8aa3">{esc_text(scenario_id)} · {esc_text(branch)} lane · loops every 8 seconds</text><text x="918" y="386" text-anchor="end" font-size="12" fill="#7f8aa3">ZODIAC SOLUTION STUDIO</text>
 </svg>"""
 
 
@@ -579,6 +653,19 @@ def flow_asset(asset_name: str) -> Any:
     if not flow.is_file():
         raise HTTPException(status_code=404, detail="flow asset not found")
     return FileResponse(flow, media_type="image/svg+xml")
+
+
+@app.get("/assets/solution/{scenario_id}/reel.svg")
+def solution_reel(scenario_id: str) -> Response:
+    """Serve the looping animated storyboard for a scenario solution."""
+    scenario = SCENARIO_BY_ID.get(scenario_id)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail="unknown scenario")
+    return Response(
+        content=solution_reel_svg(scenario),
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.get("/assets/solution/{scenario_id}/{step_number}.svg")

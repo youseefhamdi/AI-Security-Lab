@@ -931,33 +931,54 @@
   .q-submit { margin-top: 14px; display: flex; gap: 8px; align-items: center; }
   .q-submit .btn { flex: 1; }
 
-  /* solution guide — step-by-step walkthrough with figures */
+  /* solution studio — premium walkthrough, animated reel, and evidence chapters */
+  .solution-studio { position: relative; overflow: hidden; margin: -4px 0 22px; padding: 18px; border: 1px solid rgba(0, 212, 255, .18); border-radius: 16px; background: radial-gradient(720px 280px at 85% -10%, rgba(0,212,255,.12), transparent 62%), linear-gradient(135deg, rgba(255,255,255,.045), rgba(124,58,237,.04)); }
+  .solution-studio::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .3; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 34px 34px; mask-image: linear-gradient(to bottom, #000, transparent 80%); }
+  .sol-studio-head, .sol-studio-head > * { position: relative; z-index: 1; }
+  .sol-studio-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+  .sol-kicker { color: var(--cyan); font: 700 9.5px var(--mono); letter-spacing: 1.8px; text-transform: uppercase; }
+  .sol-studio-title { margin: 4px 0 3px; color: var(--text); font: 700 21px var(--display); letter-spacing: -.02em; }
+  .sol-studio-copy { max-width: 700px; margin: 0; color: var(--text-3); font-size: 13px; line-height: 1.55; }
+  .sol-reel-meta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+  .sol-reel-meta .pill { font-size: 9.5px; }
+  .sol-reel { position: relative; z-index: 1; overflow: hidden; border: 1px solid rgba(255,255,255,.13); border-radius: 14px; background: #070b12; box-shadow: 0 18px 40px rgba(0,0,0,.34); }
+  .sol-reel img { display: block; width: 100%; aspect-ratio: 960 / 420; object-fit: cover; }
+  .sol-reel::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.04), transparent 50%, rgba(0,0,0,.34)); }
+  .sol-reel-controls { position: absolute; z-index: 2; right: 12px; bottom: 12px; display: flex; gap: 7px; align-items: center; }
+  .sol-reel-controls button { min-width: 40px; min-height: 40px; border: 1px solid rgba(255,255,255,.22); border-radius: 10px; background: rgba(6,10,17,.78); color: var(--text); cursor: pointer; backdrop-filter: blur(10px); transition: border-color .15s, background .15s, transform .15s; }
+  .sol-reel-controls button:hover { border-color: var(--cyan); background: rgba(0,212,255,.14); transform: translateY(-1px); }
+  .sol-reel-controls button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  .sol-reel.is-paused img { filter: saturate(.75); }
+  .sol-reel-track { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(var(--sol-step-count), minmax(0, 1fr)); gap: 6px; padding: 10px 12px 12px; border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.28); }
+  .sol-reel-track::before { content: ""; position: absolute; left: 12px; right: 12px; top: 16px; height: 2px; background: rgba(255,255,255,.12); }
+  .sol-reel-beacon { position: absolute; top: 11px; left: 12px; width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 4px rgba(0,212,255,.12), 0 0 18px var(--cyan); animation: solBeacon 8s linear infinite; }
+  .sol-reel.is-paused .sol-reel-beacon { animation-play-state: paused; }
+  @keyframes solBeacon { from { transform: translateX(0); } to { transform: translateX(calc(100% - 9px)); } }
+  .sol-reel-marker { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--muted); font: 600 10px var(--mono); text-align: center; }
+  .sol-reel-marker b { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid rgba(0,212,255,.42); border-radius: 50%; background: #0b1522; color: var(--cyan); font-size: 9px; }
+  .sol-reel-marker span { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
   .sol-guide-intro { margin: 0 0 16px; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
-  .sol-step {
-    border: 1px solid var(--border); border-radius: 14px;
-    background: var(--surface); padding: 18px 20px; margin-bottom: 16px;
-    transition: border-color .15s;
-  }
-  .sol-step:last-child { margin-bottom: 0; }
-  .sol-step:hover { border-color: rgba(0, 212, 255, .3); }
-  .sol-step-head { display: flex; align-items: center; gap: 13px; margin-bottom: 4px; }
-  .sol-step-num {
-    flex: 0 0 auto; width: 36px; height: 36px; border-radius: 10px;
-    display: grid; place-items: center;
-    background: var(--grad); color: #fff;
-    font: 700 13px var(--mono); letter-spacing: .5px;
-    box-shadow: 0 6px 18px rgba(0, 212, 255, .25);
-  }
-  .sol-step-head h4 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); }
-  .sol-step-event { display: block; margin-top: 1px; font: 500 11px var(--mono); color: var(--faint); }
-  .sol-step-event code { color: var(--cyan); background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .2); border-radius: 5px; padding: 1px 6px; }
-  .sol-step-text { margin: 10px 0 14px; font-size: 13.5px; color: var(--text-3); line-height: 1.6; }
-  .sol-step-figure { margin-bottom: 14px; }
-  .sol-step-figure img {
-    width: 100%; max-width: 860px; display: block;
-    border: 1px solid var(--border); border-radius: 12px;
-    background: var(--bg); box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
-  }
+  .sol-method { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; padding: 10px 12px; border: 1px solid rgba(0,255,136,.2); border-radius: 10px; background: rgba(0,255,136,.05); color: var(--text-3); font-size: 12.5px; }
+  .sol-method strong { color: var(--green); font: 700 10px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .sol-chapters { display: grid; gap: 14px; }
+  .sol-step { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 15px; border: 1px solid var(--border); border-radius: 15px; background: linear-gradient(145deg, rgba(26,26,46,.96), rgba(11,14,24,.98)); padding: 16px; overflow: hidden; transition: border-color .2s, transform .2s, box-shadow .2s; }
+  .sol-step::after { content: ""; position: absolute; top: 0; bottom: 0; left: 51px; width: 1px; background: linear-gradient(var(--cyan), transparent 80%); opacity: .35; }
+  .sol-step:hover { border-color: rgba(0,212,255,.42); transform: translateY(-2px); box-shadow: 0 16px 34px rgba(0,0,0,.28), 0 0 24px rgba(0,212,255,.07); }
+  .sol-step-num { position: relative; z-index: 1; align-self: start; width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--grad); color: #fff; font: 700 12px var(--mono); box-shadow: 0 7px 22px rgba(0,212,255,.25); }
+  .sol-step-content { position: relative; z-index: 1; min-width: 0; }
+  .sol-step-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 5px; }
+  .sol-step-head h4 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text); }
+  .sol-step-phase { color: var(--cyan); font: 700 9px var(--mono); letter-spacing: 1.4px; text-transform: uppercase; }
+  .sol-step-event { display: block; margin-top: 3px; font: 500 10.5px var(--mono); color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sol-step-event code { color: var(--cyan); background: rgba(0,212,255,.08); border: 1px solid rgba(0,212,255,.2); border-radius: 5px; padding: 1px 6px; }
+  .sol-step-text { margin: 11px 0 12px; font-size: 13.5px; color: var(--text-3); line-height: 1.6; }
+  .sol-step-method { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 0 0 12px; padding: 10px 11px; border-left: 2px solid var(--purple-2); border-radius: 0 9px 9px 0; background: rgba(124,58,237,.08); color: var(--text-3); font-size: 12px; line-height: 1.5; }
+  .sol-step-method strong, .sol-step-success strong { color: var(--purple-2); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .sol-step-success { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 0 0 13px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .sol-step-success strong { color: var(--green); }
+  .sol-step-figure { margin: 0 0 13px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; overflow: hidden; background: var(--bg); }
+  .sol-step-figure img { width: 100%; display: block; aspect-ratio: 840 / 400; object-fit: cover; }
+  .sol-evidence-label { margin: 0 0 7px; color: var(--faint); font: 700 9px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; }
 
   /* flag submission panel (sidebar) */
   .flag-panel {
@@ -1147,7 +1168,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l8 4-8 4-8-4 8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 16l8 4 8-4"/></svg>
           </span>
           <h3>Simulation challenges</h3>
-          <p>100 hands-on scenarios across 10 progressive stages with a live synthetic bank posture.</p>
+          <p>150 hands-on scenarios across 10 progressive stages with a live synthetic bank posture.</p>
         </div>
         <div class="feature-card">
           <span class="feature-cover" aria-hidden="true" style="background:linear-gradient(135deg, #7c3aed, #a855f7)">
@@ -1203,7 +1224,7 @@
         <div>
           <p class="ch-hero-eyebrow">Zodiac Bank · Hands-on AI Red Teaming</p>
           <h1 class="ch-hero-title">AI Security<br /><span>Challenges</span></h1>
-          <p class="ch-hero-sub">100 hands-on scenarios across 10 progressive stages — prompt injection, RAG poisoning, agent protocol abuse, memory leaks, identity control planes, supply chain and more. Every accepted evidence event reshapes the synthetic bank posture.</p>
+          <p class="ch-hero-sub">150 hands-on scenarios across 10 progressive stages — prompt injection, RAG poisoning, agent protocol abuse, memory leaks, identity control planes, supply chain and more. Every accepted evidence event reshapes the synthetic bank posture.</p>
           <div class="ch-hero-search">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg>
             <input id="challenge-search" type="search" placeholder="Search challenges by title, stage or tactic…" autocomplete="off" spellcheck="false" aria-label="Search challenges" />
@@ -1211,7 +1232,7 @@
           <div class="ch-hero-stats">
             <div><b class="num" id="hero-count">0</b><span>challenges</span></div>
             <div><b>10</b><span>stages</span></div>
-            <div><b>50</b><span>hard gates</span></div>
+            <div><b>75</b><span>hard gates</span></div>
           </div>
         </div>
         <div class="hero-character" aria-hidden="true">
@@ -2491,29 +2512,61 @@ function buildEvidenceForm(hint) {
   if (submit) submit.addEventListener("click", () => submitEvent(hint));
 }
 
-/** Render the step-by-step solution guide with figures for the open lab. */
+/** Render the premium step-by-step solution studio for the open lab. */
 function renderSolutionGuide(sc) {
   const box = $("guide-body");
   if (!box) return;
   const guide = sc.solution_guide || { steps: [] };
-  const steps = (guide.steps || []).map((s) => `
-    <div class="sol-step">
-      <div class="sol-step-head">
-        <span class="sol-step-num">${String(s.step).padStart(2, "0")}</span>
-        <div>
-          <h4>${esc(s.title)}</h4>
-          <span class="sol-step-event">event: <code>${esc(s.event)}</code></span>
+  const guideSteps = guide.steps || [];
+  const reel = guide.reel || `/assets/solution/${encodeURIComponent(sc.scenario_id)}/reel.svg`;
+  const markers = guideSteps.map((s) => `
+    <div class="sol-reel-marker"><b>${String(s.step).padStart(2, "0")}</b><span>${esc(s.phase || s.title)}</span></div>`).join("");
+  const steps = guideSteps.map((s) => `
+    <article class="sol-step" id="solution-step-${String(s.step)}">
+      <span class="sol-step-num" aria-label="Step ${String(s.step)}">${String(s.step).padStart(2, "0")}</span>
+      <div class="sol-step-content">
+        <div class="sol-step-head">
+          <div>
+            <span class="sol-step-phase">${esc(s.phase || "Investigation")}</span>
+            <h4>${esc(s.title)}</h4>
+            <span class="sol-step-event">machine event · <code>${esc(s.event)}</code></span>
+          </div>
+          <span class="pill accent">${String(s.step).padStart(2, "0")} / ${guideSteps.length}</span>
         </div>
+        <p class="sol-step-text">${esc(s.text)}</p>
+        <div class="sol-step-method"><strong>Method</strong><span>${esc(s.method || "Inspect the disclosed localhost surface and preserve bounded evidence.")}</span></div>
+        <div class="sol-step-success"><strong>Success looks like</strong><span>${esc(s.success_look || "The observation is explained and its evidence is ready for submission.")}</span></div>
+        <div class="sol-step-figure"><img src="${esc(s.figure)}" alt="Animated figure: ${esc(s.title)}" loading="lazy" width="840" height="400" /></div>
+        <p class="sol-evidence-label">Evidence contract for this chapter</p>
+        <div class="chip-grid">${chips(s.evidence_keys, "bounded observation")}</div>
       </div>
-      <p class="sol-step-text">${esc(s.text)}</p>
-      <div class="sol-step-figure">
-        <img src="${esc(s.figure)}" alt="Figure for ${esc(s.title)}" loading="lazy" width="840" height="400" />
-      </div>
-      <div class="chip-grid">${chips(s.evidence_keys, "no evidence keys required")}</div>
-    </div>`).join("");
+    </article>`).join("");
   box.innerHTML = `
-    ${guide.intro ? `<p class="sol-guide-intro">${esc(guide.intro)}</p>` : ""}
-    ${steps || '<p class="muted">No solution guide for this lab yet.</p>'}`;
+    <div class="solution-studio">
+      <div class="sol-studio-head">
+        <div>
+          <span class="sol-kicker">ZODIAC SOLUTION STUDIO · VISUAL WALKTHROUGH</span>
+          <h3 class="sol-studio-title">Watch the method. Then run the evidence.</h3>
+          <p class="sol-studio-copy">${esc(guide.intro || "Follow the signal in order and submit only evidence you can explain.")}</p>
+        </div>
+        <div class="sol-reel-meta"><span class="pill accent">${guideSteps.length} chapters</span><span class="pill ok">animated figure</span><span class="pill">8 sec loop</span></div>
+      </div>
+      <div class="sol-reel" data-reel>
+        <img src="${esc(reel)}" alt="Animated solution path for ${esc(sc.title)}" width="960" height="420" decoding="async" />
+        <div class="sol-reel-controls"><button type="button" data-reel-toggle aria-label="Pause solution animation" aria-pressed="false">Ⅱ</button></div>
+        <div class="sol-reel-track" style="--sol-step-count:${Math.max(1, guideSteps.length)}"><span class="sol-reel-beacon" aria-hidden="true"></span>${markers}</div>
+      </div>
+    </div>
+    <p class="sol-method"><strong>Operating method</strong><span>${esc(guide.method || "Orient → observe → validate → decide. Each chapter maps to a machine-checked question.")}</span></p>
+    <div class="sol-chapters">${steps || '<p class="muted">No solution guide for this lab yet.</p>'}</div>`;
+  const toggle = box.querySelector("[data-reel-toggle]");
+  const reelBox = box.querySelector("[data-reel]");
+  if (toggle && reelBox) toggle.addEventListener("click", () => {
+    const paused = reelBox.classList.toggle("is-paused");
+    toggle.textContent = paused ? "▶" : "Ⅱ";
+    toggle.setAttribute("aria-label", paused ? "Play solution animation" : "Pause solution animation");
+    toggle.setAttribute("aria-pressed", String(paused));
+  });
 }
 
 /** Render the synthesis (solution) panel for the currently unlocked hard gate. */
@@ -2967,7 +3020,7 @@ function renderProgression() {
   body.innerHTML = `
     <div class="prog-row"><span>Stage progress</span><b>${completed} / ${stages.length || 10}</b></div>
     <div class="progress-bar"><span style="width:${pct}%"></span></div>
-    <div class="prog-row" style="margin-top:16px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 50)}</b></div>
+    <div class="prog-row" style="margin-top:16px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 75)}</b></div>
     ${meta.current_gate_id ? `<div class="prog-row"><span>Current gate</span><b class="accent">${esc(meta.current_gate_id)}</b></div>` : ""}
     <div style="margin-top:12px">${gatesHtml}</div>`;
 }
@@ -3099,7 +3152,7 @@ function renderDashboard() {
   const stats = $("dash-stats");
   if (stats) {
     const gatesDone = meta.completed_gate_count ?? 0;
-    const gatesTotal = meta.total_hard_gates ?? 50;
+    const gatesTotal = meta.total_hard_gates ?? 75;
     stats.innerHTML = `
       <div class="stat"><b class="num">${completed}</b><span>/ ${stages.length || 10} stages</span></div>
       <div class="stat"><b class="num">${esc(gatesDone)}</b><span>/ ${esc(gatesTotal)} hard gates</span></div>
