@@ -26,7 +26,6 @@ from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import Page, expect, sync_playwright
 
 
-STYLES = ("geometric", "painterly")
 STAGE_COVERS = (
     "stage-l00-foundation",
     "stage-l01-recon",
@@ -41,9 +40,8 @@ STAGE_COVERS = (
 )
 
 
-def cover_assets(style: str) -> list[str]:
-    suffix = "-painterly" if style == "painterly" else ""
-    return ["hero-operative" + suffix + ".png", *[stage + suffix + ".png" for stage in STAGE_COVERS]]
+def cover_assets() -> list[str]:
+    return ["hero-operative.png", *[stage + ".png" for stage in STAGE_COVERS]]
 
 
 def flow_assets() -> list[str]:
@@ -62,12 +60,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def assert_png_response(context: Any, url: str) -> None:
+def assert_cover_response(context: Any, url: str) -> None:
     response = context.request.get(url)
     assert response.ok, f"{url} returned HTTP {response.status}"
     content_type = response.headers.get("content-type", "")
-    assert content_type.startswith("image/png"), f"{url} returned {content_type!r}, not image/png"
-    assert len(response.body()) > 1000, f"{url} returned an unexpectedly small image"
+    assert content_type.startswith("image/jpeg"), f"{url} returned {content_type!r}, not image/jpeg"
+    body = response.body()
+    assert body[:2] == b"\xff\xd8", f"{url} is not JPEG-encoded raster art"
+    assert len(body) > 1000, f"{url} returned an unexpectedly small image"
 
 
 def run_smoke(args: argparse.Namespace) -> None:
@@ -122,52 +122,44 @@ def run_smoke(args: argparse.Namespace) -> None:
             cards = page.locator("#challenge-grid .challenge-card")
             assert cards.count() > 0, "challenge grid rendered no cards"
 
-            expect(page.locator("#cover-style")).to_have_value("geometric")
             for flow in flow_assets():
                 response = context.request.get(f"{base_url}/assets/flows/{flow}")
                 assert response.ok, f"{flow} returned HTTP {response.status}"
                 assert response.headers.get("content-type", "").startswith("image/svg+xml"), f"{flow} was not SVG"
                 assert len(response.body()) > 1000, f"{flow} returned an unexpectedly small image"
 
-            for style in STYLES:
-                page.locator("#cover-style").select_option(style)
-                expect(page.locator("#cover-style")).to_have_value(style)
-                for asset in cover_assets(style):
-                    assert_png_response(context, f"{base_url}/assets/covers/{asset}")
+            for asset in cover_assets():
+                assert_cover_response(context, f"{base_url}/assets/covers/{asset}")
 
-                hero_image = page.locator("#hero-operative-art")
-                assert hero_image.get_attribute("src").endswith(f"hero-operative{'-painterly' if style == 'painterly' else ''}.png")
-                grid_images = page.locator("#challenge-grid .cover-art")
-                assert grid_images.count() > 0, f"{style} style rendered no cover images"
-                for index in range(grid_images.count()):
-                    image = grid_images.nth(index)
-                    expect(image).to_be_visible(timeout=args.timeout_ms)
-                    assert image.evaluate("img => img.complete && img.naturalWidth > 0"), f"{style} grid cover {index} did not load"
-                    assert ("-painterly.png" in (image.get_attribute("src") or "")) is (style == "painterly")
+            hero_image = page.locator("#hero-operative-art")
+            assert hero_image.get_attribute("src").endswith("hero-operative.png")
+            grid_images = page.locator("#challenge-grid .cover-art")
+            assert grid_images.count() > 0, "grid rendered no cover images"
+            for index in range(grid_images.count()):
+                image = grid_images.nth(index)
+                expect(image).to_be_visible(timeout=args.timeout_ms)
+                assert image.evaluate("img => img.complete && img.naturalWidth > 0"), f"grid cover {index} did not load"
 
-                cards.first.click()
-                expect(page.locator("#detail-hero")).to_be_visible(timeout=args.timeout_ms)
-                expect(page.locator("#detail-hero .detail-illus .cover-art")).to_be_visible(timeout=args.timeout_ms)
-                expect(page.locator("#detail-flow .flow-art")).to_be_visible(timeout=args.timeout_ms)
-                flow_image = page.locator("#detail-flow .flow-art")
-                assert flow_image.evaluate("img => img.complete && img.naturalWidth > 0"), f"{style} attack-flow image did not load"
-                assert "assets/flows/" in (flow_image.get_attribute("src") or ""), "detail flow image path missing"
-                detail_image = page.locator("#detail-hero .detail-illus .cover-art")
-                assert detail_image.evaluate("img => img.complete && img.naturalWidth > 0"), f"{style} detail cover did not load"
-                assert ("-painterly.png" in (detail_image.get_attribute("src") or "")) is (style == "painterly")
-                assert "/#/challenge/" in page.url, f"detail route did not open: {page.url}"
-                page.goto(f"{base_url}/#/challenges", wait_until="domcontentloaded", timeout=args.timeout_ms)
-                expect(page.locator("#challenge-grid .challenge-card").first).to_be_visible(timeout=args.timeout_ms)
+            cards.first.click()
+            expect(page.locator("#detail-hero")).to_be_visible(timeout=args.timeout_ms)
+            expect(page.locator("#detail-hero .detail-illus .cover-art")).to_be_visible(timeout=args.timeout_ms)
+            expect(page.locator("#detail-flow .flow-art")).to_be_visible(timeout=args.timeout_ms)
+            flow_image = page.locator("#detail-flow .flow-art")
+            assert flow_image.evaluate("img => img.complete && img.naturalWidth > 0"), "attack-flow image did not load"
+            assert "assets/flows/" in (flow_image.get_attribute("src") or ""), "detail flow image path missing"
+            detail_image = page.locator("#detail-hero .detail-illus .cover-art")
+            assert detail_image.evaluate("img => img.complete && img.naturalWidth > 0"), "detail cover did not load"
+            assert "/#/challenge/" in page.url, f"detail route did not open: {page.url}"
 
             if args.screenshot_dir:
                 args.screenshot_dir.mkdir(parents=True, exist_ok=True)
-                page.screenshot(path=str(args.screenshot_dir / "challenge-detail-painterly.png"), full_page=True)
+                page.screenshot(path=str(args.screenshot_dir / "challenge-detail-generated-art.png"), full_page=True)
 
             assert not page_errors, f"page errors: {page_errors}"
             assert not console_errors, f"console errors: {console_errors}"
             assert not failed_responses, f"HTTP failures: {failed_responses}"
             assert not failed_requests, f"network failures: {failed_requests}"
-            print(f"PASS trainer browser smoke: {cards.count()} cards, {len(STYLES)} art styles, {len(STAGE_COVERS)} cover assets, {len(flow_assets())} attack-flow assets, detail route verified")
+            print(f"PASS trainer browser smoke: {cards.count()} cards, {len(cover_assets())} generated cover assets, {len(flow_assets())} attack-flow assets, detail route verified")
         finally:
             browser.close()
 

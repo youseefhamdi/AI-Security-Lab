@@ -1071,12 +1071,6 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg>
             <input id="challenge-search" type="search" placeholder="Search challenges by title, stage or tactic…" autocomplete="off" spellcheck="false" aria-label="Search challenges" />
           </div>
-          <label class="art-style-control" for="cover-style">Cover treatment
-            <select id="cover-style" aria-label="Cover art treatment">
-              <option value="geometric">Geometric neon</option>
-              <option value="painterly">Painterly brushwork</option>
-            </select>
-          </label>
           <div class="ch-hero-stats">
             <div><b class="num" id="hero-count">0</b><span>challenges</span></div>
             <div><b>10</b><span>stages</span></div>
@@ -1084,7 +1078,7 @@
           </div>
         </div>
         <div class="hero-character" aria-hidden="true">
-          <img id="hero-operative-art" src="assets/covers/hero-operative.png" alt="" width="1024" height="576" decoding="async" fetchpriority="high" />
+          <img id="hero-operative-art" src="assets/covers/hero-operative.png" alt="" width="1408" height="768" decoding="async" fetchpriority="high" />
         </div>
       </div>
     </div>
@@ -1283,7 +1277,6 @@ const state = {
   learner: "",
   token: "",
   gateUrl: "http://127.0.0.1:5050",
-  artStyle: "geometric",
   range: null,
   currentStageId: null,
   scenarios: [],      // current stage scenario runs from /api/scenarios
@@ -1355,7 +1348,7 @@ async function gateApi(path, options) {
 function saveSettings() {
   try {
     localStorage.setItem("zb-trainer", JSON.stringify({
-      learner: state.learner, token: state.token, gateUrl: state.gateUrl, artStyle: state.artStyle,
+      learner: state.learner, token: state.token, gateUrl: state.gateUrl,
     }));
   } catch (_) { /* storage may be unavailable; settings still work in memory */ }
 }
@@ -1366,7 +1359,6 @@ function loadSettings() {
     if (saved.learner) state.learner = saved.learner;
     if (saved.token) state.token = saved.token;
     if (saved.gateUrl) state.gateUrl = saved.gateUrl;
-    if (saved.artStyle === "painterly" || saved.artStyle === "geometric") state.artStyle = saved.artStyle;
   } catch (_) { /* ignore */ }
 }
 
@@ -1512,19 +1504,11 @@ function stageCoverName(stageId) {
 
 /** @param {string} stageId @returns {string} */
 function coverAssetName(stageId) {
-  const suffix = state.artStyle === "painterly" ? "-painterly" : "";
-  return `stage-${stageCoverName(stageId)}${suffix}.png`;
+  return `stage-${stageCoverName(stageId)}.png`;
 }
 
 function heroAssetName() {
-  return state.artStyle === "painterly" ? "hero-operative-painterly.png" : "hero-operative.png";
-}
-
-function renderArtStyle() {
-  const selector = $("cover-style");
-  if (selector) selector.value = state.artStyle;
-  const hero = $("hero-operative-art");
-  if (hero) hero.src = `assets/covers/${heroAssetName()}`;
+  return "hero-operative.png";
 }
 
 /** @param {ScenarioSummary} sc */
@@ -1649,7 +1633,6 @@ function renderChallengeFilters() {
 /** @param {ScenarioSummary} sc @param {number} index */
 function challengeCardHTML(sc, index) {
   const t = coverTheme(index);
-  const scenarioIndex = Math.max(0, stageScenarioIndex(sc));
   const coverFile = `assets/covers/${coverAssetName(sc.stage_id)}`;
   const st = scenarioStatus(sc);
   const band = difficultyBand(sc.difficulty);
@@ -1657,7 +1640,7 @@ function challengeCardHTML(sc, index) {
   const coverBadgeCls = st === "complete" ? "complete" : st === "active" ? "active" : st === "locked" ? "locked" : "not-started";
   return `<article class="challenge-card" data-scenario="${esc(sc.scenario_id)}" role="button" tabindex="0" aria-label="${esc(sc.title)}">
     <div class="challenge-cover" aria-hidden="true" style="background:linear-gradient(135deg, ${t.g1}, ${t.g2})">
-      <img class="cover-art" src="${coverFile}" alt="" width="1024" height="576" loading="lazy" decoding="async" style="filter:hue-rotate(${scenarioIndex * 36}deg) saturate(1.1)" />
+      <img class="cover-art" src="${coverFile}" alt="" width="1408" height="768" loading="lazy" decoding="async" />
       ${patternSVG(t.pattern)}
       <span class="cover-glow"></span>
       ${iconSVG(t.icon, "cover-icon")}
@@ -1832,7 +1815,7 @@ function renderChallengeHero(sc) {
   const run = findRun(sc.scenario_id);
   box.innerHTML = `
     <div class="detail-illus" aria-hidden="true" style="background:linear-gradient(135deg, ${t.g1}, ${t.g2})">
-      <img class="cover-art" src="${coverFile}" alt="" width="1024" height="576" decoding="async" />
+      <img class="cover-art" src="${coverFile}" alt="" width="1408" height="768" decoding="async" />
       ${patternSVG(t.pattern)}
       ${iconSVG(t.icon, "cover-icon")}
     </div>
@@ -2685,16 +2668,6 @@ function togglePassword() {
 /* ---------- Init ---------- */
 
 loadSettings();
-renderArtStyle();
-$("cover-style").addEventListener("change", (event) => {
-  state.artStyle = event.target.value === "painterly" ? "painterly" : "geometric";
-  saveSettings();
-  renderArtStyle();
-  if (state.range) {
-    renderChallenges();
-    if (state.selected) renderChallenge(state.selected.scenario_id);
-  }
-});
 $("learner-id").value = state.learner;
 $("learner-token").value = state.token;
 $("gate-url").value = state.gateUrl;

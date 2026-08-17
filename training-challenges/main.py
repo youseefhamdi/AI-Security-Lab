@@ -377,13 +377,18 @@ def trainer_index() -> FileResponse:
 
 @app.get("/assets/covers/{asset_name}")
 def cover_asset(asset_name: str) -> Any:
-    """Serve packaged cinematic cover art without exposing arbitrary filesystem paths."""
-    if not re.fullmatch(r"[a-z0-9-]+\.png", asset_name):
+    """Serve the generated cover scenes stored in docs/assets.
+
+    GitHub's uploaded files retain the requested .png names, but their bytes
+    are JPEG-encoded. Return the actual media type so browsers decode them
+    reliably under the trainer's nosniff security header.
+    """
+    if not re.fullmatch(r"(?:hero-operative|stage-l[0-9]{2}-[a-z0-9-]+)\.png", asset_name):
         raise HTTPException(status_code=404, detail="cover asset not found")
-    cover = Path(__file__).resolve().parent / "assets" / "covers" / asset_name
+    cover = ASSETS_DIR / asset_name
     if not cover.is_file():
         raise HTTPException(status_code=404, detail="cover asset not found")
-    return FileResponse(cover, media_type="image/png")
+    return FileResponse(cover, media_type="image/jpeg")
 
 
 @app.get("/assets/flows/{asset_name}")
