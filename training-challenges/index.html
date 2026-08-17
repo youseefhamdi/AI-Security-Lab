@@ -477,6 +477,8 @@
     background: rgba(10, 10, 15, .65); border: 1px solid var(--border);
   }
   .ch-hero-search input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0, 212, 255, .2); }
+  .art-style-control { display: inline-flex; align-items: center; gap: 9px; margin-top: 13px; color: var(--text-3); font: 600 11px var(--mono); letter-spacing: .6px; text-transform: uppercase; }
+  .art-style-control select { width: auto; min-width: 148px; padding: 8px 32px 8px 10px; border-radius: 9px; background: rgba(10, 10, 15, .7); color: var(--text); font: 600 12px var(--sans); text-transform: none; letter-spacing: 0; }
   .hero-character { width: 420px; height: 300px; justify-self: center; display: flex; align-items: center; justify-content: center; }
   .hero-character img { width: 420px; height: 300px; object-fit: cover; filter: drop-shadow(0 0 40px rgba(0, 212, 255, .35)); border-radius: 18px; }
   .ch-hero-stats { display: flex; gap: 26px; margin-top: 26px; }
@@ -764,6 +766,8 @@
   .flow-node:hover .fn-oval { transform: scale(1.08); }
   .flow-node .fn-step { font: 700 9px var(--mono); letter-spacing: 1.2px; color: #7c3aed; text-transform: uppercase; }
   .flow-node .fn-label { font: 600 10.5px var(--sans); color: #111318; line-height: 1.3; max-width: 132px; }
+  .flow-art { display: block; width: 100%; height: auto; max-height: 470px; object-fit: contain; border-radius: 12px; background: #f5f5f5; }
+  .flow-art-note { margin: 10px 0 0; font-size: 12px; color: #66667a; }
 
   /* solution / synthesis */
   .syn-chips { margin: 8px 0 14px; }
@@ -1067,6 +1071,12 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg>
             <input id="challenge-search" type="search" placeholder="Search challenges by title, stage or tactic…" autocomplete="off" spellcheck="false" aria-label="Search challenges" />
           </div>
+          <label class="art-style-control" for="cover-style">Cover treatment
+            <select id="cover-style" aria-label="Cover art treatment">
+              <option value="geometric">Geometric neon</option>
+              <option value="painterly">Painterly brushwork</option>
+            </select>
+          </label>
           <div class="ch-hero-stats">
             <div><b class="num" id="hero-count">0</b><span>challenges</span></div>
             <div><b>10</b><span>stages</span></div>
@@ -1074,7 +1084,7 @@
           </div>
         </div>
         <div class="hero-character" aria-hidden="true">
-          <img src="assets/covers/hero-operative.png" alt="" width="1024" height="576" decoding="async" fetchpriority="high" />
+          <img id="hero-operative-art" src="assets/covers/hero-operative.png" alt="" width="1024" height="576" decoding="async" fetchpriority="high" />
         </div>
       </div>
     </div>
@@ -1273,6 +1283,7 @@ const state = {
   learner: "",
   token: "",
   gateUrl: "http://127.0.0.1:5050",
+  artStyle: "geometric",
   range: null,
   currentStageId: null,
   scenarios: [],      // current stage scenario runs from /api/scenarios
@@ -1344,7 +1355,7 @@ async function gateApi(path, options) {
 function saveSettings() {
   try {
     localStorage.setItem("zb-trainer", JSON.stringify({
-      learner: state.learner, token: state.token, gateUrl: state.gateUrl,
+      learner: state.learner, token: state.token, gateUrl: state.gateUrl, artStyle: state.artStyle,
     }));
   } catch (_) { /* storage may be unavailable; settings still work in memory */ }
 }
@@ -1355,6 +1366,7 @@ function loadSettings() {
     if (saved.learner) state.learner = saved.learner;
     if (saved.token) state.token = saved.token;
     if (saved.gateUrl) state.gateUrl = saved.gateUrl;
+    if (saved.artStyle === "painterly" || saved.artStyle === "geometric") state.artStyle = saved.artStyle;
   } catch (_) { /* ignore */ }
 }
 
@@ -1498,6 +1510,23 @@ function stageCoverName(stageId) {
   return String(stageId || "").toLowerCase().replace(/[^a-z0-9-]/g, "");
 }
 
+/** @param {string} stageId @returns {string} */
+function coverAssetName(stageId) {
+  const suffix = state.artStyle === "painterly" ? "-painterly" : "";
+  return `stage-${stageCoverName(stageId)}${suffix}.png`;
+}
+
+function heroAssetName() {
+  return state.artStyle === "painterly" ? "hero-operative-painterly.png" : "hero-operative.png";
+}
+
+function renderArtStyle() {
+  const selector = $("cover-style");
+  if (selector) selector.value = state.artStyle;
+  const hero = $("hero-operative-art");
+  if (hero) hero.src = `assets/covers/${heroAssetName()}`;
+}
+
 /** @param {ScenarioSummary} sc */
 function stageScenarioIndex(sc) {
   return allScenarios().filter((item) => item.stage_id === sc.stage_id).findIndex((item) => item.scenario_id === sc.scenario_id);
@@ -1621,7 +1650,7 @@ function renderChallengeFilters() {
 function challengeCardHTML(sc, index) {
   const t = coverTheme(index);
   const scenarioIndex = Math.max(0, stageScenarioIndex(sc));
-  const coverFile = `assets/covers/stage-${stageCoverName(sc.stage_id)}.png`;
+  const coverFile = `assets/covers/${coverAssetName(sc.stage_id)}`;
   const st = scenarioStatus(sc);
   const band = difficultyBand(sc.difficulty);
   const code = (sc.stage_id || "").split("-")[0] || "SC";
@@ -1797,7 +1826,7 @@ function renderChallengeHero(sc) {
   const box = $("detail-hero");
   if (!box) return;
   const t = coverTheme(seedIndex(sc.scenario_id));
-  const coverFile = `assets/covers/stage-${stageCoverName(sc.stage_id)}.png`;
+  const coverFile = `assets/covers/${coverAssetName(sc.stage_id)}`;
   const band = difficultyBand(sc.difficulty);
   const st = scenarioStatus(sc);
   const run = findRun(sc.scenario_id);
@@ -1878,36 +1907,17 @@ const FLOW_GLYPHS = {
   vault: '<rect x="7" y="10" width="10" height="8" rx="1.5"/><path d="M9.5 10V8a2.5 2.5 0 0 1 5 0v2"/><path d="M12 13v2.2"/>',
 };
 
+function flowAssetName(stageId) {
+  return `stage-${stageCoverName(stageId)}-flow.svg`;
+}
+
 function renderFlow(sc) {
   const box = $("detail-flow");
   if (!box) return;
-  const labels = flowSteps(sc);
-  const n = labels.length;
-  const cx = 50;
-  const cy = 50;
-  const r = 36;
-  const pts = labels.map((label, i) => {
-    const ang = ((-90 + (i * 360) / n) * Math.PI) / 180;
-    return { x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang), label, i };
-  });
-  const lines = pts.map((p) => `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(2)}" y2="${p.y.toFixed(2)}" />`).join("");
-  const nodes = pts.map((p) => `
-    <div class="flow-node" style="left:${p.x.toFixed(2)}%; top:${p.y.toFixed(2)}%">
-      <span class="fn-oval"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${FLOW_GLYPHS[FLOW_ICONS[p.i % FLOW_ICONS.length]]}</svg></span>
-      <span class="fn-step">Step ${p.i + 1}</span>
-      <span class="fn-label">${esc(p.label)}</span>
-    </div>`).join("");
+  const flowFile = `assets/flows/${flowAssetName(sc.stage_id)}`;
   box.innerHTML = `
-    <div class="flow-wrap">
-      <svg class="flow-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>
-      <div class="flow-center">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="10" rx="2"/><circle cx="9" cy="12.5" r="1.2"/><circle cx="15" cy="12.5" r="1.2"/><path d="M12 8V5.5"/><path d="M7 21v-3M17 21v-3"/></svg>
-        <b>AI RED TEAM AGENT</b>
-        <span>${esc(branchLabel(sc.branch))} chain</span>
-      </div>
-      ${nodes}
-    </div>
-    <p class="muted" style="margin:10px 0 0; font-size:12px; color:#66667a">Radial attack-flow map — every step must be evidenced in order before the hard gate unlocks.</p>`;
+    <img class="flow-art" src="${flowFile}" alt="Illustrated attack flow for ${esc(sc.title)}" width="1024" height="576" decoding="async" />
+    <p class="flow-art-note">Stage attack-flow illustration — every step must be evidenced in order before the hard gate unlocks.</p>`;
 }
 
 /* Questions panel — one card per scenario step */
@@ -2675,6 +2685,16 @@ function togglePassword() {
 /* ---------- Init ---------- */
 
 loadSettings();
+renderArtStyle();
+$("cover-style").addEventListener("change", (event) => {
+  state.artStyle = event.target.value === "painterly" ? "painterly" : "geometric";
+  saveSettings();
+  renderArtStyle();
+  if (state.range) {
+    renderChallenges();
+    if (state.selected) renderChallenge(state.selected.scenario_id);
+  }
+});
 $("learner-id").value = state.learner;
 $("learner-token").value = state.token;
 $("gate-url").value = state.gateUrl;

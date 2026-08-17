@@ -5,6 +5,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY training-challenges/main.py .
 COPY training-challenges/index.html .
 COPY training-challenges/assets/covers /app/assets/covers
+COPY training-challenges/assets/flows /app/assets/flows
 COPY docs/assets /app/docs/assets
 COPY scripts/zodiac_scenario_engine.py .
 COPY scripts/zodiac_bank_profiles.py .

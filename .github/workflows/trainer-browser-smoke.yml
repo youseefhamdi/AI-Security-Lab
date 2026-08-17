@@ -1,0 +1,54 @@
+name: Trainer browser smoke
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'training-challenges/**'
+      - 'scripts/trainer_browser_smoke.py'
+      - '.github/workflows/trainer-browser-smoke.yml'
+  pull_request:
+    paths:
+      - 'training-challenges/**'
+      - 'scripts/trainer_browser_smoke.py'
+      - '.github/workflows/trainer-browser-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install trainer dependencies and Playwright
+        run: |
+          python -m pip install --disable-pip-version-check -r training-challenges/requirements.txt playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Start trainer service in development mode
+        env:
+          TRAINING_SECURITY_MODE: development
+          TRAINING_FLAG_SECRET: ci-browser-smoke-secret-012345678901234567890123
+          TRAINING_ACCESS_DB: /tmp/zodiac-browser-smoke.sqlite3
+          TRAINING_CHALLENGE_STATE_DB: /tmp/zodiac-browser-challenges.sqlite3
+        run: |
+          uvicorn main:app --app-dir training-challenges --host 127.0.0.1 --port 8060 > /tmp/trainer-browser-smoke.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl --fail --silent http://127.0.0.1:8060/health && break
+            sleep 1
+          done
+
+      - name: Verify cover assets and detail route in Chromium
+        run: python scripts/trainer_browser_smoke.py --base-url http://127.0.0.1:8060
+
+      - name: Upload trainer service log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trainer-browser-smoke-log
+          path: /tmp/trainer-browser-smoke.log

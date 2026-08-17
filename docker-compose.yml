@@ -85,6 +85,7 @@ services:
       # applies to the cinematic brand assets served under /docs/assets.
       - ./training-challenges/index.html:/app/index.html:ro
       - ./training-challenges/assets/covers:/app/assets/covers:ro
+      - ./training-challenges/assets/flows:/app/assets/flows:ro
       - ./docs/assets:/app/docs/assets:ro
     mem_limit: 128m
 

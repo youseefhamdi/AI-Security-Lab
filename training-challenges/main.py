@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent / "scripts"
 if SCRIPT_DIR.is_dir() and str(SCRIPT_DIR) not in sys.path:
@@ -376,7 +376,7 @@ def trainer_index() -> FileResponse:
 
 
 @app.get("/assets/covers/{asset_name}")
-def cover_asset(asset_name: str) -> Response:
+def cover_asset(asset_name: str) -> Any:
     """Serve packaged cinematic cover art without exposing arbitrary filesystem paths."""
     if not re.fullmatch(r"[a-z0-9-]+\.png", asset_name):
         raise HTTPException(status_code=404, detail="cover asset not found")
@@ -384,6 +384,17 @@ def cover_asset(asset_name: str) -> Response:
     if not cover.is_file():
         raise HTTPException(status_code=404, detail="cover asset not found")
     return FileResponse(cover, media_type="image/png")
+
+
+@app.get("/assets/flows/{asset_name}")
+def flow_asset(asset_name: str) -> Any:
+    """Serve packaged stage attack-flow art without exposing arbitrary filesystem paths."""
+    if not re.fullmatch(r"stage-l[0-9]{2}-[a-z0-9-]+-flow\.svg", asset_name):
+        raise HTTPException(status_code=404, detail="flow asset not found")
+    flow = Path(__file__).resolve().parent / "assets" / "flows" / asset_name
+    if not flow.is_file():
+        raise HTTPException(status_code=404, detail="flow asset not found")
+    return FileResponse(flow, media_type="image/svg+xml")
 
 
 @app.get("/api/range")
