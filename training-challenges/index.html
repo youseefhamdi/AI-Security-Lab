@@ -730,6 +730,14 @@
   .brief-label { color: var(--cyan); font: 700 9.5px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; }
   .brief-card strong { color: var(--text); font-size: 15px; line-height: 1.45; }
   .brief-card small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+  .lab-dossier { margin: 0 0 18px; overflow: hidden; border: 1px solid rgba(124,58,237,.28); border-radius: 13px; background: linear-gradient(145deg, rgba(124,58,237,.1), rgba(0,212,255,.04)); }
+  .lab-dossier-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; padding: 13px 15px; border-bottom: 1px solid rgba(124,58,237,.16); }
+  .lab-dossier-head span, .lab-chain-heading span { color: #a78bfa; font: 700 9px var(--mono); letter-spacing: 1.4px; text-transform: uppercase; }
+  .lab-dossier-head strong { color: var(--text); font-size: 14px; }
+  .lab-dossier-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: rgba(124,58,237,.14); }
+  .lab-dossier-grid > div { padding: 13px 15px; background: rgba(10,10,15,.48); }
+  .lab-dossier-grid span { display: block; margin-bottom: 5px; color: var(--cyan); font: 700 9px var(--mono); letter-spacing: .9px; text-transform: uppercase; }
+  .lab-dossier-grid p { margin: 0; color: var(--text-3); font-size: 12.5px; line-height: 1.5; }
 
   /* attack flow diagram — LIGHT panel, KEY visual */
   .flow-card { background: #f5f5f5 !important; border-color: #d8d8e0; color: #111318; }
@@ -781,6 +789,16 @@
   .flow-brief-copy p { margin: 0; color: rgba(255,255,255,.76); font-size: 13px; line-height: 1.6; }
   .flow-guardrails { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
   .flow-guardrails span { padding: 5px 7px; border: 1px solid rgba(103,232,249,.35); border-radius: 999px; color: #a5f3fc; font: 700 8.5px var(--mono); letter-spacing: .7px; }
+  .lab-chain-strip { margin-top: 16px; padding: 15px; border: 1px solid #ddddea; border-radius: 13px; background: #fff; }
+  .lab-chain-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; margin-bottom: 12px; }
+  .lab-chain-heading span { color: #6d28d9; }
+  .lab-chain-heading strong { color: #25253a; font-size: 14px; }
+  .lab-chain-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .lab-chain-step { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 11px; border-left: 3px solid #8b5cf6; border-radius: 7px; background: #f7f7fc; }
+  .lab-chain-step b { color: #7c3aed; font: 800 10px var(--mono); }
+  .lab-chain-step span { color: #4338ca; font: 800 9px var(--mono); letter-spacing: .8px; text-transform: uppercase; }
+  .lab-chain-step strong { color: #25253a; font-size: 12px; line-height: 1.35; }
+  .lab-chain-step small { color: #6b6b7c; font-size: 10.5px; line-height: 1.4; }
   .flow-lanes { display: grid; gap: 9px; margin-top: 16px; }
   .flow-lane { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 12px; padding: 13px; border: 1px solid #d9d9e2; border-radius: 12px; background: rgba(255,255,255,.72); transition: transform .15s, box-shadow .15s, border-color .15s; }
   .flow-lane:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(30,30,70,.1); }
@@ -790,9 +808,15 @@
   .flow-phase { color: #4338ca; font: 800 10px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
   .flow-lane code { padding: 3px 6px; border-radius: 5px; background: #ececf3; color: #3f3f52; font-size: 10px; }
   .flow-state { margin-left: auto; padding: 4px 7px; border-radius: 999px; color: #6b6b7c; background: #ededf2; font: 700 9px var(--mono); text-transform: uppercase; }
-  .flow-lane p { margin: 7px 0 9px; color: #343443; font-size: 13px; line-height: 1.5; }
+  .flow-lane-grid { display: grid; grid-template-columns: minmax(130px, .8fr) minmax(180px, 1.5fr) minmax(130px, 1fr) minmax(130px, .9fr); gap: 8px; margin-top: 10px; }
+  .flow-cell { min-width: 0; padding: 9px 10px; border: 1px solid #e1e1ea; border-radius: 8px; background: rgba(255,255,255,.72); }
+  .flow-cell > span { display: block; margin-bottom: 5px; color: #77778a; font: 700 8.5px var(--mono); letter-spacing: .8px; text-transform: uppercase; }
+  .flow-cell strong { color: #24243a; font-size: 12px; line-height: 1.35; text-transform: capitalize; }
+  .flow-cell p { margin: 0; color: #343443; font-size: 12px; line-height: 1.45; }
+  .flow-cell.flow-signal { background: #fafaff; }
+  .flow-cell.flow-control { border-color: #c6dcf0; background: #f1f8ff; }
+  .flow-cell.flow-control strong { color: #075985; }
   .flow-contract { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
-  .flow-contract > span { margin-right: 3px; color: #77778a; font: 700 9px var(--mono); letter-spacing: .7px; text-transform: uppercase; }
   .flow-contract .chip { margin: 0; padding: 4px 6px; color: #35516e; border-color: #c8d8ea; background: #edf6ff; font-size: 10px; }
   .flow-lane.done { border-color: #9bd9bd; background: #f2fff6; }
   .flow-lane.done .flow-lane-marker { color: #087443; background: #c9f3d7; }
@@ -944,7 +968,7 @@
     .challenge-grid { grid-template-columns: 1fr; }
     .detail-hero { flex-direction: column; align-items: flex-start; }
     .detail-illus { flex-basis: auto; width: 100%; height: 160px; }
-    .brief-grid, .flow-brief { grid-template-columns: 1fr; }
+    .brief-grid, .flow-brief, .flow-lane-grid, .lab-dossier-grid, .lab-chain-steps { grid-template-columns: 1fr; }
     .ch-hero-title { font-size: 38px; }
     .ev-row { grid-template-columns: 1fr; }
   }
@@ -1901,6 +1925,7 @@ function renderDescription(sc) {
   const box = $("detail-desc");
   if (!box) return;
   const stage = stageContext(sc.stage_id || "");
+  const brief = stageBrief(sc.stage_id || "");
   const clues = (sc.clues || []).map((clue, index) => `
     <li><b>Signal ${index + 1}</b><span>${esc(clue)}</span></li>`).join("");
   const outcome = stage && stage.success_criteria ? stage.success_criteria : [];
@@ -1916,6 +1941,14 @@ function renderDescription(sc) {
         <span class="brief-label">Training posture</span>
         <strong>${esc(branchLabel(sc.branch))} lane · difficulty ${esc(sc.difficulty)}</strong>
         <small>Evidence-first, localhost-only, synthetic data only.</small>
+      </div>
+    </div>
+    <div class="lab-dossier">
+      <div class="lab-dossier-head"><span>LAB FOCUS · ${esc(sc.stage_id || "")}</span><strong>${esc(brief.focus)}</strong></div>
+      <div class="lab-dossier-grid">
+        <div><span>Threat model</span><p>${esc(brief.threat)}</p></div>
+        <div><span>Elite deliverable</span><p>${esc(brief.deliverable)}</p></div>
+        <div><span>Defender lens</span><p>${esc(brief.defender)}</p></div>
       </div>
     </div>
     ${stage && stage.mission ? `<div class="desc-section"><h4>Stage commander’s intent</h4><p>${esc(stage.mission)}</p></div>` : ""}
@@ -1986,6 +2019,129 @@ function flowAssetName(stageId) {
   return STAGE_FLOW_FILES[stageId] || "stage-l00-foundation-flow.svg";
 }
 
+const STAGE_LAB_BRIEFS = {
+  "L00-foundation": {
+    focus: "Scope, asset identity, and evidence custody",
+    threat: "A learner confuses a reachable service, model, data object, or control-plane response with authorization.",
+    deliverable: "A reproducible scope record that proves localhost containment and preserves tamper-evident observations.",
+    defender: "Separate discovery from permission; classify every observation before it enters the evidence chain.",
+    chain: [
+      { phase: "Scope", move: "Confirm the synthetic boundary", signal: "Loopback scope and synthetic classification", control: "Scope validation" },
+      { phase: "Inventory", move: "Classify service and asset layers", signal: "Model, app, data, and gate are distinct", control: "Asset inventory" },
+      { phase: "Custody", move: "Bind observations to evidence", signal: "Method, headers, and proof remain intact", control: "Evidence custody" },
+    ],
+  },
+  "L01-recon": {
+    focus: "AI surface reconnaissance and metadata drift",
+    threat: "Provider claims, service metadata, and delegated capabilities are trusted without comparing behavior or boundaries.",
+    deliverable: "A minimum service graph with provider fingerprint, capability inventory, and trust-boundary notes.",
+    defender: "Treat metadata as an untrusted claim; baseline the actual interface and rate-limit discovery.",
+    chain: [
+      { phase: "Discover", move: "Enumerate documented local services", signal: "Health, model, and route inventory", control: "Asset inventory" },
+      { phase: "Fingerprint", move: "Compare claims with behavior", signal: "Metadata or header drift", control: "Baseline" },
+      { phase: "Bound", move: "Map identity and capability edges", signal: "Staff, agent, and customer roles diverge", control: "Scope boundary" },
+    ],
+  },
+  "L02-prompt-injection": {
+    focus: "Instruction hierarchy and indirect goal hijacking",
+    threat: "User or retrieved content crosses the instruction boundary and becomes an unauthorized assistant objective.",
+    deliverable: "A harmless reproduction with baseline, injection source, impact classification, and output-validation decision.",
+    defender: "Keep content untrusted, separate instructions from data, and require approval before consequential action.",
+    chain: [
+      { phase: "Baseline", move: "Record normal assistant behavior", signal: "Expected instruction hierarchy", control: "Behavior baseline" },
+      { phase: "Inject", move: "Introduce controlled untrusted content", signal: "Goal or instruction drift", control: "Trust boundary" },
+      { phase: "Contain", move: "Validate output and action intent", signal: "Unsafe response is blocked", control: "Approval" },
+    ],
+  },
+  "L03-rag": {
+    focus: "Retrieval provenance, tenant isolation, and policy authority",
+    threat: "Vector similarity or retrieved policy text is mistaken for authorization and crosses a customer or approval boundary.",
+    deliverable: "A provenance chain that distinguishes source, retrieval relevance, tenant scope, and final authorization.",
+    defender: "Retrieval informs decisions; it never grants identity, scope, or settlement authority.",
+    chain: [
+      { phase: "Retrieve", move: "Establish permitted corpus baseline", signal: "Source and tenant are recorded", control: "Provenance" },
+      { phase: "Poison", move: "Compare draft or cross-scope evidence", signal: "Relevance conflicts with trust", control: "Tenant filter" },
+      { phase: "Quarantine", move: "Block unauthorized policy influence", signal: "Evidence is isolated for review", control: "Quarantine" },
+    ],
+  },
+  "L04-agent-protocols": {
+    focus: "A2A delegation, MCP tool trust, and confused deputies",
+    threat: "A caller, agent card, tool description, or shadow server expands capability beyond the approved identity boundary.",
+    deliverable: "A delegation graph with manifest hashes, tool ownership, argument influence, and re-approval evidence.",
+    defender: "Pin identity and manifests; treat descriptions and delegated context as untrusted until explicitly re-approved.",
+    chain: [
+      { phase: "Delegate", move: "Trace caller to child agent", signal: "Audience and capability narrowing", control: "Identity binding" },
+      { phase: "Inspect", move: "Hash tool schema and description", signal: "Poisoning, shadowing, or rug-pull drift", control: "Manifest pinning" },
+      { phase: "Revoke", move: "Quarantine the confused deputy", signal: "Tool call stops before side effect", control: "Reapproval" },
+    ],
+  },
+  "L05-memory": {
+    focus: "Persistent memory poisoning and tenant isolation",
+    threat: "Low-trust content persists across sessions or users and is later treated as a trusted instruction or customer fact.",
+    deliverable: "A memory lineage showing write provenance, recall scope, isolation decision, and reversible rollback.",
+    defender: "Memory is evidence with provenance, not policy; isolate tenants and make rollback verifiable.",
+    chain: [
+      { phase: "Write", move: "Mark a synthetic low-trust memory", signal: "Origin and classification are retained", control: "Memory provenance" },
+      { phase: "Recall", move: "Test session and tenant boundaries", signal: "Cross-scope recall is denied", control: "Tenant isolation" },
+      { phase: "Rollback", move: "Remove poisoned persistence safely", signal: "Later context no longer inherits it", control: "Rollback" },
+    ],
+  },
+  "L06-identity-control-plane": {
+    focus: "Non-human identity and privileged control-plane boundaries",
+    threat: "Headers, gateway routes, worker identities, or delegated tokens create a confused deputy around privileged banking AI actions.",
+    deliverable: "An identity-to-capability map with trusted context, untrusted claims, and least-privilege decision points.",
+    defender: "Bind every action to audience, worker, branch, learner, capability, and expiry; reject ambient identity.",
+    chain: [
+      { phase: "Map", move: "Inventory gateway and worker identities", signal: "Subject and role are separated", control: "Identity binding" },
+      { phase: "Impersonate", move: "Compare trusted and caller-supplied identity", signal: "Role or audience drift", control: "Authorization" },
+      { phase: "Constrain", move: "Narrow or reject delegated action", signal: "Privileged route remains gated", control: "Least privilege" },
+    ],
+  },
+  "L07-supply-chain": {
+    focus: "Dependency, artifact, model, and CI trust integrity",
+    threat: "An untrusted dependency or artifact crosses review boundaries and reaches an AI control plane with inherited trust.",
+    deliverable: "A supply-chain path with provenance, digest/manifest checks, approval gates, and quarantine outcomes.",
+    defender: "Trust is pinned to content and provenance, not filenames, registries, or pipeline position.",
+    chain: [
+      { phase: "Trace", move: "Follow dependency to runtime artifact", signal: "Owner, digest, and source are linked", control: "Provenance" },
+      { phase: "Drift", move: "Test manifest or path manipulation", signal: "Untrusted update is detected", control: "Artifact integrity" },
+      { phase: "Gate", move: "Hold before worker promotion", signal: "Review is required for release", control: "Approval" },
+    ],
+  },
+  "L08-detection-evasion": {
+    focus: "Canonicalization, telemetry differentials, and bounded response",
+    threat: "Encoding, low-and-slow behavior, fan-out, or privacy gaps create blind spots in an otherwise functioning detector.",
+    deliverable: "A baseline-to-variant comparison with detector delta, normalized signal, and circuit-breaker improvement.",
+    defender: "Normalize before matching, correlate behavior over time, and stop collection before it becomes egress.",
+    chain: [
+      { phase: "Baseline", move: "Capture normal behavior and telemetry", signal: "Expected event and volume profile", control: "Behavioral baseline" },
+      { phase: "Differentiate", move: "Compare encoded or low-slow variant", signal: "Detector differential is measurable", control: "Canonicalization" },
+      { phase: "Break", move: "Contain bounded burst or egress", signal: "Circuit breaker preserves evidence", control: "Circuit breaker" },
+    ],
+  },
+  "L09-apt-capstone": {
+    focus: "Campaign correlation, containment, and verified recovery",
+    threat: "Weak signals across identity, tools, memory, retrieval, and transactions combine into an agentic campaign.",
+    deliverable: "A complete timeline, independent evidence chain, containment decision, identity rotation, and recovery verification.",
+    defender: "Correlate without over-trusting a single model verdict; human checkpoints stop autonomous escalation.",
+    chain: [
+      { phase: "Correlate", move: "Join prior stage evidence into a campaign", signal: "Independent weak signals align", control: "Timeline" },
+      { phase: "Contain", move: "Stop identity and settlement escalation", signal: "Side effects remain blocked", control: "Containment" },
+      { phase: "Recover", move: "Rotate, restore, and verify", signal: "Review-only state is proven", control: "Recovery verification" },
+    ],
+  },
+};
+
+function stageBrief(stageId) {
+  return STAGE_LAB_BRIEFS[stageId] || {
+    focus: "Scenario-specific control validation",
+    threat: "An untrusted input crosses a declared control boundary.",
+    deliverable: "Bounded evidence and a defensible control decision.",
+    defender: "Preserve scope, provenance, and approval boundaries.",
+    chain: [],
+  };
+}
+
 function flowPhase(sc, index, total) {
   const phases = {
     attack: ["Recon", "Exploit", "Impact boundary", "Escalate"],
@@ -2008,6 +2164,7 @@ function renderFlow(sc) {
   const box = $("detail-flow");
   if (!box) return;
   const flowFile = `assets/flows/${flowAssetName(sc.stage_id)}`;
+  const lab = stageBrief(sc.stage_id || "");
   const fallbackSteps = (sc.clues || []).map((clue, index) => ({
     step: index + 1,
     id: `s${index + 1}`,
@@ -2019,6 +2176,7 @@ function renderFlow(sc) {
   const lanes = steps.map((step, index) => {
     const stateClass = flowStepState(sc, index);
     const stateLabel = stateClass === "done" ? "Accepted" : stateClass === "current" ? "Current step" : stateClass === "ready" ? "Ready" : "Locked";
+    const control = (sc.required_controls || [])[Math.min(index, (sc.required_controls || []).length - 1)] || "bounded evidence review";
     return `
       <article class="flow-lane ${stateClass}" data-flow-step="${step.step}">
         <div class="flow-lane-marker">${String(step.step).padStart(2, "0")}</div>
@@ -2028,8 +2186,24 @@ function renderFlow(sc) {
             <code>${esc(step.event)}</code>
             <span class="flow-state">${stateLabel}</span>
           </div>
-          <p>${esc(step.observation)}</p>
-          <div class="flow-contract"><span>Evidence contract</span>${chips(step.evidence_keys, "Record the bounded observation")}</div>
+          <div class="flow-lane-grid">
+            <div class="flow-cell">
+              <span>Operational move</span>
+              <strong>${esc(step.event.replace(/_/g, " "))}</strong>
+            </div>
+            <div class="flow-cell flow-signal">
+              <span>Observed signal</span>
+              <p>${esc(step.observation)}</p>
+            </div>
+            <div class="flow-cell">
+              <span>Proof artifact</span>
+              <div class="flow-contract">${chips(step.evidence_keys, "Bounded observation")}</div>
+            </div>
+            <div class="flow-cell flow-control">
+              <span>Defender decision</span>
+              <strong>${esc(control.replace(/-/g, " "))}</strong>
+            </div>
+          </div>
         </div>
       </article>`;
   }).join("");
@@ -2042,11 +2216,21 @@ function renderFlow(sc) {
         <span class="brief-label">Scenario-specific evidence chain</span>
         <h4>${esc(sc.title)}</h4>
         <p>Move through the lanes in order. Each accepted observation creates the proof required by the next lane; wrong order, replay, or unbounded evidence must fail closed.</p>
-        <div class="flow-guardrails"><span>LOCALHOST ONLY</span><span>NO SIDE EFFECTS</span><span>REPLAY RESISTANT</span></div>
+        <div class="flow-guardrails"><span>LOCALHOST ONLY</span><span>NO SIDE EFFECTS</span><span>REPLAY RESISTANT</span><span>${esc((sc.required_controls || []).length)} CONTROL CHECKS</span></div>
       </div>
     </div>
+    <div class="lab-chain-strip">
+      <div class="lab-chain-heading"><span>LAB-SPECIFIC ATTACK CHAIN</span><strong>${esc(lab.focus)}</strong></div>
+      <div class="lab-chain-steps">${lab.chain.map((item, index) => `
+        <div class="lab-chain-step">
+          <b>${String(index + 1).padStart(2, "0")}</b>
+          <span>${esc(item.phase)}</span>
+          <strong>${esc(item.move)}</strong>
+          <small>${esc(item.signal)} · ${esc(item.control)}</small>
+        </div>`).join("")}</div>
+    </div>
     <div class="flow-lanes">${lanes}</div>
-    <p class="flow-art-note">The illustration establishes the threat narrative; the lanes below define the machine-checked evidence contract for this exact scenario.</p>`;
+    <p class="flow-art-note">The illustration establishes the threat narrative; the lab chain sets the stage focus; the lanes define the machine-checked evidence contract for this exact scenario.</p>`;
 }
 
 /* Questions panel — one card per scenario step */
