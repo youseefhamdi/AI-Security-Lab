@@ -369,15 +369,44 @@ BRANCH_COLORS = {
 }
 
 
-def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
-    """Build a premium, answer-safe walkthrough from machine-checkable steps.
+def solution_playbook(scenario: dict[str, Any]) -> dict[str, str]:
+    """Create scenario-aware, answer-safe operator guidance for every lab."""
+    title = str(scenario.get("title", "the scenario"))
+    objective = str(scenario.get("objective", "Preserve bounded evidence and explain the control decision."))
+    tags = {str(tag).lower() for tag in scenario.get("threat_tags", [])}
+    controls = ", ".join(str(control).replace("-", " ") for control in scenario.get("required_controls", [])) or "scope and evidence custody"
+    detections = ", ".join(str(rule) for rule in scenario.get("detection_rule_ids", [])) or "the declared detection rules"
+    playbook = {
+        "mission": objective,
+        "setup": "Start the lab, open only the disclosed localhost target, and capture the clean state before changing one variable.",
+        "investigation": f"Trace {title} through its declared signal path. Compare what the surface claims with what the synthetic telemetry or response actually proves.",
+        "decision": f"Classify the finding against {detections}; choose a bounded decision that enforces {controls}.",
+        "finish": "Reconcile the observation, control decision, and evidence token before moving to the next question or hard gate.",
+        "boundary": "Use synthetic data only. Do not use real credentials, external targets, production mailboxes, or irreversible actions.",
+    }
+    if "certificate" in tags or "pfx" in tags:
+        playbook.update({"investigation": "In the synthetic telemetry, follow certificate discovery → safe copy evidence → password-recovery signal → certificate-authentication evidence. Record trace/span context without handling real keys.", "decision": f"Confirm the certificate path is contained and map it to {controls}; never execute certificate authentication outside the fixture."})
+    elif "exchange" in tags or "mail" in tags or "journaling" in tags:
+        playbook.update({"investigation": "Correlate the AI request with the synthetic PowerShell/Exchange or journaling event, then verify the mail-flow impact and identity that authorized it.", "decision": f"Stop unauthorized collection or transport manipulation and preserve the timeline under {controls}."})
+    elif "resume" in tags or "document" in tags or "ocr" in tags:
+        playbook.update({"investigation": "Inspect the document/image parsing boundary, distinguish visible content from instruction-like content, and compare the classifier decision with the review control.", "decision": f"Treat parsed content as untrusted data; require human review and {controls} before any decision is accepted."})
+    elif "kerberos" in tags or "dcsync" in tags or "shadow-credentials" in tags or "shadow" in tags:
+        playbook.update({"investigation": "Build a timeline from synthetic identity, directory, ticket, and authentication telemetry. Correlate the sequence without exposing hashes or requesting real tickets.", "decision": f"Rotate or quarantine the synthetic identity path and verify {controls} before closing the incident."})
+    elif "rbcd" in tags or "delegation" in tags:
+        playbook.update({"investigation": "Follow target discovery → machine-account creation → delegation configuration → privileged-access evidence in the synthetic timeline. Treat each transition as a separate authorization boundary.", "decision": f"Contain the delegation relationship, rotate the synthetic identity, and verify {controls}."})
+    elif "prompt-injection" in tags or "injection" in tags:
+        playbook.update({"investigation": "Compare the clean assistant response with the controlled untrusted fixture. Identify where content tries to become an instruction, tool call, or approval.", "decision": f"Keep the content untrusted, validate the output schema, and require {controls} before any consequential path."})
+    elif "rag" in tags or "retrieval" in tags or "cache" in tags:
+        playbook.update({"investigation": "Trace query, tenant, retrieval source, cache state, citation, and final response as separate records. Relevance is not authorization.", "decision": f"Quarantine the questionable source or cache entry and enforce {controls}."})
+    elif "supply-chain" in tags or "dependency" in tags or "package" in tags or "model" in tags:
+        playbook.update({"investigation": "Follow the synthetic artifact from publisher or registry through digest, manifest, workspace, and runtime load. Treat names and version claims as untrusted.", "decision": f"Hold promotion until provenance, digest, workspace scope, and {controls} are independently verified."})
+    return playbook
 
-    The guide teaches a repeatable method rather than leaking expected values:
-    orient on the local surface, observe the signal, validate the evidence, and
-    make a bounded defender decision. The animated reel and step figures are
-    generated from the same scenario metadata for every lab.
-    """
+
+def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
+    """Build a premium, scenario-aware walkthrough without leaking answers."""
     branch = str(scenario.get("branch", "forensics"))
+    playbook = solution_playbook(scenario)
     method_by_branch = {
         "attack": "Reproduce the declared signal on the localhost target, then stop before any real side effect.",
         "defense": "Establish the clean baseline first, introduce one controlled variation, and compare the resulting signal.",
@@ -386,20 +415,32 @@ def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
     }
     phases = ["Orient", "Observe", "Validate", "Contain", "Recover"]
     steps = []
+    total = len(scenario.get("steps", []))
     for index, step in enumerate(scenario.get("steps", [])):
         event = str(step.get("event", f"step-{index + 1}"))
         title = " ".join(word.capitalize() for word in re.split(r"[_-]+", event) if word)
         evidence_keys = sorted(str(key) for key in step.get("evidence", {}).keys())
         phase = phases[min(index, len(phases) - 1)]
+        if index == 0:
+            action = "Establish scope and baseline"
+            look_for = playbook["setup"]
+        elif index == total - 1:
+            action = "Reconcile and close the chain"
+            look_for = playbook["finish"]
+        else:
+            action = "Run the controlled investigation"
+            look_for = playbook["investigation"]
         steps.append(
             {
                 "step": index + 1,
                 "event": event,
                 "title": title or f"Step {index + 1}",
                 "phase": phase,
+                "action": action,
+                "look_for": look_for,
                 "text": str(step.get("observation", "")),
                 "method": method_by_branch.get(branch, method_by_branch["forensics"]),
-                "success_look": f"Record the {', '.join(evidence_keys) or 'bounded observation'} evidence, then continue only when the signal is explained.",
+                "success_look": f"Record the {', '.join(evidence_keys) or 'bounded observation'} evidence, explain the signal, and continue only when the decision is defensible.",
                 "evidence_keys": evidence_keys,
                 "figure": f"/assets/solution/{scenario['id']}/{index + 1}.svg",
             }
@@ -409,6 +450,7 @@ def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
         "reel": f"/assets/solution/{scenario['id']}/reel.svg",
         "motion": {"duration_seconds": 8, "format": "animated-svg", "reduced_motion_supported": True},
         "method": "Orient → observe → validate → decide. Each chapter maps 1:1 to a machine-checked question.",
+        "playbook": playbook,
         "steps": steps,
     }
 

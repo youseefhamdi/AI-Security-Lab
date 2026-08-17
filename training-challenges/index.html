@@ -960,6 +960,16 @@
   .sol-guide-intro { margin: 0 0 16px; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
   .sol-method { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; padding: 10px 12px; border: 1px solid rgba(0,255,136,.2); border-radius: 10px; background: rgba(0,255,136,.05); color: var(--text-3); font-size: 12.5px; }
   .sol-method strong { color: var(--green); font: 700 10px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .sol-playbook { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0 16px; }
+  .sol-playbook-card { min-height: 112px; padding: 12px; border: 1px solid rgba(255,255,255,.1); border-radius: 11px; background: rgba(4,8,15,.46); }
+  .sol-playbook-card.boundary { border-color: rgba(255,170,60,.3); background: rgba(255,170,60,.045); }
+  .sol-playbook-label { display: block; margin-bottom: 6px; color: var(--cyan); font: 700 9px var(--mono); letter-spacing: 1.25px; text-transform: uppercase; }
+  .sol-playbook-card.boundary .sol-playbook-label { color: var(--yellow); }
+  .sol-playbook-card p { margin: 0; color: var(--text-3); font-size: 12px; line-height: 1.5; }
+  .sol-step-brief { display: grid; grid-template-columns: minmax(130px, .7fr) minmax(0, 1.3fr); gap: 10px; margin: 0 0 12px; padding: 10px 11px; border: 1px solid rgba(0,212,255,.15); border-radius: 10px; background: rgba(0,212,255,.045); }
+  .sol-step-brief span { display: block; color: var(--cyan); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .sol-step-brief strong { display: block; margin-top: 3px; color: var(--text); font-size: 12.5px; line-height: 1.4; }
+  .sol-step-brief p { margin: 0; color: var(--text-3); font-size: 12px; line-height: 1.5; }
   .sol-chapters { display: grid; gap: 14px; }
   .sol-step { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 15px; border: 1px solid var(--border); border-radius: 15px; background: linear-gradient(145deg, rgba(26,26,46,.96), rgba(11,14,24,.98)); padding: 16px; overflow: hidden; transition: border-color .2s, transform .2s, box-shadow .2s; }
   .sol-step::after { content: ""; position: absolute; top: 0; bottom: 0; left: 51px; width: 1px; background: linear-gradient(var(--cyan), transparent 80%); opacity: .35; }
@@ -1069,7 +1079,7 @@
     .challenge-grid { grid-template-columns: 1fr; }
     .detail-hero { flex-direction: column; align-items: flex-start; }
     .detail-illus { flex-basis: auto; width: 100%; height: 160px; }
-    .brief-grid, .flow-brief, .flow-lane-grid, .lab-dossier-grid, .lab-chain-steps { grid-template-columns: 1fr; }
+    .brief-grid, .flow-brief, .flow-lane-grid, .lab-dossier-grid, .lab-chain-steps, .sol-playbook, .sol-step-brief { grid-template-columns: 1fr; }
     .ch-hero-title { font-size: 38px; }
     .ev-row { grid-template-columns: 1fr; }
   }
@@ -2518,6 +2528,7 @@ function renderSolutionGuide(sc) {
   if (!box) return;
   const guide = sc.solution_guide || { steps: [] };
   const guideSteps = guide.steps || [];
+  const playbook = guide.playbook || {};
   const reel = guide.reel || `/assets/solution/${encodeURIComponent(sc.scenario_id)}/reel.svg`;
   const markers = guideSteps.map((s) => `
     <div class="sol-reel-marker"><b>${String(s.step).padStart(2, "0")}</b><span>${esc(s.phase || s.title)}</span></div>`).join("");
@@ -2534,6 +2545,7 @@ function renderSolutionGuide(sc) {
           <span class="pill accent">${String(s.step).padStart(2, "0")} / ${guideSteps.length}</span>
         </div>
         <p class="sol-step-text">${esc(s.text)}</p>
+        <div class="sol-step-brief"><div><span>Operator move</span><strong>${esc(s.action || "Run the controlled investigation")}</strong></div><div><span>What to look for</span><p>${esc(s.look_for || "Explain the signal before continuing.")}</p></div></div>
         <div class="sol-step-method"><strong>Method</strong><span>${esc(s.method || "Inspect the disclosed localhost surface and preserve bounded evidence.")}</span></div>
         <div class="sol-step-success"><strong>Success looks like</strong><span>${esc(s.success_look || "The observation is explained and its evidence is ready for submission.")}</span></div>
         <div class="sol-step-figure"><img src="${esc(s.figure)}" alt="Animated figure: ${esc(s.title)}" loading="lazy" width="840" height="400" /></div>
@@ -2550,6 +2562,13 @@ function renderSolutionGuide(sc) {
           <p class="sol-studio-copy">${esc(guide.intro || "Follow the signal in order and submit only evidence you can explain.")}</p>
         </div>
         <div class="sol-reel-meta"><span class="pill accent">${guideSteps.length} chapters</span><span class="pill ok">animated figure</span><span class="pill">8 sec loop</span></div>
+      </div>
+      <div class="sol-playbook" aria-label="Solution playbook">
+        <div class="sol-playbook-card"><span class="sol-playbook-label">Mission brief</span><p>${esc(playbook.mission || sc.objective)}</p></div>
+        <div class="sol-playbook-card"><span class="sol-playbook-label">Investigation lens</span><p>${esc(playbook.investigation || "Trace the declared signal and compare claim with evidence.")}</p></div>
+        <div class="sol-playbook-card"><span class="sol-playbook-label">Decision rule</span><p>${esc(playbook.decision || "Apply the declared controls before accepting the finding.")}</p></div>
+        <div class="sol-playbook-card"><span class="sol-playbook-label">Finish condition</span><p>${esc(playbook.finish || "Reconcile the evidence chain before closing the lab.")}</p></div>
+        <div class="sol-playbook-card boundary"><span class="sol-playbook-label">Safety boundary</span><p>${esc(playbook.boundary || "Synthetic localhost-only exercise. No real credentials or side effects.")}</p></div>
       </div>
       <div class="sol-reel" data-reel>
         <img src="${esc(reel)}" alt="Animated solution path for ${esc(sc.title)}" width="960" height="420" decoding="async" />
