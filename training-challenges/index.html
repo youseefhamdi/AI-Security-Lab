@@ -1497,23 +1497,37 @@ function coverTheme(index) {
   return COVER_THEMES[index % COVER_THEMES.length];
 }
 
-/** @param {string} stageId */
-function stageCoverName(stageId) {
-  return String(stageId || "").toLowerCase().replace(/[^a-z0-9-]/g, "");
-}
+const STAGE_COVER_FILES = {
+  "L00-foundation": "stage-l00-foundation.png",
+  "L01-recon": "stage-l01-recon.png",
+  "L02-prompt-injection": "stage-l02-prompt-injection.png",
+  "L03-rag": "stage-l03-rag.png",
+  "L04-agent-protocols": "stage-l04-agent-protocols.png",
+  "L05-memory": "stage-l05-memory.png",
+  "L06-identity-control-plane": "stage-l06-identity.png",
+  "L07-supply-chain": "stage-l07-supply-chain.png",
+  "L08-detection-evasion": "stage-l08-detection-evasion.png",
+  "L09-apt-capstone": "stage-l09-apt-capstone.png",
+};
 
 /** @param {string} stageId @returns {string} */
 function coverAssetName(stageId) {
-  return `stage-${stageCoverName(stageId)}.png`;
+  return STAGE_COVER_FILES[stageId] || "stage-l00-foundation.png";
+}
+
+/** @param {ScenarioSummary} sc @returns {number} */
+function challengeNumber(sc) {
+  const ordinal = allScenarios().findIndex((item) => item.scenario_id === sc.scenario_id);
+  return Math.max(1, ordinal + 1);
+}
+
+/** @param {ScenarioSummary} sc @returns {string} */
+function challengeAssetName(sc) {
+  return `challenge-${String(challengeNumber(sc)).padStart(2, "0")}.png`;
 }
 
 function heroAssetName() {
   return "hero-operative.png";
-}
-
-/** @param {ScenarioSummary} sc */
-function stageScenarioIndex(sc) {
-  return allScenarios().filter((item) => item.stage_id === sc.stage_id).findIndex((item) => item.scenario_id === sc.scenario_id);
 }
 
 /** @param {string} pattern */
@@ -1633,7 +1647,7 @@ function renderChallengeFilters() {
 /** @param {ScenarioSummary} sc @param {number} index */
 function challengeCardHTML(sc, index) {
   const t = coverTheme(index);
-  const coverFile = `assets/covers/${coverAssetName(sc.stage_id)}`;
+  const coverFile = `assets/covers/${challengeAssetName(sc)}`;
   const st = scenarioStatus(sc);
   const band = difficultyBand(sc.difficulty);
   const code = (sc.stage_id || "").split("-")[0] || "SC";
@@ -1645,7 +1659,7 @@ function challengeCardHTML(sc, index) {
       <span class="cover-glow"></span>
       ${iconSVG(t.icon, "cover-icon")}
       <span class="cover-badge ${coverBadgeCls}">${esc(statusLabel(st))}</span>
-      <span class="cover-code">${esc(code)} · ${String(index + 1).padStart(2, "0")}</span>
+      <span class="cover-code">${esc(code)} · ${String(challengeNumber(sc)).padStart(2, "0")}</span>
     </div>
     <div class="challenge-body">
       <div class="ch-top">
@@ -1809,7 +1823,7 @@ function renderChallengeHero(sc) {
   const box = $("detail-hero");
   if (!box) return;
   const t = coverTheme(seedIndex(sc.scenario_id));
-  const coverFile = `assets/covers/${coverAssetName(sc.stage_id)}`;
+  const coverFile = `assets/covers/${challengeAssetName(sc)}`;
   const band = difficultyBand(sc.difficulty);
   const st = scenarioStatus(sc);
   const run = findRun(sc.scenario_id);
@@ -1890,8 +1904,21 @@ const FLOW_GLYPHS = {
   vault: '<rect x="7" y="10" width="10" height="8" rx="1.5"/><path d="M9.5 10V8a2.5 2.5 0 0 1 5 0v2"/><path d="M12 13v2.2"/>',
 };
 
+const STAGE_FLOW_FILES = {
+  "L00-foundation": "stage-l00-foundation-flow.svg",
+  "L01-recon": "stage-l01-recon-flow.svg",
+  "L02-prompt-injection": "stage-l02-prompt-injection-flow.svg",
+  "L03-rag": "stage-l03-rag-flow.svg",
+  "L04-agent-protocols": "stage-l04-agent-protocols-flow.svg",
+  "L05-memory": "stage-l05-memory-flow.svg",
+  "L06-identity-control-plane": "stage-l06-identity-flow.svg",
+  "L07-supply-chain": "stage-l07-supply-chain-flow.svg",
+  "L08-detection-evasion": "stage-l08-detection-evasion-flow.svg",
+  "L09-apt-capstone": "stage-l09-apt-capstone-flow.svg",
+};
+
 function flowAssetName(stageId) {
-  return `stage-${stageCoverName(stageId)}-flow.svg`;
+  return STAGE_FLOW_FILES[stageId] || "stage-l00-foundation-flow.svg";
 }
 
 function renderFlow(sc) {

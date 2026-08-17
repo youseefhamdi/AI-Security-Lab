@@ -65,6 +65,18 @@ STAGES = [
     "L08-detection-evasion",
     "L09-apt-capstone",
 ]
+STAGE_COVER_ASSETS = {
+    "L00-foundation": "stage-l00-foundation.png",
+    "L01-recon": "stage-l01-recon.png",
+    "L02-prompt-injection": "stage-l02-prompt-injection.png",
+    "L03-rag": "stage-l03-rag.png",
+    "L04-agent-protocols": "stage-l04-agent-protocols.png",
+    "L05-memory": "stage-l05-memory.png",
+    "L06-identity-control-plane": "stage-l06-identity.png",
+    "L07-supply-chain": "stage-l07-supply-chain.png",
+    "L08-detection-evasion": "stage-l08-detection-evasion.png",
+    "L09-apt-capstone": "stage-l09-apt-capstone.png",
+}
 
 
 def find_config(name: str, local_relative: str) -> Path:
@@ -377,18 +389,36 @@ def trainer_index() -> FileResponse:
 
 @app.get("/assets/covers/{asset_name}")
 def cover_asset(asset_name: str) -> Any:
-    """Serve the generated cover scenes stored in docs/assets.
+    """Serve per-challenge art with a safe stage-art fallback.
 
-    GitHub's uploaded files retain the requested .png names, but their bytes
-    are JPEG-encoded. Return the actual media type so browsers decode them
-    reliably under the trainer's nosniff security header.
+    Numbered challenge files use the stable global convention
+    ``challenge-01.png`` through ``challenge-100.png``. The current repository
+    may contain only the ten stage scenes, so a missing numbered file falls
+    back to its scenario's stage scene instead of producing a broken card.
     """
-    if not re.fullmatch(r"(?:hero-operative|stage-l[0-9]{2}-[a-z0-9-]+)\.png", asset_name):
-        raise HTTPException(status_code=404, detail="cover asset not found")
-    cover = ASSETS_DIR / asset_name
+    if asset_name == "hero-operative.png":
+        cover = ASSETS_DIR / asset_name
+    elif re.fullmatch(r"stage-l[0-9]{2}-[a-z0-9-]+\.png", asset_name):
+        cover = ASSETS_DIR / asset_name
+    else:
+        match = re.fullmatch(r"challenge-([0-9]{2,3})\.png", asset_name)
+        if not match:
+            raise HTTPException(status_code=404, detail="cover asset not found")
+        ordinal = int(match.group(1))
+        scenarios = list(SCENARIO_BY_ID.values())
+        if ordinal < 1 or ordinal > len(scenarios):
+            raise HTTPException(status_code=404, detail="cover asset not found")
+        cover = ASSETS_DIR / asset_name
+        if not cover.is_file():
+            fallback_name = STAGE_COVER_ASSETS.get(str(scenarios[ordinal - 1]["stage_id"]))
+            if not fallback_name:
+                raise HTTPException(status_code=404, detail="cover asset not found")
+            cover = ASSETS_DIR / fallback_name
     if not cover.is_file():
         raise HTTPException(status_code=404, detail="cover asset not found")
-    return FileResponse(cover, media_type="image/jpeg")
+    with cover.open("rb") as stream:
+        is_png = stream.read(8) == b"\x89PNG\r\n\x1a\n"
+    return FileResponse(cover, media_type="image/png" if is_png else "image/jpeg")
 
 
 @app.get("/assets/flows/{asset_name}")

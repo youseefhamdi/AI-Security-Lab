@@ -44,6 +44,10 @@ def cover_assets() -> list[str]:
     return ["hero-operative.png", *[stage + ".png" for stage in STAGE_COVERS]]
 
 
+def challenge_assets() -> list[str]:
+    return [f"challenge-{ordinal:02d}.png" for ordinal in range(1, 101)]
+
+
 def flow_assets() -> list[str]:
     return [stage + "-flow.svg" for stage in STAGE_COVERS]
 
@@ -64,9 +68,13 @@ def assert_cover_response(context: Any, url: str) -> None:
     response = context.request.get(url)
     assert response.ok, f"{url} returned HTTP {response.status}"
     content_type = response.headers.get("content-type", "")
-    assert content_type.startswith("image/jpeg"), f"{url} returned {content_type!r}, not image/jpeg"
     body = response.body()
-    assert body[:2] == b"\xff\xd8", f"{url} is not JPEG-encoded raster art"
+    if content_type.startswith("image/jpeg"):
+        assert body[:2] == b"\xff\xd8", f"{url} is not JPEG-encoded raster art"
+    elif content_type.startswith("image/png"):
+        assert body[:8] == b"\x89PNG\r\n\x1a\n", f"{url} is not PNG-encoded raster art"
+    else:
+        raise AssertionError(f"{url} returned unsupported image type {content_type!r}")
     assert len(body) > 1000, f"{url} returned an unexpectedly small image"
 
 
@@ -130,11 +138,15 @@ def run_smoke(args: argparse.Namespace) -> None:
 
             for asset in cover_assets():
                 assert_cover_response(context, f"{base_url}/assets/covers/{asset}")
+            for asset in challenge_assets():
+                assert_cover_response(context, f"{base_url}/assets/covers/{asset}")
 
             hero_image = page.locator("#hero-operative-art")
             assert hero_image.get_attribute("src").endswith("hero-operative.png")
             grid_images = page.locator("#challenge-grid .cover-art")
             assert grid_images.count() > 0, "grid rendered no cover images"
+            grid_sources = [grid_images.nth(index).get_attribute("src") for index in range(grid_images.count())]
+            assert len(set(grid_sources)) == len(grid_sources), "visible challenge cards do not have unique numbered art paths"
             for index in range(grid_images.count()):
                 image = grid_images.nth(index)
                 expect(image).to_be_visible(timeout=args.timeout_ms)
@@ -159,7 +171,7 @@ def run_smoke(args: argparse.Namespace) -> None:
             assert not console_errors, f"console errors: {console_errors}"
             assert not failed_responses, f"HTTP failures: {failed_responses}"
             assert not failed_requests, f"network failures: {failed_requests}"
-            print(f"PASS trainer browser smoke: {cards.count()} cards, {len(cover_assets())} generated cover assets, {len(flow_assets())} attack-flow assets, detail route verified")
+            print(f"PASS trainer browser smoke: {cards.count()} cards, {len(challenge_assets())} numbered challenge routes, {len(flow_assets())} attack-flow assets, detail route verified")
         finally:
             browser.close()
 
