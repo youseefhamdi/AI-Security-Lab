@@ -210,6 +210,8 @@ Changing `TRAINING_FLAG_SECRET` invalidates all generated flags. Use `reset-coho
 
 Each lesson has a hard scenario surface under `http://127.0.0.1:8060`. In strict mode, legacy one-request routes never issue hard flags. Learners must complete the stage's required multi-step scenarios, preserve ordered evidence tokens, cover detections and controls, and pass the currently unlocked hard-gate synthesis before submitting the returned HMAC-backed flag to the Training Gate. Scenario state is persistent and token-bound; responses are synthetic training findings and must not be cached or copied outside the lab.
 
+The trainer detail view is the scenario briefing authority: each challenge exposes its mission intent, stage commander’s intent, authorized target services, operator competencies, progressive signals, detection rules, required control outcomes, and completion standard. Its attack-flow panel combines the stage illustration with the scenario’s ordered event lanes. Every lane publishes only safe metadata — event name, observation, and evidence-key contract — while expected evidence values remain server-side. Lane state reflects the learner’s current run, and the service rejects wrong-order, replayed, or unbounded evidence. New scenarios should add the same fields to `training-config/scenarios.json`; do not place flags, matchers, or expected evidence values in the browser payload.
+
 ## Hint progression
 
 In strict mode, learner progress and flag submission also require the instructor-issued `X-Training-Learner-Token`; a learner ID alone is not an identity proof. Hints are intentionally short and do not contain flags, secret material, or steps against external systems. Use them in order:

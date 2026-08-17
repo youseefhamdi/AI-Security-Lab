@@ -346,6 +346,20 @@ def challenge_db() -> sqlite3.Connection:
     return db
 
 
+def flow_steps_view(scenario: dict[str, Any]) -> list[dict[str, Any]]:
+    """Expose safe attack-flow metadata without expected evidence values."""
+    return [
+        {
+            "step": index + 1,
+            "id": str(step.get("id", f"s{index + 1}")),
+            "event": str(step.get("event", "")),
+            "observation": str(step.get("observation", "")),
+            "evidence_keys": sorted(str(key) for key in step.get("evidence", {}).keys()),
+        }
+        for index, step in enumerate(scenario.get("steps", []))
+    ]
+
+
 def scenario_view(scenario: dict[str, Any], run: sqlite3.Row | None = None) -> dict[str, Any]:
     return {
         "scenario_id": scenario["id"],
@@ -359,6 +373,7 @@ def scenario_view(scenario: dict[str, Any], run: sqlite3.Row | None = None) -> d
         "step_count": len(scenario["steps"]),
         "detection_rule_ids": scenario["detection_rule_ids"],
         "required_controls": scenario["required_controls"],
+        "flow_steps": flow_steps_view(scenario),
         "status": run["status"] if run else "not-started",
         "progress": f"{run['step_index']}/{len(scenario['steps'])}" if run else f"0/{len(scenario['steps'])}",
         "attempts": int(run["attempts"]) if run else 0,
@@ -458,6 +473,7 @@ def trainer_range(x_training_learner_token: str = Header(default=""), learner_id
                         "step_count": len(item["steps"]),
                         "detection_rule_ids": item["detection_rule_ids"],
                         "required_controls": item["required_controls"],
+                        "flow_steps": flow_steps_view(item),
                     }
                     for item in SCENARIO_BY_ID.values()
                     if item["stage_id"] == stage_id

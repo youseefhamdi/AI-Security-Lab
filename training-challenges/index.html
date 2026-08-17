@@ -722,7 +722,14 @@
   }
   .desc-section p { margin: 0; color: var(--text-3); font-size: 14px; line-height: 1.65; }
   .clue-list { margin: 0; padding-left: 18px; color: var(--text-3); font-size: 13.5px; }
-  .clue-list li { margin: 5px 0; }
+  .clue-list li { margin: 7px 0; }
+  .clue-list li b { display: inline-block; min-width: 58px; margin-right: 7px; color: var(--cyan); font: 700 10px var(--mono); letter-spacing: .8px; text-transform: uppercase; }
+  .brief-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(220px, .65fr); gap: 12px; margin: 0 0 18px; }
+  .brief-card { display: flex; flex-direction: column; gap: 7px; padding: 15px 16px; border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.015)); }
+  .brief-card.brief-primary { border-color: rgba(0, 212, 255, .35); background: linear-gradient(145deg, rgba(0,212,255,.1), rgba(124,58,237,.06)); }
+  .brief-label { color: var(--cyan); font: 700 9.5px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; }
+  .brief-card strong { color: var(--text); font-size: 15px; line-height: 1.45; }
+  .brief-card small { color: var(--muted); font-size: 12px; line-height: 1.45; }
 
   /* attack flow diagram — LIGHT panel, KEY visual */
   .flow-card { background: #f5f5f5 !important; border-color: #d8d8e0; color: #111318; }
@@ -766,8 +773,33 @@
   .flow-node:hover .fn-oval { transform: scale(1.08); }
   .flow-node .fn-step { font: 700 9px var(--mono); letter-spacing: 1.2px; color: #7c3aed; text-transform: uppercase; }
   .flow-node .fn-label { font: 600 10.5px var(--sans); color: #111318; line-height: 1.3; max-width: 132px; }
-  .flow-art { display: block; width: 100%; height: auto; max-height: 470px; object-fit: contain; border-radius: 12px; background: #f5f5f5; }
-  .flow-art-note { margin: 10px 0 0; font-size: 12px; color: #66667a; }
+  .flow-brief { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(250px, .8fr); gap: 16px; align-items: stretch; margin-top: 8px; }
+  .flow-art-frame { min-width: 0; padding: 8px; border: 1px solid #dedee8; border-radius: 13px; background: #fff; }
+  .flow-art { display: block; width: 100%; height: auto; max-height: 330px; object-fit: cover; border-radius: 9px; background: #f5f5f5; }
+  .flow-brief-copy { display: flex; flex-direction: column; justify-content: center; padding: 20px; border-radius: 13px; background: linear-gradient(150deg, #111827, #312e81); color: #fff; box-shadow: 0 12px 28px rgba(30, 30, 70, .16); }
+  .flow-brief-copy h4 { margin: 8px 0; font: 800 19px var(--display); line-height: 1.2; }
+  .flow-brief-copy p { margin: 0; color: rgba(255,255,255,.76); font-size: 13px; line-height: 1.6; }
+  .flow-guardrails { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+  .flow-guardrails span { padding: 5px 7px; border: 1px solid rgba(103,232,249,.35); border-radius: 999px; color: #a5f3fc; font: 700 8.5px var(--mono); letter-spacing: .7px; }
+  .flow-lanes { display: grid; gap: 9px; margin-top: 16px; }
+  .flow-lane { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 12px; padding: 13px; border: 1px solid #d9d9e2; border-radius: 12px; background: rgba(255,255,255,.72); transition: transform .15s, box-shadow .15s, border-color .15s; }
+  .flow-lane:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(30,30,70,.1); }
+  .flow-lane-marker { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: #e6e7ff; color: #4338ca; font: 800 11px var(--mono); }
+  .flow-lane-body { min-width: 0; }
+  .flow-lane-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .flow-phase { color: #4338ca; font: 800 10px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .flow-lane code { padding: 3px 6px; border-radius: 5px; background: #ececf3; color: #3f3f52; font-size: 10px; }
+  .flow-state { margin-left: auto; padding: 4px 7px; border-radius: 999px; color: #6b6b7c; background: #ededf2; font: 700 9px var(--mono); text-transform: uppercase; }
+  .flow-lane p { margin: 7px 0 9px; color: #343443; font-size: 13px; line-height: 1.5; }
+  .flow-contract { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+  .flow-contract > span { margin-right: 3px; color: #77778a; font: 700 9px var(--mono); letter-spacing: .7px; text-transform: uppercase; }
+  .flow-contract .chip { margin: 0; padding: 4px 6px; color: #35516e; border-color: #c8d8ea; background: #edf6ff; font-size: 10px; }
+  .flow-lane.done { border-color: #9bd9bd; background: #f2fff6; }
+  .flow-lane.done .flow-lane-marker { color: #087443; background: #c9f3d7; }
+  .flow-lane.current, .flow-lane.ready { border-color: #8ecfea; box-shadow: 0 0 0 2px rgba(14,165,233,.1); }
+  .flow-lane.current .flow-state, .flow-lane.ready .flow-state { color: #075985; background: #dff5ff; }
+  .flow-lane.locked { opacity: .72; }
+  .flow-art-note { margin: 10px 0 0; font-size: 12px; color: #66667a; line-height: 1.5; }
 
   /* solution / synthesis */
   .syn-chips { margin: 8px 0 14px; }
@@ -912,6 +944,7 @@
     .challenge-grid { grid-template-columns: 1fr; }
     .detail-hero { flex-direction: column; align-items: flex-start; }
     .detail-illus { flex-basis: auto; width: 100%; height: 160px; }
+    .brief-grid, .flow-brief { grid-template-columns: 1fr; }
     .ch-hero-title { font-size: 38px; }
     .ev-row { grid-template-columns: 1fr; }
   }
@@ -1171,6 +1204,7 @@ const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.queryS
  * @property {number} step_count
  * @property {string[]} detection_rule_ids
  * @property {string[]} required_controls
+ * @property {{step: number, id: string, event: string, observation: string, evidence_keys: string[]}[]} flow_steps
  */
 
 /**
@@ -1853,30 +1887,61 @@ function seedIndex(s) {
   return h % 1000;
 }
 
+function stageContext(stageId) {
+  const stages = (state.curriculum && state.curriculum.stages) || [];
+  return stages.find((stage) => stage.id === stageId) || null;
+}
+
+function chips(values, emptyLabel) {
+  const items = (values || []).map((value) => `<span class="chip">${esc(value)}</span>`).join("");
+  return items || `<span class="muted">${esc(emptyLabel || "none declared")}</span>`;
+}
+
 function renderDescription(sc) {
   const box = $("detail-desc");
   if (!box) return;
-  const mission = stageMission(sc.stage_id || "");
-  const clues = (sc.clues || []).map((c) => `<li>${esc(c)}</li>`).join("");
-  const rules = (sc.detection_rule_ids || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("") || '<span class="muted">none declared</span>';
-  const controls = (sc.required_controls || []).map((id) => `<span class="chip">${esc(id)}</span>`).join("") || '<span class="muted">none declared</span>';
+  const stage = stageContext(sc.stage_id || "");
+  const clues = (sc.clues || []).map((clue, index) => `
+    <li><b>Signal ${index + 1}</b><span>${esc(clue)}</span></li>`).join("");
+  const outcome = stage && stage.success_criteria ? stage.success_criteria : [];
+  const services = stage && stage.target_services ? stage.target_services : [];
+  const skills = stage && stage.skills ? stage.skills : [];
   box.innerHTML = `
-    <div class="desc-section">
-      <h4>Scenario briefing</h4>
-      <p>${esc(sc.objective)}</p>
+    <div class="brief-grid">
+      <div class="brief-card brief-primary">
+        <span class="brief-label">Mission intent</span>
+        <strong>${esc(sc.objective)}</strong>
+      </div>
+      <div class="brief-card">
+        <span class="brief-label">Training posture</span>
+        <strong>${esc(branchLabel(sc.branch))} lane · difficulty ${esc(sc.difficulty)}</strong>
+        <small>Evidence-first, localhost-only, synthetic data only.</small>
+      </div>
     </div>
-    ${mission ? `<div class="desc-section"><h4>Why this matters</h4><p>${esc(mission)}</p></div>` : ""}
+    ${stage && stage.mission ? `<div class="desc-section"><h4>Stage commander’s intent</h4><p>${esc(stage.mission)}</p></div>` : ""}
     <div class="desc-section">
-      <h4>Progressive clues</h4>
-      <ul class="clue-list">${clues}</ul>
+      <h4>Authorized target surface</h4>
+      <div class="chip-grid">${chips(services, "Stage services are disclosed through the current lesson.")}</div>
+    </div>
+    <div class="desc-section">
+      <h4>Operator competencies</h4>
+      <div class="chip-grid">${chips(skills, "Read the scenario clues before acting.")}</div>
+    </div>
+    <div class="desc-section">
+      <h4>Scenario signals</h4>
+      <ol class="clue-list">${clues}</ol>
     </div>
     <div class="desc-section">
       <h4>Detection coverage</h4>
-      <div class="chip-grid">${rules}</div>
+      <div class="chip-grid">${chips(sc.detection_rule_ids, "No detection rule declared")}</div>
     </div>
     <div class="desc-section">
-      <h4>Required controls</h4>
-      <div class="chip-grid">${controls}</div>
+      <h4>Required control outcomes</h4>
+      <div class="chip-grid">${chips(sc.required_controls, "No control declared")}</div>
+    </div>
+    <div class="desc-section">
+      <h4>Stage completion standard</h4>
+      <ul class="clue-list">${(outcome.length ? outcome : ["Preserve bounded evidence and explain the control decision."]).map((item) => `<li>${esc(item)}</li>`).join("")}</ul>
     </div>`;
 }
 
@@ -1921,13 +1986,67 @@ function flowAssetName(stageId) {
   return STAGE_FLOW_FILES[stageId] || "stage-l00-foundation-flow.svg";
 }
 
+function flowPhase(sc, index, total) {
+  const phases = {
+    attack: ["Recon", "Exploit", "Impact boundary", "Escalate"],
+    defense: ["Baseline", "Detect", "Decide", "Harden"],
+    forensics: ["Acquire", "Correlate", "Preserve", "Attribute"],
+    recovery: ["Contain", "Rotate", "Recover", "Verify"],
+  };
+  const lane = phases[sc.branch] || phases.forensics;
+  return lane[Math.min(index, lane.length - 1)] || `Control ${index + 1}`;
+}
+
+function flowStepState(sc, index) {
+  const run = findRun(sc.scenario_id);
+  if (run && run.status === "complete") return "done";
+  if (run && run.status === "active") return index === runStepIndex(run) ? "current" : index < runStepIndex(run) ? "done" : "locked";
+  return index === 0 ? "ready" : "locked";
+}
+
 function renderFlow(sc) {
   const box = $("detail-flow");
   if (!box) return;
   const flowFile = `assets/flows/${flowAssetName(sc.stage_id)}`;
+  const fallbackSteps = (sc.clues || []).map((clue, index) => ({
+    step: index + 1,
+    id: `s${index + 1}`,
+    event: "scenario_signal",
+    observation: clue,
+    evidence_keys: [],
+  }));
+  const steps = sc.flow_steps && sc.flow_steps.length ? sc.flow_steps : fallbackSteps;
+  const lanes = steps.map((step, index) => {
+    const stateClass = flowStepState(sc, index);
+    const stateLabel = stateClass === "done" ? "Accepted" : stateClass === "current" ? "Current step" : stateClass === "ready" ? "Ready" : "Locked";
+    return `
+      <article class="flow-lane ${stateClass}" data-flow-step="${step.step}">
+        <div class="flow-lane-marker">${String(step.step).padStart(2, "0")}</div>
+        <div class="flow-lane-body">
+          <div class="flow-lane-head">
+            <span class="flow-phase">${esc(flowPhase(sc, index, steps.length))}</span>
+            <code>${esc(step.event)}</code>
+            <span class="flow-state">${stateLabel}</span>
+          </div>
+          <p>${esc(step.observation)}</p>
+          <div class="flow-contract"><span>Evidence contract</span>${chips(step.evidence_keys, "Record the bounded observation")}</div>
+        </div>
+      </article>`;
+  }).join("");
   box.innerHTML = `
-    <img class="flow-art" src="${flowFile}" alt="Illustrated attack flow for ${esc(sc.title)}" width="1024" height="576" decoding="async" />
-    <p class="flow-art-note">Stage attack-flow illustration — every step must be evidenced in order before the hard gate unlocks.</p>`;
+    <div class="flow-brief">
+      <div class="flow-art-frame">
+        <img class="flow-art" src="${flowFile}" alt="Illustrated attack flow for ${esc(sc.title)}" width="1024" height="576" decoding="async" />
+      </div>
+      <div class="flow-brief-copy">
+        <span class="brief-label">Scenario-specific evidence chain</span>
+        <h4>${esc(sc.title)}</h4>
+        <p>Move through the lanes in order. Each accepted observation creates the proof required by the next lane; wrong order, replay, or unbounded evidence must fail closed.</p>
+        <div class="flow-guardrails"><span>LOCALHOST ONLY</span><span>NO SIDE EFFECTS</span><span>REPLAY RESISTANT</span></div>
+      </div>
+    </div>
+    <div class="flow-lanes">${lanes}</div>
+    <p class="flow-art-note">The illustration establishes the threat narrative; the lanes below define the machine-checked evidence contract for this exact scenario.</p>`;
 }
 
 /* Questions panel — one card per scenario step */
