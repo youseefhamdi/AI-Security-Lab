@@ -736,6 +736,464 @@ def solution_reel_svg(scenario: dict[str, Any]) -> str:
 </svg>"""
 
 
+def _svg_escape(value: Any) -> str:
+    return (str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&apos;"))
+
+
+def _svg_lines(value: Any, max_chars: int = 48, max_lines: int = 3) -> list[str]:
+    words = str(value or "").split()
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if len(candidate) <= max_chars:
+            current = candidate
+        else:
+            if current:
+                lines.append(current)
+            current = word
+            if len(lines) >= max_lines:
+                break
+    if current and len(lines) < max_lines:
+        lines.append(current)
+    return lines or ["—"]
+
+
+def _technical_palette(family: str) -> tuple[str, str, str]:
+    return {
+        "certificate": ("#f59e0b", "#451a03", "CERTIFICATE TELEMETRY"),
+        "mail": ("#38bdf8", "#082f49", "EXCHANGE TELEMETRY"),
+        "document": ("#a78bfa", "#2e1065", "DOCUMENT PIPELINE"),
+        "rbcd": ("#fb7185", "#4c0519", "DELEGATION TELEMETRY"),
+        "identity-telemetry": ("#34d399", "#064e3b", "IDENTITY TELEMETRY"),
+        "prompt": ("#c084fc", "#3b0764", "AGENT BOUNDARY"),
+        "L03-rag": ("#22d3ee", "#083344", "RETRIEVAL TELEMETRY"),
+        "L04-agent-protocols": ("#60a5fa", "#172554", "PROTOCOL TELEMETRY"),
+        "L07-supply-chain": ("#facc15", "#422006", "SUPPLY-CHAIN TELEMETRY"),
+        "L08-detection-evasion": ("#fb923c", "#431407", "DETECTION TELEMETRY"),
+    }.get(family, ("#67e8f9", "#083344", "LOCAL LAB TELEMETRY"))
+
+
+def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
+    """Render a technical animated evidence diagram for one machine-checked step."""
+    steps = scenario.get("steps", [])
+    if step_number < 1 or step_number > len(steps):
+        raise HTTPException(status_code=404, detail="solution figure not found")
+    step = steps[step_number - 1]
+    runbook = technical_runbook(scenario)
+    procedure = runbook["procedures"][step_number - 1]
+    family = _technical_family(scenario)
+    accent, deep, family_label = _technical_palette(family)
+    event = str(procedure["event"])
+    scenario_id = str(scenario.get("id", ""))
+    evidence = ", ".join(procedure.get("evidence_keys", [])) or "bounded observation"
+    controls = ", ".join(str(value) for value in scenario.get("required_controls", [])) or "declared control"
+    query_lines = _svg_lines(procedure.get("query", ""), 44, 3)
+    request_lines = _svg_lines(procedure.get("request", ""), 44, 3)
+    observation_lines = _svg_lines(procedure.get("expected_observation", step.get("observation", "")), 44, 3)
+    control_lines = _svg_lines(controls, 44, 3)
+    width, height = 1200, 620
+    card_y, card_w, card_h = 180, 250, 260
+    xs = [38, 322, 606, 890]
+    cards = [
+        ("01", "REQUEST", request_lines, "operator action"),
+        ("02", "QUERY", query_lines, "telemetry filter"),
+        ("03", "OBSERVATION", observation_lines, "expected signal"),
+        ("04", "DECISION", control_lines, "control boundary"),
+    ]
+    card_markup = []
+    for index, (number, heading, lines, caption) in enumerate(cards):
+        x = xs[index]
+        delay = index * 0.8
+        text_markup = "".join(
+            f'<text x="{x + 18}" y="{card_y + 102 + line_index * 25}" class="diag-body">{_svg_escape(line)}</text>'
+            for line_index, line in enumerate(lines)
+        )
+        card_markup.append(f"""
+        <g class="diag-card" style="--delay:{delay:.1f}s">
+          <rect x="{x}" y="{card_y}" width="{card_w}" height="{card_h}" rx="16" class="diag-card-bg"/>
+          <rect x="{x}" y="{card_y}" width="{card_w}" height="6" rx="3" fill="{accent}"/>
+          <circle cx="{x + 28}" cy="{card_y + 34}" r="17" fill="{deep}" stroke="{accent}" stroke-width="1.2"/>
+          <text x="{x + 28}" y="{card_y + 39}" text-anchor="middle" class="diag-number">{number}</text>
+          <text x="{x + 56}" y="{card_y + 39}" class="diag-heading">{heading}</text>
+          <text x="{x + 18}" y="{card_y + 78}" class="diag-caption">{caption}</text>
+          {text_markup}
+        </g>""")
+    arrows = "".join(
+        f'<g class="diag-arrow" style="--delay:{index * 0.8:.1f}s"><path d="M{x + card_w + 10} {card_y + 130}H{x + card_w + 34}"/><path d="M{x + card_w + 27} {card_y + 123}l8 7-8 7"/></g>'
+        for index, x in enumerate(xs[:-1])
+    )
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="figure-title figure-desc">
+<title id="figure-title">Technical evidence diagram for {_svg_escape(event)}</title>
+<desc id="figure-desc">A local request is correlated with a telemetry query, expected observation, and security control decision.</desc>
+<defs>
+  <linearGradient id="diag-bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#070b14"/><stop offset=".55" stop-color="#111827"/><stop offset="1" stop-color="{deep}"/></linearGradient>
+  <filter id="diag-glow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>
+    .diag-card {{ transform-origin: center; animation: diagLift 3.2s ease-in-out var(--delay) infinite; }}
+    .diag-card-bg {{ fill: rgba(10, 15, 28, .94); stroke: rgba(255,255,255,.16); stroke-width: 1; }}
+    .diag-arrow path {{ fill: none; stroke: {accent}; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }}
+    .diag-arrow {{ opacity: .35; animation: diagRoute 3.2s ease-in-out var(--delay) infinite; }}
+    .diag-number {{ fill: {accent}; font: 700 11px 'Fira Code', monospace; }}
+    .diag-heading {{ fill: #f8fafc; font: 700 14px 'Fira Code', monospace; letter-spacing: 1.2px; }}
+    .diag-caption {{ fill: {accent}; font: 700 10px 'Fira Code', monospace; letter-spacing: 1px; text-transform: uppercase; }}
+    .diag-body {{ fill: #dbeafe; font: 12px 'Fira Code', monospace; }}
+    @keyframes diagLift {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-5px); }} }}
+    @keyframes diagRoute {{ 0%, 20% {{ opacity: .3; }} 45%, 70% {{ opacity: 1; filter: url(#diag-glow); }} 100% {{ opacity: .3; }} }}
+    @media (prefers-reduced-motion: reduce) {{ .diag-card, .diag-arrow {{ animation: none; }} }}
+  </style>
+</defs>
+<rect width="{width}" height="{height}" rx="22" fill="url(#diag-bg)"/>
+<path d="M0 112H{width}M0 510H{width}" stroke="#ffffff" stroke-opacity=".08"/>
+<path d="M0 150H{width}M0 470H{width}" stroke="{accent}" stroke-opacity=".08" stroke-dasharray="3 12"/>
+<text x="38" y="48" fill="{accent}" font="700 11px 'Fira Code', monospace" letter-spacing="2.4">{_svg_escape(family_label)} · TECHNICAL FIGURE</text>
+<text x="38" y="83" fill="#ffffff" font="700 25px 'Space Grotesk', sans-serif">Request → telemetry → decision</text>
+<text x="38" y="105" fill="#94a3b8" font="12px 'Fira Code', monospace">{_svg_escape(scenario_id)} · step {step_number}/{len(steps)} · {_svg_escape(event)}</text>
+{''.join(arrows)}
+{''.join(card_markup)}
+<rect x="38" y="520" width="1124" height="54" rx="12" fill="{deep}" stroke="{accent}" stroke-opacity=".42"/>
+<text x="58" y="543" fill="{accent}" font="700 10px 'Fira Code', monospace" letter-spacing="1.2">EVIDENCE TO RECORD</text>
+<text x="58" y="563" fill="#e2e8f0" font="12px 'Fira Code', monospace">{_svg_escape(evidence)}</text>
+<text x="1144" y="553" text-anchor="end" fill="#64748b" font="10px 'Fira Code', monospace">SYNTHETIC · LOOPBACK ONLY</text>
+</svg>"""
+
+
+def solution_reel_svg(scenario: dict[str, Any]) -> str:
+    """Render an animated technical case board for the complete runbook."""
+    steps = list(scenario.get("steps", []))
+    if not steps:
+        raise HTTPException(status_code=404, detail="solution reel not found")
+    runbook = technical_runbook(scenario)
+    family = _technical_family(scenario)
+    accent, deep, family_label = _technical_palette(family)
+    scenario_id = str(scenario.get("id", ""))
+    width, height = 1200, 560
+    count = len(steps)
+    positions = [70 + index * (1060 / max(count - 1, 1)) for index in range(count)]
+    path = " ".join(f"{x:.1f},290" for x in positions)
+    nodes = []
+    for index, procedure in enumerate(runbook["procedures"]):
+        x = positions[index]
+        operation = _svg_lines(procedure["operation"], 20, 2)
+        observation = _svg_lines(procedure["expected_observation"], 26, 2)
+        query = _svg_lines(procedure["query"], 25, 1)[0]
+        operation_markup = "".join(f'<text x="{x:.1f}" y="{244 + line_index * 17}" text-anchor="middle" class="reel-operation">{_svg_escape(line)}</text>' for line_index, line in enumerate(operation))
+        observation_markup = "".join(f'<text x="{x:.1f}" y="{340 + line_index * 16}" text-anchor="middle" class="reel-observation">{_svg_escape(line)}</text>' for line_index, line in enumerate(observation))
+        nodes.append(f"""
+        <g class="case-node" style="--delay:{index * .7:.1f}s">
+          <circle cx="{x:.1f}" cy="290" r="31" class="case-node-ring"/>
+          <circle cx="{x:.1f}" cy="290" r="22" fill="{deep}" stroke="{accent}" stroke-width="2"/>
+          <text x="{x:.1f}" y="296" text-anchor="middle" class="case-number">{index + 1:02d}</text>
+          {operation_markup}
+          <text x="{x:.1f}" y="318" text-anchor="middle" class="case-query">{_svg_escape(query[:28])}</text>
+          {observation_markup}
+        </g>""")
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="reel-title reel-desc">
+<title id="reel-title">Technical case board for {_svg_escape(scenario_id)}</title>
+<desc id="reel-desc">An animated investigation path showing each runbook action, query, and expected observation.</desc>
+<defs>
+  <linearGradient id="case-bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050914"/><stop offset=".5" stop-color="#111827"/><stop offset="1" stop-color="{deep}"/></linearGradient>
+  <filter id="case-glow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>
+    .case-path {{ fill: none; stroke: {accent}; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 9 13; animation: caseTravel 7s linear infinite; }}
+    .case-node {{ transform-origin: center; animation: caseFocus 2.6s ease-in-out var(--delay) infinite; }}
+    .case-node-ring {{ fill: none; stroke: {accent}; stroke-opacity: .18; stroke-width: 2; stroke-dasharray: 4 8; animation: caseRing 3s linear var(--delay) infinite; }}
+    .case-number {{ fill: #f8fafc; font: 700 11px 'Fira Code', monospace; }}
+    .reel-operation {{ fill: #f8fafc; font: 700 12px 'Fira Code', monospace; }}
+    .case-query {{ fill: {accent}; font: 10px 'Fira Code', monospace; }}
+    .reel-observation {{ fill: #94a3b8; font: 10px 'Fira Code', monospace; }}
+    @keyframes caseTravel {{ from {{ stroke-dashoffset: 900; }} to {{ stroke-dashoffset: 0; }} }}
+    @keyframes caseFocus {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-7px); }} }}
+    @keyframes caseRing {{ to {{ transform: rotate(360deg); }} }}
+    @media (prefers-reduced-motion: reduce) {{ .case-path, .case-node, .case-node-ring {{ animation: none; }} }}
+  </style>
+</defs>
+<rect width="{width}" height="{height}" rx="22" fill="url(#case-bg)"/>
+<path d="M0 106H{width}M0 442H{width}" stroke="#ffffff" stroke-opacity=".08"/>
+<text x="42" y="45" fill="{accent}" font="700 11px 'Fira Code', monospace" letter-spacing="2.5">{_svg_escape(family_label)} · CASE BOARD</text>
+<text x="42" y="78" fill="#ffffff" font="700 25px 'Space Grotesk', sans-serif">Run the investigation in order</text>
+<text x="42" y="98" fill="#94a3b8" font="12px 'Fira Code', monospace">{_svg_escape(scenario_id)} · local request / query / observation chain</text>
+<polyline class="case-path" points="{path}" filter="url(#case-glow)"/>
+{''.join(nodes)}
+<rect x="42" y="474" width="1116" height="48" rx="11" fill="{deep}" stroke="{accent}" stroke-opacity=".4"/>
+<text x="62" y="503" fill="#dbeafe" font="11px 'Fira Code', monospace">Each node is a machine-checked event. Query the fixture, record the observation, then submit evidence.</text>
+<text x="1138" y="503" text-anchor="end" fill="#64748b" font="10px 'Fira Code', monospace">SYNTHETIC · NO EGRESS</text>
+</svg>"""
+
+def _simple_escape(value: Any) -> str:
+    return (str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&apos;"))
+
+
+def _simple_wrap(value: Any, max_chars: int = 50, max_lines: int = 2) -> list[str]:
+    words = str(value or "").split()
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if len(candidate) <= max_chars:
+            current = candidate
+        elif current:
+            lines.append(current)
+            current = word
+        else:
+            lines.append(word[:max_chars])
+            current = ""
+        if len(lines) == max_lines:
+            break
+    if current and len(lines) < max_lines:
+        lines.append(current)
+    return lines or ["—"]
+
+
+def _simple_figure_palette(family: str) -> tuple[str, str]:
+    return {
+        "certificate": ("#d6a84f", "#28231a"),
+        "mail": ("#71b7d3", "#18262d"),
+        "document": ("#a99bd8", "#252033"),
+        "rbcd": ("#dc8b9a", "#2c1e24"),
+        "identity-telemetry": ("#72c6a6", "#182a25"),
+        "prompt": ("#c19add", "#282033"),
+        "L03-rag": ("#73c6cf", "#18292c"),
+        "L04-agent-protocols": ("#86a9d7", "#1c2533"),
+        "L07-supply-chain": ("#d4be76", "#292619"),
+        "L08-detection-evasion": ("#d49c71", "#2b211b"),
+    }.get(family, ("#82bec6", "#19282c"))
+
+
+def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
+    """Render a restrained technical figure: action, signal, proof."""
+    steps = scenario.get("steps", [])
+    if step_number < 1 or step_number > len(steps):
+        raise HTTPException(status_code=404, detail="solution figure not found")
+    procedure = technical_runbook(scenario)["procedures"][step_number - 1]
+    family = _technical_family(scenario)
+    accent, dark_accent = _simple_figure_palette(family)
+    scenario_id = str(scenario.get("id", ""))
+    evidence = ", ".join(procedure.get("evidence_keys", [])) or "bounded observation"
+    controls = ", ".join(str(value) for value in scenario.get("required_controls", [])) or "declared control"
+    cards = [
+        ("01", "RUN", "request / action", procedure.get("request", "")),
+        ("02", "SEE", "expected signal", procedure.get("expected_observation", "")),
+        ("03", "PROVE", "evidence / control", f"{evidence} · {controls}"),
+    ]
+    width, height = 1120, 470
+    card_x = [48, 382, 716]
+    card_y, card_w, card_h = 166, 300, 190
+    card_markup = []
+    for index, (number, heading, caption, body) in enumerate(cards):
+        x = card_x[index]
+        lines = _simple_wrap(body, 39, 4)
+        text = "".join(f'<text x="{x + 24}" y="{card_y + 100 + line_index * 25}" class="simple-body">{_simple_escape(line)}</text>' for line_index, line in enumerate(lines))
+        card_markup.append(f"""
+        <g class="simple-card">
+          <rect x="{x}" y="{card_y}" width="{card_w}" height="{card_h}" rx="12" fill="#111722" stroke="#35404c"/>
+          <rect x="{x}" y="{card_y}" width="{card_w}" height="3" rx="2" fill="{accent}"/>
+          <text x="{x + 24}" y="{card_y + 42}" class="simple-number">{number}</text>
+          <text x="{x + 70}" y="{card_y + 42}" class="simple-heading">{heading}</text>
+          <text x="{x + 24}" y="{card_y + 68}" class="simple-caption">{caption}</text>
+          {text}
+        </g>""")
+    arrows = "".join(f'<path d="M{x + card_w + 12} {card_y + 95}H{x + card_w + 32}" class="simple-arrow"/>' for x in card_x[:-1])
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="simple-title simple-desc">
+<title id="simple-title">Technical figure for {_simple_escape(scenario_id)} step {step_number}</title>
+<desc id="simple-desc">A simple three-part lab procedure showing the operator action, expected signal, and proof decision.</desc>
+<style>
+  .simple-card {{ opacity: .98; }}
+  .simple-number {{ fill: {accent}; font: 700 12px 'Fira Code', monospace; letter-spacing: 1px; }}
+  .simple-heading {{ fill: #f5f7fa; font: 700 15px 'Space Grotesk', sans-serif; letter-spacing: .8px; }}
+  .simple-caption {{ fill: #84909c; font: 11px 'Fira Code', monospace; }}
+  .simple-body {{ fill: #d6dde5; font: 12px 'Fira Code', monospace; }}
+  .simple-arrow {{ fill: none; stroke: {accent}; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 3 7; animation: simpleRoute 3.8s linear infinite; }}
+  .simple-dot {{ fill: {accent}; animation: simpleDot 3.8s ease-in-out infinite; }}
+  @keyframes simpleRoute {{ to {{ stroke-dashoffset: -40; }} }}
+  @keyframes simpleDot {{ 0%, 100% {{ opacity: .2; }} 50% {{ opacity: 1; }} }}
+  @media (prefers-reduced-motion: reduce) {{ .simple-arrow, .simple-dot {{ animation: none; }} }}
+</style>
+<rect width="{width}" height="{height}" rx="18" fill="#0b1017"/>
+<path d="M0 112H{width}" stroke="#ffffff" stroke-opacity=".08"/>
+<text x="48" y="48" fill="{accent}" font="700 10px 'Fira Code', monospace" letter-spacing="2">AI SECURITY LAB · TECHNICAL FIGURE</text>
+<text x="48" y="80" fill="#f5f7fa" font="700 24px 'Space Grotesk', sans-serif">A small proof chain</text>
+<text x="48" y="101" fill="#84909c" font="11px 'Fira Code', monospace">{_simple_escape(scenario_id)} · step {step_number}/{len(steps)} · {_simple_escape(procedure["event"])}</text>
+{arrows}
+<circle class="simple-dot" cx="48" cy="390" r="3"/>
+{''.join(card_markup)}
+<line x1="48" y1="390" x2="1072" y2="390" stroke="#35404c"/>
+<text x="48" y="414" fill="#84909c" font="10px 'Fira Code', monospace">Query the disclosed localhost surface, compare the signal, then submit only the evidence you can explain.</text>
+<text x="1072" y="414" text-anchor="end" fill="#596572" font="10px 'Fira Code', monospace">{_simple_escape(family.upper())} · SYNTHETIC</text>
+</svg>"""
+
+
+def solution_reel_svg(scenario: dict[str, Any]) -> str:
+    """Render a quiet animated runbook sequence instead of a decorative motion reel."""
+    steps = list(scenario.get("steps", []))
+    if not steps:
+        raise HTTPException(status_code=404, detail="solution reel not found")
+    runbook = technical_runbook(scenario)
+    family = _technical_family(scenario)
+    accent, dark_accent = _simple_figure_palette(family)
+    scenario_id = str(scenario.get("id", ""))
+    width, row_h, top = 1120, 78, 142
+    height = top + len(steps) * row_h + 74
+    rows = []
+    for index, procedure in enumerate(runbook["procedures"]):
+        y = top + index * row_h
+        operation = _simple_wrap(procedure["operation"], 34, 1)[0]
+        observation = _simple_wrap(procedure["expected_observation"], 55, 2)
+        evidence = ", ".join(procedure.get("evidence_keys", []))
+        rows.append(f"""
+        <g>
+          <line x1="72" y1="{y - 12}" x2="72" y2="{y + 48}" stroke="#35404c"/>
+          <circle cx="72" cy="{y}" r="15" fill="{dark_accent}" stroke="{accent}"/>
+          <text x="72" y="{y + 4}" text-anchor="middle" class="reel-number">{index + 1:02d}</text>
+          <text x="108" y="{y - 8}" class="reel-action">{_simple_escape(operation)}</text>
+          <text x="380" y="{y - 8}" class="reel-label">OBSERVATION</text>
+          {''.join(f'<text x="380" y="{y + 10 + line_index * 16}" class="reel-observation">{_simple_escape(line)}</text>' for line_index, line in enumerate(observation))}
+          <text x="900" y="{y - 8}" class="reel-label">EVIDENCE</text>
+          <text x="900" y="{y + 12}" class="reel-evidence">{_simple_escape(evidence or "bounded")}</text>
+        </g>""")
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="sequence-title sequence-desc">
+<title id="sequence-title">Technical runbook sequence for {_simple_escape(scenario_id)}</title>
+<desc id="sequence-desc">A simple ordered sequence of operator actions, expected observations, and evidence fields.</desc>
+<style>
+  .reel-action {{ fill: #f5f7fa; font: 600 13px 'Space Grotesk', sans-serif; }}
+  .reel-label {{ fill: {accent}; font: 700 9px 'Fira Code', monospace; letter-spacing: 1.2px; }}
+  .reel-observation {{ fill: #c8d1da; font: 11px 'Fira Code', monospace; }}
+  .reel-evidence {{ fill: #aeb9c4; font: 10px 'Fira Code', monospace; }}
+  .reel-number {{ fill: #f5f7fa; font: 700 10px 'Fira Code', monospace; }}
+  .sequence-dot {{ fill: {accent}; animation: sequenceTravel 7s linear infinite; }}
+  @keyframes sequenceTravel {{ from {{ transform: translateY(0); }} to {{ transform: translateY({max(0, (len(steps) - 1) * row_h)}px); }} }}
+  @media (prefers-reduced-motion: reduce) {{ .sequence-dot {{ animation: none; }} }}
+</style>
+<rect width="{width}" height="{height}" rx="18" fill="#0b1017"/>
+<text x="48" y="46" fill="{accent}" font="700 10px 'Fira Code', monospace" letter-spacing="2">AI SECURITY LAB · RUNBOOK SEQUENCE</text>
+<text x="48" y="78" fill="#f5f7fa" font="700 23px 'Space Grotesk', sans-serif">Follow the evidence in order</text>
+<text x="48" y="99" fill="#84909c" font="11px 'Fira Code', monospace">{_simple_escape(scenario_id)} · {len(steps)} machine-checked steps · {family.upper()}</text>
+<line x1="72" y1="{top - 12}" x2="72" y2="{top + (len(steps) - 1) * row_h + 48}" stroke="#35404c"/>
+<circle class="sequence-dot" cx="72" cy="{top}" r="4"/>
+{''.join(rows)}
+<text x="48" y="{height - 24}" fill="#596572" font="10px 'Fira Code', monospace">Simple figure · local synthetic telemetry · no credentials or external targets</text>
+</svg>"""
+
+def _unique_variant(scenario_id: str) -> int:
+    return int(hashlib.sha256(str(scenario_id).encode("utf-8")).hexdigest()[:4], 16) % 6
+
+
+def _unique_text(value: Any, max_chars: int = 46, max_lines: int = 3) -> list[str]:
+    return _simple_wrap(value, max_chars, max_lines)
+
+
+def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
+    """Render one of six restrained figure compositions, unique per scenario."""
+    steps = scenario.get("steps", [])
+    if step_number < 1 or step_number > len(steps):
+        raise HTTPException(status_code=404, detail="solution figure not found")
+    procedure = technical_runbook(scenario)["procedures"][step_number - 1]
+    scenario_id = str(scenario.get("id", ""))
+    family = _technical_family(scenario)
+    accent, dark_accent = _simple_figure_palette(family)
+    variant = _unique_variant(scenario_id)
+    evidence = ", ".join(procedure.get("evidence_keys", [])) or "bounded observation"
+    controls = ", ".join(str(value) for value in scenario.get("required_controls", [])) or "declared control"
+    request = _unique_text(procedure.get("request", ""), 42, 3)
+    observation = _unique_text(procedure.get("expected_observation", ""), 42, 3)
+    query = _unique_text(procedure.get("query", ""), 42, 3)
+    event = _simple_escape(procedure.get("event", ""))
+    variant_names = ["CHAIN", "TIMELINE", "EVIDENCE MATRIX", "QUERY / RESULT", "TRUST BOUNDARY", "AUDIT TABLE"]
+    title = variant_names[variant]
+    width, height = 1120, 500
+    esc = _simple_escape
+    def lines_markup(lines: list[str], x: int, y: int, cls: str = "unique-body") -> str:
+        return "".join(f'<text x="{x}" y="{y + index * 22}" class="{cls}">{esc(line)}</text>' for index, line in enumerate(lines))
+    def panel(x: int, y: int, w: int, h: int, label: str, body: list[str], number: str) -> str:
+        return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" class="unique-panel"/><text x="{x + 18}" y="{y + 28}" class="unique-number">{number}</text><text x="{x + 54}" y="{y + 28}" class="unique-label">{esc(label)}</text>{lines_markup(body, x + 18, y + 67)}'
+    if variant == 0:
+        content = panel(48, 170, 300, 210, "RUN / ACTION", request, "01") + panel(410, 170, 300, 210, "SEE / SIGNAL", observation, "02") + panel(772, 170, 300, 210, "PROVE / CONTROL", _unique_text(f"{evidence} · {controls}", 42, 3), "03")
+        guide = '<path d="M350 275H400M712 275H762" class="unique-link"/>'
+    elif variant == 1:
+        content = '<line x1="118" y1="174" x2="118" y2="398" class="unique-rail"/>' + ''.join(panel(170, y, 870, 62, label, body, number) for y, label, body, number in [(174, "RUN / ACTION", request, "01"), (250, "SEE / SIGNAL", observation, "02"), (326, "PROVE / CONTROL", _unique_text(f"{evidence} · {controls}", 70, 2), "03")])
+        guide = '<circle cx="118" cy="174" r="5" class="unique-dot"/>'
+    elif variant == 2:
+        content = panel(48, 166, 500, 116, "OPERATOR REQUEST", request, "01") + panel(572, 166, 500, 116, "TELEMETRY QUERY", query, "02") + panel(48, 312, 500, 116, "OBSERVED SIGNAL", observation, "03") + panel(572, 312, 500, 116, "EVIDENCE / CONTROL", _unique_text(f"{evidence} · {controls}", 55, 2), "04")
+        guide = '<path d="M548 224h24M810 282v30M572 370h-24" class="unique-link"/>'
+    elif variant == 3:
+        content = '<rect x="48" y="166" width="470" height="264" rx="10" class="unique-terminal"/><text x="72" y="198" class="unique-label">LOCAL QUERY</text>' + lines_markup(query, 72, 240, "unique-code") + '<rect x="600" y="166" width="472" height="264" rx="10" class="unique-panel"/><text x="624" y="198" class="unique-label">RESULT / DECISION</text>' + lines_markup(observation + _unique_text(f"proof: {evidence}", 42, 2), 624, 240)
+        guide = '<path d="M526 298H590" class="unique-link"/><path d="M570 286l20 12-20 12" class="unique-link"/>'
+    elif variant == 4:
+        content = '<circle cx="560" cy="292" r="70" class="unique-core"/><text x="560" y="288" text-anchor="middle" class="unique-core-text">EVENT</text><text x="560" y="306" text-anchor="middle" class="unique-core-sub">' + esc(event[:24]) + '</text>' + panel(48, 170, 300, 105, "SOURCE", request, "01") + panel(772, 170, 300, 105, "SIGNAL", observation, "02") + panel(48, 330, 300, 105, "QUERY", query, "03") + panel(772, 330, 300, 105, "CONTROL", _unique_text(controls, 38, 2), "04")
+        guide = '<path d="M348 222L490 274M772 222L630 274M348 382L490 310M772 382L630 310" class="unique-link"/>'
+    else:
+        rows = [("REQUEST", request), ("QUERY", query), ("OBSERVE", observation), ("PROVE", _unique_text(f"{evidence} · {controls}", 74, 2))]
+        content = '<rect x="48" y="164" width="1024" height="272" rx="10" class="unique-panel"/><line x1="48" y1="214" x2="1072" y2="214" class="unique-rule"/>' + ''.join(f'<text x="72" y="{194 + index * 58}" class="unique-number">{index + 1:02d}</text><text x="132" y="{194 + index * 58}" class="unique-label">{label}</text>{lines_markup(body, 310, 194 + index * 58)}<line x1="72" y1="{218 + index * 58}" x2="1048" y2="{218 + index * 58}" class="unique-rule"/>' for index, (label, body) in enumerate(rows))
+        guide = '<circle cx="72" cy="194" r="4" class="unique-dot"/>'
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="unique-title unique-desc">
+<title id="unique-title">{esc(scenario_id)} technical figure</title>
+<desc id="unique-desc">Unique {esc(title.lower())} composition for the {esc(procedure.get('event', 'lab'))} evidence step.</desc>
+<style>
+  .unique-panel {{ fill: #111722; stroke: #35404c; stroke-width: 1; }}
+  .unique-terminal {{ fill: #0d141b; stroke: #46535f; stroke-width: 1; }}
+  .unique-number {{ fill: {accent}; font: 700 11px 'Fira Code', monospace; letter-spacing: 1px; }}
+  .unique-label {{ fill: #f2f4f7; font: 700 11px 'Fira Code', monospace; letter-spacing: .9px; }}
+  .unique-body {{ fill: #cbd5df; font: 12px 'Fira Code', monospace; }}
+  .unique-code {{ fill: {accent}; font: 11px 'Fira Code', monospace; }}
+  .unique-link {{ fill: none; stroke: {accent}; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 3 7; animation: uniqueFlow 4s linear infinite; }}
+  .unique-rail, .unique-rule {{ stroke: #35404c; stroke-width: 1; }}
+  .unique-dot {{ fill: {accent}; }}
+  .unique-core {{ fill: {dark_accent}; stroke: {accent}; stroke-width: 1.5; }}
+  .unique-core-text {{ fill: #f2f4f7; font: 700 12px 'Fira Code', monospace; letter-spacing: 1px; }}
+  .unique-core-sub {{ fill: {accent}; font: 9px 'Fira Code', monospace; }}
+  @keyframes uniqueFlow {{ to {{ stroke-dashoffset: -40; }} }}
+  @media (prefers-reduced-motion: reduce) {{ .unique-link {{ animation: none; }} }}
+</style>
+<rect width="{width}" height="{height}" rx="18" fill="#0b1017"/>
+<path d="M0 112H{width}" stroke="#ffffff" stroke-opacity=".08"/>
+<text x="48" y="46" fill="{accent}" font="700 10px 'Fira Code', monospace" letter-spacing="2">AI SECURITY LAB · UNIQUE FIGURE {variant + 1}/6 · {esc(title)}</text>
+<text x="48" y="78" fill="#f5f7fa" font="700 24px 'Space Grotesk', sans-serif">{esc(scenario_id)}</text>
+<text x="48" y="99" fill="#84909c" font="11px 'Fira Code', monospace">step {step_number}/{len(steps)} · {esc(event)} · local synthetic evidence</text>
+{guide}{content}
+<text x="48" y="466" fill="#596572" font="10px 'Fira Code', monospace">Unique composition generated from the lab identity · no credentials · no external target</text>
+</svg>"""
+
+
+def solution_reel_svg(scenario: dict[str, Any]) -> str:
+    """Render a unique quiet-motion sequence for each scenario."""
+    steps = list(scenario.get("steps", []))
+    if not steps:
+        raise HTTPException(status_code=404, detail="solution reel not found")
+    runbook = technical_runbook(scenario)
+    family = _technical_family(scenario)
+    accent, dark_accent = _simple_figure_palette(family)
+    scenario_id = str(scenario.get("id", ""))
+    variant = _unique_variant(scenario_id)
+    width, height = 1120, 250 + len(steps) * 76
+    rows = []
+    for index, procedure in enumerate(runbook["procedures"]):
+        y = 138 + index * 76
+        rows.append(f'<line x1="70" y1="{y - 32}" x2="70" y2="{y + 32}" class="reel-rule"/><circle cx="70" cy="{y}" r="15" class="reel-node"/><text x="70" y="{y + 4}" text-anchor="middle" class="reel-num">{index + 1:02d}</text><text x="110" y="{y - 8}" class="reel-action">{_simple_escape(_unique_text(procedure["operation"], 38, 1)[0])}</text><text x="470" y="{y - 8}" class="reel-observe">{_simple_escape(_unique_text(procedure["expected_observation"], 54, 1)[0])}</text><text x="910" y="{y - 8}" class="reel-evidence">{_simple_escape(", ".join(procedure.get("evidence_keys", [])) or "bounded")}</text>')
+    variant_label = ["CHAIN", "TIMELINE", "MATRIX", "QUERY BOARD", "BOUNDARY MAP", "AUDIT TRAIL"][variant]
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="unique-reel-title unique-reel-desc">
+<title id="unique-reel-title">Unique runbook figure for {_simple_escape(scenario_id)}</title>
+<desc id="unique-reel-desc">A unique {variant_label.lower()} layout showing this lab's technical procedure and evidence order.</desc>
+<style>
+  .reel-rule {{ stroke: #35404c; stroke-width: 1; }}
+  .reel-node {{ fill: {dark_accent}; stroke: {accent}; stroke-width: 1.5; }}
+  .reel-num {{ fill: #f5f7fa; font: 700 10px 'Fira Code', monospace; }}
+  .reel-action {{ fill: #f5f7fa; font: 600 13px 'Space Grotesk', sans-serif; }}
+  .reel-observe {{ fill: #cbd5df; font: 11px 'Fira Code', monospace; }}
+  .reel-evidence {{ fill: {accent}; font: 10px 'Fira Code', monospace; }}
+  .reel-node {{ animation: reelQuiet 3s ease-in-out infinite; }}
+  @keyframes reelQuiet {{ 0%, 100% {{ opacity: .72; }} 50% {{ opacity: 1; }} }}
+  @media (prefers-reduced-motion: reduce) {{ .reel-node {{ animation: none; }} }}
+</style>
+<rect width="{width}" height="{height}" rx="18" fill="#0b1017"/>
+<text x="48" y="46" fill="{accent}" font="700 10px 'Fira Code', monospace" letter-spacing="2">AI SECURITY LAB · UNIQUE {variant_label}</text>
+<text x="48" y="78" fill="#f5f7fa" font="700 23px 'Space Grotesk', sans-serif">{_simple_escape(scenario_id)}</text>
+<text x="48" y="99" fill="#84909c" font="11px 'Fira Code', monospace">action · observation · evidence · {len(steps)} machine-checked steps</text>
+<text x="110" y="121" fill="#596572" font="9px 'Fira Code', monospace">OPERATOR ACTION</text><text x="470" y="121" fill="#596572" font="9px 'Fira Code', monospace">EXPECTED OBSERVATION</text><text x="910" y="121" fill="#596572" font="9px 'Fira Code', monospace">EVIDENCE</text>
+{''.join(rows)}
+<text x="48" y="{height - 24}" fill="#596572" font="10px 'Fira Code', monospace">Unique per lab · local synthetic telemetry · no credentials or external targets</text>
+</svg>"""
+
+
 def scenario_target_services(stage_id: str) -> list[str]:
     """Return the documented localhost services for a scenario's stage."""
     return next(

@@ -2591,7 +2591,7 @@ function renderSolutionGuide(sc) {
         <div class="sol-step-brief"><div><span>Operator move</span><strong>${esc(s.action || "Run the controlled investigation")}</strong></div><div><span>What to look for</span><p>${esc(s.look_for || "Explain the signal before continuing.")}</p></div></div>
         <div class="sol-step-method"><strong>Method</strong><span>${esc(s.method || "Inspect the disclosed localhost surface and preserve bounded evidence.")}</span></div>
         <div class="sol-step-success"><strong>Success looks like</strong><span>${esc(s.success_look || "The observation is explained and its evidence is ready for submission.")}</span></div>
-        <div class="sol-step-figure"><img src="${esc(s.figure)}" alt="Animated figure: ${esc(s.title)}" loading="lazy" width="840" height="400" /></div>
+        <div class="sol-step-figure"><img src="${esc(s.figure)}" alt="Technical figure: ${esc(s.title)}" loading="lazy" width="1120" height="470" /></div>
         <p class="sol-evidence-label">Evidence contract for this chapter</p>
         <div class="chip-grid">${chips(s.evidence_keys, "bounded observation")}</div>
       </div>
@@ -2604,7 +2604,7 @@ function renderSolutionGuide(sc) {
           <h3 class="sol-studio-title">Watch the method. Then run the evidence.</h3>
           <p class="sol-studio-copy">${esc(guide.intro || "Follow the signal in order and submit only evidence you can explain.")}</p>
         </div>
-        <div class="sol-reel-meta"><span class="pill accent">${guideSteps.length} procedures</span><span class="pill ok">${esc(guide.version || "technical-runbook")}</span><span class="pill">8 sec loop</span></div>
+        <div class="sol-reel-meta"><span class="pill accent">${guideSteps.length} procedures</span><span class="pill ok">simple technical figure</span><span class="pill">quiet motion</span></div>
       </div>
       <div class="sol-playbook" aria-label="Solution playbook">
         <div class="sol-playbook-card"><span class="sol-playbook-label">Mission brief</span><p>${esc(playbook.mission || sc.objective)}</p></div>
