@@ -965,18 +965,30 @@
   .sol-studio-head, .sol-studio-head > * { position: relative; z-index: 1; }
   .sol-studio-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
   .sol-kicker { color: var(--cyan); font: 700 9.5px var(--mono); letter-spacing: 1.8px; text-transform: uppercase; }
+  .sol-case-file { display: grid; grid-template-columns: minmax(130px, .8fr) minmax(180px, 1.4fr) minmax(180px, 1.4fr) minmax(180px, 1.4fr); gap: 8px; margin: 0 0 14px; padding: 10px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: #0c131c; }
+  .sol-case-cell { min-width: 0; padding: 7px 9px; border-left: 2px solid rgba(0,212,255,.35); }
+  .sol-case-cell span { display: block; margin-bottom: 4px; color: var(--muted); font: 700 8px var(--mono); letter-spacing: 1.1px; text-transform: uppercase; }
+  .sol-case-cell strong, .sol-case-cell code { display: block; overflow-wrap: anywhere; color: var(--text-2); font-size: 11px; line-height: 1.4; }
+  .sol-case-cell code { color: var(--cyan); font: 10px/1.45 var(--mono); }
+  .sol-case-cell .chip-grid { gap: 4px; }
+  .sol-case-cell .chip { padding: 3px 5px; font-size: 8.5px; }
+  .sol-runbook { background: #0c131c; }
+  .sol-command { border-radius: 7px; }
+  .sol-procedure { background: #101923; }
+  .sol-reel { margin-top: 16px; }
+  .sol-reel object:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
   .sol-studio-title { margin: 4px 0 3px; color: var(--text); font: 700 21px var(--display); letter-spacing: -.02em; }
   .sol-studio-copy { max-width: 700px; margin: 0; color: var(--text-3); font-size: 13px; line-height: 1.55; }
   .sol-reel-meta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
   .sol-reel-meta .pill { font-size: 9.5px; }
   .sol-reel { position: relative; z-index: 1; overflow: hidden; border: 1px solid rgba(255,255,255,.13); border-radius: 14px; background: #070b12; box-shadow: 0 18px 40px rgba(0,0,0,.34); }
-  .sol-reel img { display: block; width: 100%; aspect-ratio: 960 / 420; object-fit: cover; }
+  .sol-reel object { display: block; width: 100%; aspect-ratio: 1120 / 478; border: 0; background: #070b12; }
   .sol-reel::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.04), transparent 50%, rgba(0,0,0,.34)); }
   .sol-reel-controls { position: absolute; z-index: 2; right: 12px; bottom: 12px; display: flex; gap: 7px; align-items: center; }
   .sol-reel-controls button { min-width: 40px; min-height: 40px; border: 1px solid rgba(255,255,255,.22); border-radius: 10px; background: rgba(6,10,17,.78); color: var(--text); cursor: pointer; backdrop-filter: blur(10px); transition: border-color .15s, background .15s, transform .15s; }
   .sol-reel-controls button:hover { border-color: var(--cyan); background: rgba(0,212,255,.14); transform: translateY(-1px); }
   .sol-reel-controls button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-  .sol-reel.is-paused img { filter: saturate(.75); }
+  .sol-reel.is-paused object { filter: saturate(.75); }
   .sol-reel-track { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(var(--sol-step-count), minmax(0, 1fr)); gap: 6px; padding: 10px 12px 12px; border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.28); }
   .sol-reel-track::before { content: ""; position: absolute; left: 12px; right: 12px; top: 16px; height: 2px; background: rgba(255,255,255,.12); }
   .sol-reel-beacon { position: absolute; top: 11px; left: 12px; width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 4px rgba(0,212,255,.12), 0 0 18px var(--cyan); animation: solBeacon 8s linear infinite; }
@@ -1015,7 +1027,7 @@
   .sol-step-success { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 0 0 13px; color: var(--muted); font-size: 12px; line-height: 1.5; }
   .sol-step-success strong { color: var(--green); }
   .sol-step-figure { margin: 0 0 13px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; overflow: hidden; background: var(--bg); }
-  .sol-step-figure img { width: 100%; display: block; aspect-ratio: 840 / 400; object-fit: cover; }
+  .sol-step-figure img { width: 100%; display: block; aspect-ratio: 1120 / 500; object-fit: contain; background: #0b1017; }
   .sol-evidence-label { margin: 0 0 7px; color: var(--faint); font: 700 9px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; }
 
   /* flag submission panel (sidebar) */
@@ -1107,7 +1119,7 @@
     .challenge-grid { grid-template-columns: 1fr; }
     .detail-hero { flex-direction: column; align-items: flex-start; }
     .detail-illus { flex-basis: auto; width: 100%; height: 160px; }
-    .brief-grid, .flow-brief, .flow-lane-grid, .lab-dossier-grid, .lab-chain-steps, .sol-playbook, .sol-step-brief { grid-template-columns: 1fr; }
+    .brief-grid, .flow-brief, .flow-lane-grid, .lab-dossier-grid, .lab-chain-steps, .sol-playbook, .sol-step-brief, .sol-case-file { grid-template-columns: 1fr; }
     .ch-hero-title { font-size: 38px; }
     .ev-row { grid-template-columns: 1fr; }
   }
@@ -2557,7 +2569,8 @@ function renderSolutionGuide(sc) {
   const guide = sc.solution_guide || { steps: [] };
   const guideSteps = guide.steps || [];
   const playbook = guide.playbook || {};
-  const runbook = guide.runbook || { prerequisites: [], procedures: [], remediation: "", cleanup: "" };
+  const runbook = guide.runbook || { prerequisites: [], procedures: [], remediation: "", cleanup: "", case_file: {} };
+  const caseFile = runbook.case_file || {};
   const reel = guide.reel || `/assets/solution/${encodeURIComponent(sc.scenario_id)}/reel.svg`;
   const procedureRows = (runbook.procedures || []).map((p) => `
     <article class="sol-procedure">
@@ -2601,10 +2614,16 @@ function renderSolutionGuide(sc) {
       <div class="sol-studio-head">
         <div>
           <span class="sol-kicker">ZODIAC SOLUTION STUDIO · TECHNICAL RUNBOOK V3</span>
-          <h3 class="sol-studio-title">Watch the method. Then run the evidence.</h3>
-          <p class="sol-studio-copy">${esc(guide.intro || "Follow the signal in order and submit only evidence you can explain.")}</p>
+          <h3 class="sol-studio-title">Operator case file</h3>
+          <p class="sol-studio-copy">${esc(guide.intro || "Execute the local procedure, inspect the returned signal, preserve the declared evidence, and submit the event in order.")}</p>
         </div>
         <div class="sol-reel-meta"><span class="pill accent">${guideSteps.length} procedures</span><span class="pill ok">simple technical figure</span><span class="pill">quiet motion</span></div>
+      </div>
+      <div class="sol-case-file" aria-label="Technical case metadata">
+        <div class="sol-case-cell"><span>Case</span><strong>${esc(caseFile.scenario_id || sc.scenario_id)}</strong><code>${esc(caseFile.surface_name || "local surface")}</code></div>
+        <div class="sol-case-cell"><span>Threat tags</span><div class="chip-grid">${chips(caseFile.threat_tags || [], "threat tag")}</div></div>
+        <div class="sol-case-cell"><span>Detections</span><div class="chip-grid">${chips(caseFile.detection_rule_ids || [], "detection rule")}</div></div>
+        <div class="sol-case-cell"><span>Controls</span><div class="chip-grid">${chips(caseFile.required_controls || [], "required control")}</div></div>
       </div>
       <div class="sol-playbook" aria-label="Solution playbook">
         <div class="sol-playbook-card"><span class="sol-playbook-label">Mission brief</span><p>${esc(playbook.mission || sc.objective)}</p></div>
@@ -2622,7 +2641,7 @@ function renderSolutionGuide(sc) {
         <div class="sol-remediation"><strong>Remediate and verify</strong><p>${esc(runbook.remediation || "Apply the declared controls and repeat the same local request.")}</p><div class="sol-command-label">CLEANUP / RESET</div><pre class="sol-command"><code>${esc(runbook.cleanup || "POST /api/scenarios/{scenario_id}/reset")}</code></pre></div>
       </section>
       <div class="sol-reel" data-reel>
-        <img src="${esc(reel)}" alt="Animated solution path for ${esc(sc.title)}" width="960" height="420" decoding="async" />
+        <object data="${esc(reel)}" type="image/svg+xml" aria-label="Technical runbook sequence for ${esc(sc.title)}" width="1120" height="478"><span>Technical runbook sequence for ${esc(sc.title)}</span></object>
         <div class="sol-reel-controls"><button type="button" data-reel-toggle aria-label="Pause solution animation" aria-pressed="false">Ⅱ</button></div>
         <div class="sol-reel-track" style="--sol-step-count:${Math.max(1, guideSteps.length)}"><span class="sol-reel-beacon" aria-hidden="true"></span>${markers}</div>
       </div>
@@ -2631,12 +2650,23 @@ function renderSolutionGuide(sc) {
     <div class="sol-chapters">${steps || '<p class="muted">No solution guide for this lab yet.</p>'}</div>`;
   const toggle = box.querySelector("[data-reel-toggle]");
   const reelBox = box.querySelector("[data-reel]");
-  if (toggle && reelBox) toggle.addEventListener("click", () => {
-    const paused = reelBox.classList.toggle("is-paused");
-    toggle.textContent = paused ? "▶" : "Ⅱ";
-    toggle.setAttribute("aria-label", paused ? "Play solution animation" : "Pause solution animation");
-    toggle.setAttribute("aria-pressed", String(paused));
-  });
+  if (toggle && reelBox) {
+    const media = reelBox.querySelector("object");
+    const setEmbeddedMotion = (paused) => {
+      const root = media && media.contentDocument && media.contentDocument.documentElement;
+      if (root) root.setAttribute("data-paused", String(paused));
+    };
+    if (media) media.addEventListener("load", () => {
+      setEmbeddedMotion(reelBox.classList.contains("is-paused"));
+    });
+    toggle.addEventListener("click", () => {
+      const paused = reelBox.classList.toggle("is-paused");
+      setEmbeddedMotion(paused);
+      toggle.textContent = paused ? "▶" : "Ⅱ";
+      toggle.setAttribute("aria-label", paused ? "Play solution animation" : "Pause solution animation");
+      toggle.setAttribute("aria-pressed", String(paused));
+    });
+  }
 }
 
 /** Render the synthesis (solution) panel for the currently unlocked hard gate. */

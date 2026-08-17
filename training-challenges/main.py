@@ -431,112 +431,95 @@ def _technical_family(scenario: dict[str, Any]) -> str:
     return str(scenario.get("stage_id", "generic"))
 
 
-def technical_runbook(scenario: dict[str, Any]) -> dict[str, Any]:
-    """Return an executable, answer-safe local runbook for a scenario.
+def _scenario_surface(scenario: dict[str, Any]) -> tuple[str, str]:
+    """Return the concrete local surface used to verify this case."""
+    surfaces = {
+        "L00-foundation": ("/health", "scope and service health"),
+        "L01-recon": ("/api/models?debug=1", "model and service inventory"),
+        "L02-prompt-injection": ("/api/support/chat", "instruction-boundary response"),
+        "L03-rag": ("/api/rag/query", "retrieval provenance"),
+        "L04-agent-protocols": ("/api/agent/dispatch", "delegated tool boundary"),
+        "L05-memory": ("/api/memory/search", "scoped memory lookup"),
+        "L06-identity-control-plane": ("/api/admin/approval", "identity and approval boundary"),
+        "L07-supply-chain": ("/api/ci/artifacts", "artifact provenance"),
+        "L08-detection-evasion": ("/api/logs/search", "normalized detection telemetry"),
+        "L09-apt-capstone": ("/api/campaign/execute", "campaign evidence correlation"),
+    }
+    return surfaces.get(str(scenario.get("stage_id")), ("/health", "local challenge health"))
 
-    Commands deliberately point at the challenge service and synthetic fixtures.
-    They teach the operator how to produce observations; HMAC-derived evidence
-    values remain learner/run-specific and are never placed in the guide.
+
+def technical_runbook(scenario: dict[str, Any]) -> dict[str, Any]:
+    """Build a scenario-specific, answer-safe operator case file.
+
+    Every case uses its own ID, title, objective, threat tags, detection rules,
+    controls, event names, and evidence contract. Requests remain loopback-only;
+    expected HMAC values are intentionally never disclosed.
     """
     scenario_id = str(scenario["id"])
+    title = str(scenario.get("title", scenario_id))
+    objective = str(scenario.get("objective", "Validate the declared security boundary."))
+    tags = [str(tag) for tag in scenario.get("threat_tags", [])]
+    if not tags:
+        tags = [str(concept) for concept in scenario.get("concepts", [])]
+    if not tags:
+        tags = [str(scenario.get("stage_id", "security-boundary"))]
+    detections = [str(rule) for rule in scenario.get("detection_rule_ids", [])]
+    controls = [str(control) for control in scenario.get("required_controls", [])]
     family = _technical_family(scenario)
+    surface_path, surface_name = _scenario_surface(scenario)
     steps = list(scenario.get("steps", []))
-    base = f"/api/scenarios/{scenario_id}/telemetry?learner_id=$LEARNER"
+    telemetry_path = f"/api/scenarios/{scenario_id}/telemetry?learner_id=$LEARNER"
+    tag = tags[0] if tags else "security-boundary"
+    query_base = f"scenario_id:{scenario_id} AND threat_tag:{tag}"
     procedures: list[dict[str, Any]] = []
-    if family == "certificate":
-        queries = [
-            ('observer.type:"apm-server" AND service.framework.name:"langgraph-planner"', "Find the planning span and record its trace/span identifiers."),
-            ('labels.user_input:search_certificate_files AND event.outcome:success', "Confirm certificate discovery completed and count only synthetic artifacts."),
-            ('span.name:tool_crack_pfx_files AND event.outcome:success', "Confirm the password-recovery signal; record the wordlist path, never a password."),
-        ]
-        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
-        expected = ["plan_llm / langgraph-planner fields", "search_certificate_files with success", "crack_pfx_files with a redacted result preview"]
-        remediation = "Verify the fixture shows certificate discovery, copy, cracking, and authentication as separate authorized events; quarantine the synthetic certificate path and rotate the synthetic identity."
-    elif family == "mail":
-        queries = [
-            ('service.name:"redteam_crew" AND labels.user_request:DCSync', "Locate the AI request and its selected credential-access plan."),
-            ('labels.final_output:TransportRule', "Correlate AI output with Exchange rule creation."),
-            ('powershell.file.script_block_text:DeleteMessage', "Verify the destructive mail-flow action in PowerShell telemetry."),
-        ]
-        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
-        expected = ["DCSync / DRSUAPI request", "New-TransportRule", "DeleteMessage with pre-delivery suppression"]
-        remediation = "Disable the synthetic transport rule, revoke the delegated Exchange identity, preserve message-tracking evidence, and require re-approval for mail-flow changes."
-    elif family == "document":
-        queries = [
-            ('pipeline:document-parser AND source:resume-fixture', "Establish the visible-document baseline and parser provenance."),
-            ('parser_output:instruction-like AND occlusion:hidden', "Identify hidden or low-contrast content treated as an instruction."),
-            ('decision:shortlist AND review:missing', "Prove the classifier decision crossed the human-review boundary."),
-        ]
-        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
-        expected = ["document parser source and checksum", "instruction-like parsed content", "shortlist decision without review approval"]
-        remediation = "Quarantine the document fixture, discard parser instructions from the decision context, and require an independent human review record before accepting a hiring decision."
-    elif family == "rbcd":
-        queries = [
-            ('tool:find_rbcd AND event.outcome:success', "Identify the synthetic computer with delegation configured."),
-            ('tool:create_machine_account AND event.outcome:success', "Record the created machine account identifier without reusing its secret."),
-            ('tool:set_rbcd OR tool:exploit_rbcd', "Correlate delegation configuration with the final administrative-share access signal."),
-        ]
-        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
-        expected = ["find_rbcd result", "create_machine_account result with secret redacted", "set_rbcd followed by exploit_rbcd and C$ access"]
-        remediation = "Remove the synthetic delegation relationship, delete the synthetic machine account, rotate its secret, and verify the target's delegation allow-list is restored."
-    elif family == "identity-telemetry":
-        queries = [
-            ('identity:directory AND operation:DCSync', "Locate directory replication or credential-access telemetry."),
-            ('authentication:kerberos OR operation:ticket', "Correlate ticket generation with the requesting synthetic identity."),
-            ('privilege:administrator AND outcome:success', "Validate the privileged authentication signal without exposing hashes or tickets."),
-        ]
-        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
-        expected = ["DCSync or directory replication event", "ticket operation with audience/identity", "privileged authentication success with secrets redacted"]
-        remediation = "Disable and rotate the synthetic identity, invalidate its tickets, review directory replication rights, and verify the least-privilege policy."
-    elif family == "prompt":
-        queries = [
-            ('surface:assistant AND view:baseline', "Capture a normal assistant response before introducing untrusted content."),
-            ('content:instruction-like AND trust:untrusted', "Locate the prompt, email, OCR, or tool-description content that crossed the instruction boundary."),
-            ('action:tool-call OR action:approval', "Verify whether validation and approval stopped the consequential path."),
-        ]
-        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
-        expected = ["baseline assistant/tool inventory", "untrusted instruction-like content", "blocked or approval-bound action"]
-        remediation = "Keep retrieved/document content in a data-only context, validate structured output, allow-list tools, and require explicit approval for every consequential action."
-    else:
-        endpoint_map = {
-            "L00-foundation": ("/health", "Confirm the service is healthy and local before touching the scenario."),
-            "L01-recon": ("/api/models?debug=1", "Compare normal and diagnostic model inventory responses and headers."),
-            "L02-prompt-injection": ("/api/support/chat", "Send a harmless controlled message and compare it with a baseline response."),
-            "L03-rag": ("/api/rag/query", "Compare published-only retrieval with the explicit synthetic draft fixture."),
-            "L04-agent-protocols": ("/api/agent/dispatch", "Test the delegated tool/path boundary using the documented synthetic request."),
-            "L05-memory": ("/api/memory/search", "Compare one synthetic user/run scope with a different run scope."),
-            "L06-identity-control-plane": ("/api/admin/approval", "Compare a request without identity claims with the synthetic risk-engine claim."),
-            "L07-supply-chain": ("/api/ci/artifacts", "Test artifact-name validation with a traversal-shaped synthetic name."),
-            "L08-detection-evasion": ("/api/logs/search", "Compare normal search normalization with the documented stealth fixture."),
-            "L09-apt-capstone": ("/api/campaign/execute", "Submit only previously earned synthetic evidence and inspect campaign correlation."),
-        }
-        endpoint, purpose = endpoint_map.get(str(scenario.get("stage_id")), ("/health", "Confirm the local challenge service is available."))
-        commands = [_curl_command(endpoint)]
-        queries = [(endpoint, purpose)]
-        expected = ["HTTP status, response body, and relevant response headers"]
-        remediation = "Record the control failure, apply the scenario's required controls, and rerun the same local request to verify the decision changed."
+    phases = ["Establish the baseline", "Run the controlled test", "Correlate and close"]
     for index, step in enumerate(steps):
-        query, purpose = queries[min(index, len(queries) - 1)]
+        event = str(step.get("event", f"step-{index + 1}"))
         evidence_keys = sorted(str(key) for key in step.get("evidence", {}).keys())
+        query = f"{query_base} AND scenario_event:{event}"
+        request = _curl_command(telemetry_path, query="&query=" + query.replace(" ", "%20"))
+        observation = str(step.get("observation", "Record the synthetic observation."))
+        expected = f"{observation} Expected fields: scenario_id, scenario_event, detection_rule_ids, controls, and redacted secret markers."
         procedures.append({
             "step": index + 1,
-            "event": str(step.get("event", f"step-{index + 1}")),
-            "operation": purpose,
-            "request": commands[min(index, len(commands) - 1)],
-            "expected_observation": expected[min(index, len(expected) - 1)],
-            "record": ["timestamp", "HTTP status", "response fields", *evidence_keys],
+            "event": event,
+            "operation": f"{phases[min(index, len(phases) - 1)]} for {title} using the {surface_name} surface.",
+            "request": request,
+            "expected_observation": expected,
+            "record": ["timestamp", "HTTP status", "scenario_id", "scenario_event", "detection_rule_ids", "controls", *evidence_keys],
             "evidence_keys": evidence_keys,
             "query": query,
+            "surface": surface_path,
         })
+    remediation = (
+        f"For {title}, apply the declared controls ({', '.join(controls) or 'scope and evidence custody'}), "
+        f"verify detection coverage ({', '.join(detections) or 'declared detection rules'}), and repeat the same telemetry query. "
+        "Close only when the response shows the corrected control state."
+    )
     return {
         "family": family,
+        "case_file": {
+            "scenario_id": scenario_id,
+            "title": title,
+            "objective": objective,
+            "threat_tags": tags,
+            "detection_rule_ids": detections,
+            "required_controls": controls,
+            "surface": surface_path,
+            "surface_name": surface_name,
+        },
         "target": "http://127.0.0.1:8060",
-        "prerequisites": ["Start the lab and use the disclosed localhost target only.", "Set LAB=http://127.0.0.1:8060 and keep the learner token out of screenshots.", "Capture headers and body separately; do not paste secrets into evidence."],
+        "prerequisites": [
+            "Start the lab and use the disclosed localhost target only.",
+            "Set LAB=http://127.0.0.1:8060 and keep the learner token out of screenshots.",
+            "Capture the JSON response and preserve only the redacted fields named in the evidence contract.",
+        ],
         "start_command": f'LAB=http://127.0.0.1:8060; SCENARIO={scenario_id}; curl -sS -X POST "$LAB/api/scenarios/$SCENARIO/start" -H "X-Training-Learner-Token: $TOKEN" -H "Content-Type: application/json" --data \'{{"learner_id":"$LEARNER"}}\'',
+        "surface_command": _curl_command(surface_path),
         "procedures": procedures,
         "remediation": remediation,
         "cleanup": f'curl -sS -X POST "$LAB/api/scenarios/{scenario_id}/reset" -H "X-Training-Learner-Token: $TOKEN" -H "Content-Type: application/json" --data \'{{"learner_id":"$LEARNER"}}\'',
-        "evidence_note": "The guide exposes evidence keys and safe observations, not the per-run expected values. Use Next-step hint and the candidate chips, then submit the event in order.",
+        "evidence_note": "This case exposes the safe observation contract, not the per-run answer values. Execute the telemetry query, compare the returned event, then use the Questions panel to submit the matching evidence in order.",
     }
 
 
@@ -580,7 +563,7 @@ def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
         "version": "technical-runbook-v3",
         "intro": "Technical runbook: execute the local request, inspect the response/telemetry, record the declared fields, and submit the matching evidence event. The guide does not disclose the per-run answers.",
         "reel": f"/assets/solution/{scenario['id']}/reel.svg",
-        "motion": {"duration_seconds": 8, "format": "animated-svg", "reduced_motion_supported": True},
+        "motion": {"duration_seconds": 8, "format": "animated-svg", "reduced_motion_supported": True, "pause_supported": True},
         "method": "Setup → baseline → controlled test → correlate → remediate → verify. Every chapter maps to one machine-checked event.",
         "playbook": playbook,
         "runbook": runbook,
@@ -605,8 +588,8 @@ def _wrap_svg_text(text: str, max_chars: int = 60) -> list[str]:
     return lines[:4] or [""]
 
 
-def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
-    """Render a step diagram in the lab's visual language (dark surface, accent per branch)."""
+def _legacy_solution_figure_svg_v1(scenario: dict[str, Any], step_number: int) -> str:
+    """Legacy renderer retained only for migration reference; not used by routes."""
     steps = scenario.get("steps", [])
     if step_number < 1 or step_number > len(steps):
         raise HTTPException(status_code=404, detail="solution figure not found")
@@ -690,51 +673,6 @@ def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
 </svg>"""
 
 
-def solution_reel_svg(scenario: dict[str, Any]) -> str:
-    """Render an answer-safe animated storyboard for the solution guide."""
-    steps = list(scenario.get("steps", []))
-    if not steps:
-        raise HTTPException(status_code=404, detail="solution reel not found")
-    branch = str(scenario.get("branch", "other"))
-    accent = BRANCH_COLORS.get(branch, BRANCH_COLORS["other"])
-    scenario_id = str(scenario.get("id", ""))
-    esc_text = lambda value: (  # noqa: E731 - tiny local escaper for SVG text
-        str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
-    )
-    width, height = 960, 420
-    count = len(steps)
-    points = []
-    labels = []
-    for index, step in enumerate(steps):
-        x = 90 + (790 * index / max(count - 1, 1))
-        points.append(f"{x:.1f},220")
-        label = " ".join(word.capitalize() for word in re.split(r"[_-]+", str(step.get("event", "step"))) if word)
-        labels.append(
-            f'<g class="reel-node" style="--delay:{index * 1.2:.1f}s"><circle cx="{x:.1f}" cy="220" r="22"/><text x="{x:.1f}" y="226" text-anchor="middle">{index + 1:02d}</text><text class="reel-label" x="{x:.1f}" y="278" text-anchor="middle">{esc_text(label[:22])}</text></g>'
-        )
-    polyline = " ".join(points)
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">
-<title id="title">Animated solution method for {esc_text(scenario_id)}</title>
-<desc id="desc">A looping evidence path moving through {count} ordered solution steps.</desc>
-<style>
-  :root {{ color-scheme: dark; }}
-  @keyframes reelPulse {{ 0%, 100% {{ opacity: .55; transform: scale(1); }} 50% {{ opacity: 1; transform: scale(1.18); }} }}
-  @keyframes reelTravel {{ from {{ stroke-dashoffset: 900; }} to {{ stroke-dashoffset: 0; }} }}
-  @keyframes reelScan {{ from {{ transform: translateX(-80px); }} to {{ transform: translateX(1040px); }} }}
-  .reel-node {{ transform-box: fill-box; transform-origin: center; animation: reelPulse 2.4s ease-in-out var(--delay) infinite; }}
-  .reel-path {{ fill: none; stroke: {accent}; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 8 14; animation: reelTravel 8s linear infinite; }}
-  .reel-scan {{ opacity: .12; animation: reelScan 4.8s linear infinite; }}
-  text {{ font-family: 'Fira Code', monospace; fill: #f8fafc; }}
-  .reel-label {{ font-size: 13px; fill: #a8b2c7; }}
-  @media (prefers-reduced-motion: reduce) {{ .reel-node, .reel-path, .reel-scan {{ animation: none; }} }}
-</style>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#08121c"/><stop offset=".55" stop-color="#111827"/><stop offset="1" stop-color="#1b1034"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="7" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-<rect width="{width}" height="{height}" rx="24" fill="url(#bg)"/><path d="M0 74H{width}M0 344H{width}" stroke="#ffffff" stroke-opacity=".08"/><path class="reel-scan" d="M0 0V420" stroke="{accent}" stroke-width="120" filter="url(#glow)"/>
-<text x="42" y="48" font-size="12" letter-spacing="2.5" fill="{accent}">MOTION STUDY · EVIDENCE METHOD</text><text x="42" y="82" font-size="24" font-weight="700">Follow the signal. Prove the decision.</text>
-<polyline class="reel-path" points="{polyline}" filter="url(#glow)"/>{''.join(labels)}
-<circle cx="90" cy="220" r="7" fill="#ffffff" filter="url(#glow)"/><text x="42" y="386" font-size="12" fill="#7f8aa3">{esc_text(scenario_id)} · {esc_text(branch)} lane · loops every 8 seconds</text><text x="918" y="386" text-anchor="end" font-size="12" fill="#7f8aa3">ZODIAC SOLUTION STUDIO</text>
-</svg>"""
-
 
 def _svg_escape(value: Any) -> str:
     return (str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&apos;"))
@@ -774,8 +712,8 @@ def _technical_palette(family: str) -> tuple[str, str, str]:
     }.get(family, ("#67e8f9", "#083344", "LOCAL LAB TELEMETRY"))
 
 
-def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
-    """Render a technical animated evidence diagram for one machine-checked step."""
+def _legacy_solution_figure_svg_v2(scenario: dict[str, Any], step_number: int) -> str:
+    """Legacy renderer retained only for migration reference; not used by routes."""
     steps = scenario.get("steps", [])
     if step_number < 1 or step_number > len(steps):
         raise HTTPException(status_code=404, detail="solution figure not found")
@@ -858,8 +796,8 @@ def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
 </svg>"""
 
 
-def solution_reel_svg(scenario: dict[str, Any]) -> str:
-    """Render an animated technical case board for the complete runbook."""
+def _legacy_solution_reel_svg_v2(scenario: dict[str, Any]) -> str:
+    """Legacy renderer retained only for migration reference; not used by routes."""
     steps = list(scenario.get("steps", []))
     if not steps:
         raise HTTPException(status_code=404, detail="solution reel not found")
@@ -960,8 +898,8 @@ def _simple_figure_palette(family: str) -> tuple[str, str]:
     }.get(family, ("#82bec6", "#19282c"))
 
 
-def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
-    """Render a restrained technical figure: action, signal, proof."""
+def _legacy_solution_figure_svg_v3(scenario: dict[str, Any], step_number: int) -> str:
+    """Legacy renderer retained only for migration reference; not used by routes."""
     steps = scenario.get("steps", [])
     if step_number < 1 or step_number > len(steps):
         raise HTTPException(status_code=404, detail="solution figure not found")
@@ -1023,8 +961,8 @@ def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
 </svg>"""
 
 
-def solution_reel_svg(scenario: dict[str, Any]) -> str:
-    """Render a quiet animated runbook sequence instead of a decorative motion reel."""
+def _legacy_solution_reel_svg_v3(scenario: dict[str, Any]) -> str:
+    """Legacy renderer retained only for migration reference; not used by routes."""
     steps = list(scenario.get("steps", []))
     if not steps:
         raise HTTPException(status_code=404, detail="solution reel not found")
@@ -1180,7 +1118,8 @@ def solution_reel_svg(scenario: dict[str, Any]) -> str:
   .reel-action {{ fill: #f5f7fa; font: 600 13px 'Space Grotesk', sans-serif; }}
   .reel-observe {{ fill: #cbd5df; font: 11px 'Fira Code', monospace; }}
   .reel-evidence {{ fill: {accent}; font: 10px 'Fira Code', monospace; }}
-  .reel-node {{ animation: reelQuiet 3s ease-in-out infinite; }}
+  .reel-node {{ animation: reelQuiet 8s ease-in-out infinite; }}
+  svg[data-paused="true"] .reel-node {{ animation-play-state: paused; }}
   @keyframes reelQuiet {{ 0%, 100% {{ opacity: .72; }} 50% {{ opacity: 1; }} }}
   @media (prefers-reduced-motion: reduce) {{ .reel-node {{ animation: none; }} }}
 </style>
@@ -1364,7 +1303,21 @@ def _telemetry_records(scenario: dict[str, Any]) -> list[dict[str, Any]]:
     """
     family = _technical_family(scenario)
     scenario_id = str(scenario.get("id", ""))
-    common = {"scenario_id": scenario_id, "environment": "synthetic-training", "network": "loopback"}
+    telemetry_tags = [str(tag) for tag in scenario.get("threat_tags", [])]
+    if not telemetry_tags:
+        telemetry_tags = [str(concept) for concept in scenario.get("concepts", [])]
+    if not telemetry_tags:
+        telemetry_tags = [str(scenario.get("stage_id", "security-boundary"))]
+    common = {
+        "scenario_id": scenario_id,
+        "stage_id": str(scenario.get("stage_id", "")),
+        "title": str(scenario.get("title", scenario_id)),
+        "threat_tags": telemetry_tags,
+        "detection_rule_ids": [str(rule) for rule in scenario.get("detection_rule_ids", [])],
+        "required_controls": [str(control) for control in scenario.get("required_controls", [])],
+        "environment": "synthetic-training",
+        "network": "loopback",
+    }
     if family == "certificate":
         rows = [
             {"timestamp": "2026-08-17T09:00:01Z", "observer.type": "apm-server", "service.framework.name": "langgraph-planner", "span.name": "plan_llm", "labels.response": "search_certificate_files", "event.outcome": "success", "target": "synthetic-dc-01"},
@@ -1411,7 +1364,12 @@ def _telemetry_records(scenario: dict[str, Any]) -> list[dict[str, Any]]:
             {"timestamp": "2026-08-17T15:00:01Z", "event": str(step.get("event", "scenario-observation")), "observation": str(step.get("observation", "")), "evidence_types": sorted(str(key) for key in step.get("evidence", {}))}
             for step in scenario.get("steps", [])
         ]
-    return [{**common, **row} for row in rows]
+    events = [str(step.get("event", f"step-{index + 1}")) for index, step in enumerate(scenario.get("steps", []))]
+    enriched = []
+    for index, row in enumerate(rows):
+        event = events[min(index, len(events) - 1)] if events else "scenario-observation"
+        enriched.append({**common, **row, "scenario_event": event, "step_number": min(index + 1, len(events)) if events else 1})
+    return enriched
 
 
 @app.get("/api/scenarios/{scenario_id}/telemetry")
