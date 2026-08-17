@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent / "scripts"
 if SCRIPT_DIR.is_dir() and str(SCRIPT_DIR) not in sys.path:
@@ -373,6 +373,17 @@ def trainer_index() -> FileResponse:
     if not TRAINER_UI.is_file():
         raise HTTPException(status_code=404, detail="trainer UI not packaged")
     return FileResponse(TRAINER_UI)
+
+
+@app.get("/assets/covers/{asset_name}")
+def cover_asset(asset_name: str) -> Response:
+    """Serve packaged cinematic cover art without exposing arbitrary filesystem paths."""
+    if not re.fullmatch(r"[a-z0-9-]+\.png", asset_name):
+        raise HTTPException(status_code=404, detail="cover asset not found")
+    cover = Path(__file__).resolve().parent / "assets" / "covers" / asset_name
+    if not cover.is_file():
+        raise HTTPException(status_code=404, detail="cover asset not found")
+    return FileResponse(cover, media_type="image/png")
 
 
 @app.get("/api/range")

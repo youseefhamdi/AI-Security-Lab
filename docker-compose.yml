@@ -84,6 +84,7 @@ services:
       # git pull updates the interface without rebuilding the image. The same
       # applies to the cinematic brand assets served under /docs/assets.
       - ./training-challenges/index.html:/app/index.html:ro
+      - ./training-challenges/assets/covers:/app/assets/covers:ro
       - ./docs/assets:/app/docs/assets:ro
     mem_limit: 128m
 
