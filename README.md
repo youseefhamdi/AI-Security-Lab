@@ -15,9 +15,33 @@
 
 > **Zodiac Bank AI Security Lab** — a hands-on, step-by-step AI security training lab that takes students from absolute scratch to advanced, APT-level skills through a synthetic banking environment covering prompt injection, RAG and memory poisoning, MCP/A2A abuse, agentic supply-chain risk, and SIEM detection.
 
-</div>
+---
+
+### 🖥️ Visual tour
+
+<p align="center">
+  <img src="docs/assets/trainer-ui.png" alt="Zodiac Bank trainer console — challenge catalog with cinematic cover art" width="840" />
+  <br/>
+  <em>The trainer console: a CyberWarfare Live-style challenge catalog with generated key art, per-stage missions, and hard-gate synthesis.</em>
+</p>
+
+| Aurora support chat | Phoenix code review | Assistant API |
+| --- | --- | --- |
+| <img src="docs/assets/aurora-ui.png" alt="Aurora support chatbot UI" width="420" /> | <img src="docs/assets/phoenix-ui.png" alt="Phoenix code reviewer UI" width="420" /> | <img src="docs/assets/assistant-ui.png" alt="Assistant OpenAI-compatible API UI" width="420" /> |
+
+#### Stage key art — 10 labs, one campaign
+
+| L00 · Foundation | L01 · Recon | L02 · Prompt Injection | L03 · RAG | L04 · Agent Protocols |
+| --- | --- | --- | --- | --- |
+| <img src="docs/assets/stage-l00-foundation.png" alt="L00 foundation cover art" width="330" /> | <img src="docs/assets/stage-l01-recon.png" alt="L01 recon cover art" width="330" /> | <img src="docs/assets/stage-l02-prompt-injection.png" alt="L02 prompt injection cover art" width="330" /> | <img src="docs/assets/stage-l03-rag.png" alt="L03 RAG cover art" width="330" /> | <img src="docs/assets/stage-l04-agent-protocols.png" alt="L04 agent protocols cover art" width="330" /> |
+
+| L05 · Memory | L06 · Identity | L07 · Supply Chain | L08 · Detection Evasion | L09 · APT Capstone |
+| --- | --- | --- | --- | --- |
+| <img src="docs/assets/stage-l05-memory.png" alt="L05 memory cover art" width="330" /> | <img src="docs/assets/stage-l06-identity.png" alt="L06 identity cover art" width="330" /> | <img src="docs/assets/stage-l07-supply-chain.png" alt="L07 supply chain cover art" width="330" /> | <img src="docs/assets/stage-l08-detection-evasion.png" alt="L08 detection evasion cover art" width="330" /> | <img src="docs/assets/stage-l09-apt-capstone.png" alt="L09 APT capstone cover art" width="330" /> |
 
 ---
+
+</div>
 
 ## 📚 Contents
 
@@ -87,11 +111,36 @@ The lab models a complete training environment: branches, employees, staff roles
 
 ```mermaid
 flowchart LR
-  A[🎯 100 Scenarios] --> B[🚪 50 Hard Gates]
-  B --> C[🪜 10 Stages]
-  C --> D[🛡️ Phase 1-4 Hardening]
-  D --> E[🧨 APT Capstone]
-  E --> F[✅ Curriculum Complete]
+  A["🎯 100 Scenarios"] --> B["🚪 50 Hard Gates"]
+  B --> C["🪜 10 Stages"]
+  C --> D["🛡️ Phase 1-4 Hardening"]
+  D --> E["🧨 APT Capstone"]
+  E --> F["✅ Curriculum Complete"]
+```
+
+### 🪜 The 10-lab training pipeline
+
+```mermaid
+flowchart LR
+  L00["L00<br/>Foundation"] --> L01["L01<br/>Recon"] --> L02["L02<br/>Prompt Injection"] --> L03["L03<br/>RAG"] --> L04["L04<br/>Agent Protocols"] --> L05["L05<br/>Memory"] --> L06["L06<br/>Identity"] --> L07["L07<br/>Supply Chain"] --> L08["L08<br/>Detection Evasion"] --> L09["L09<br/>APT Capstone"]
+```
+
+| Lab | Focus | Branch |
+| --- | --- | --- |
+| L00 · Foundation | Scope validation · asset identity · evidence custody | Forensics / Defense |
+| L01 · Recon | Service enumeration · metadata drift · trust boundaries | Forensics |
+| L02 · Prompt Injection | Instruction hierarchy · indirect goal hijack | Attack |
+| L03 · RAG | Retrieval provenance · tenant isolation · policy authority | Attack / Defense |
+| L04 · Agent Protocols | A2A delegation · MCP tool trust · confused deputy | Attack / Defense |
+| L05 · Memory | Persistent poisoning · tenant isolation · rollback | Attack |
+| L06 · Identity | Non-human identity · control-plane boundaries | Defense |
+| L07 · Supply Chain | Dependency · artifact · model · CI integrity | Attack / Defense |
+| L08 · Detection Evasion | Canonicalization · telemetry gaps · circuit breaking | Defense / Forensics |
+| L09 · APT Capstone | Campaign correlation · containment · recovery | Recovery |
+
+```mermaid
+flowchart LR
+  A["🔍 Learn"] --> B["🧭 Recon"] --> C["⚔️ Exploit"] --> D["📡 Detect"] --> E["🛡️ Harden"]
 ```
 
 ## ⚔️ ZODIAC BANK brand
@@ -106,8 +155,10 @@ RUNTIME=1 ./scripts/start_all.sh
 
 Brand assets:
 
-- Hero banner: `docs/assets/ai-security-lab-banner.svg`
-- Spartan emblem: `docs/assets/zodiac-spartan-logo.svg`
+| Hero banner | Spartan emblem | Operative key art |
+| --- | --- | --- |
+| <img src="docs/assets/ai-security-lab-banner.svg" alt="Zodiac Bank cinematic banner" width="520" /> | <img src="docs/assets/zodiac-spartan-logo.svg" alt="Zodiac Bank spartan emblem" width="140" /> | <img src="docs/assets/hero-operative.png" alt="Cyber operative hero art" width="420" /> |
+
 - Runtime identity: `ZODIAC BANK SECURITY LAB`
 - Motion-safe behavior: SVG animations stop when the viewer requests reduced motion.
 
@@ -140,6 +191,8 @@ flowchart TB
   ORCH --> GATE
   GATE --> DET
 ```
+
+**One learner journey, one control plane:** every accepted flag promotes the synthetic bank posture, tightens approvals, narrows data scope, and unlocks the next stage until the APT capstone completes the curriculum.
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -1116,6 +1169,17 @@ Strict mode now uses a real multi-step range instead of one-request flag discove
 ```mermaid
 flowchart LR
   L00["L00<br/>Foundation"] --> L01["L01<br/>Recon"] --> L02["L02<br/>Prompt Injection"] --> L03["L03<br/>RAG"] --> L04["L04<br/>Agent Protocols"] --> L05["L05<br/>Memory"] --> L06["L06<br/>Identity"] --> L07["L07<br/>Supply Chain"] --> L08["L08<br/>Detection Evasion"] --> L09["L09<br/>APT Capstone"]
+
+style L00 fill:#1e3a5f,stroke:#22d3ee,color:#e2e8f0
+style L01 fill:#1e3a5f,stroke:#22d3ee,color:#e2e8f0
+style L02 fill:#4a1d3f,stroke:#f472b6,color:#fce7f3
+style L03 fill:#0e4a3a,stroke:#34d399,color:#d1fae5
+style L04 fill:#2e2a5e,stroke:#a78bfa,color:#ede9fe
+style L05 fill:#4a2b12,stroke:#fbbf24,color:#fef3c7
+style L06 fill:#1e3a5f,stroke:#22d3ee,color:#e2e8f0
+style L07 fill:#4a1d1d,stroke:#fb7185,color:#ffe4e6
+style L08 fill:#111827,stroke:#64748b,color:#cbd5e1
+style L09 fill:#3a0d2e,stroke:#f97316,color:#ffedd5
 ```
 
 - **100 scenarios** across all 10 stages, organized into **50 hard gates** (including employee-loop and virtual-settlement paths);
