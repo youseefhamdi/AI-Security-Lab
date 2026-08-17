@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""End-to-end verification of the 100-scenario, 50-hard-gate Zodiac Bank range.
+"""End-to-end verification of the 150-scenario, 75-hard-gate Zodiac Bank range.
 
 The harness drives the real gate and challenge handlers with FastAPI stubbed only
-for offline environments. Each of the 50 gates requires two scenarios, chained
+for offline environments. Each of the 75 gates requires two scenarios, chained
 per-run evidence, gate synthesis, a gate HMAC flag, and gate submission. The
-fifth gate in each stage completes that stage and promotes the dynamic bank
+final gate in each stage completes that stage and promotes the dynamic bank
 profile.
 """
 
@@ -45,16 +45,31 @@ class _Depends:
         self.dependency = dependency
 
 
+class _BaseModel:
+    """Minimal Pydantic-compatible constructor for the offline progression harness."""
+
+    def __init__(self, **values: Any) -> None:
+        for name in self.__annotations__:
+            if name in values:
+                setattr(self, name, values[name])
+
+
 class _Request:
     pass
 
 
+class _Response:
+    """Small response-compatible object for importing the service offline."""
+
+    def __init__(self, content: Any = None, status_code: int = 200, headers: dict[str, str] | None = None, **_kwargs: Any) -> None:
+        self.content = content
+        self.status_code = status_code
+        self.headers = headers or {}
+
+
 class _Responses(ModuleType):
-    class JSONResponse:
-        def __init__(self, content: Any = None, status_code: int = 200, headers: dict[str, str] | None = None, **_kwargs: Any) -> None:
-            self.content = content
-            self.status_code = status_code
-            self.headers = headers or {}
+    class JSONResponse(_Response):
+        pass
 
     class FileResponse:
         def __init__(self, path: str | Path, **_kwargs: Any) -> None:
@@ -89,11 +104,17 @@ class _App:
 
 
 def install_fastapi_stub() -> None:
+    pydantic = ModuleType("pydantic")
+    pydantic.BaseModel = _BaseModel
+    pydantic.Field = lambda default=..., **_kwargs: default
+    sys.modules["pydantic"] = pydantic
+
     fastapi = ModuleType("fastapi")
     fastapi.FastAPI = _App
     fastapi.Header = _Header
     fastapi.HTTPException = _HTTPException
     fastapi.Request = _Request
+    fastapi.Response = _Response
     fastapi.Depends = _Depends
     responses = _Responses("fastapi.responses")
     fastapi.responses = responses
@@ -190,7 +211,7 @@ def synthesize_gate(learner: str, token: str, gate: dict[str, Any], tokens: list
 
 def enroll(cohort: str, learner: str) -> str:
     try:
-        GATE.create_cohort(GATE.CohortRequest(cohort_id=cohort, display_name="100 Scenario Verification"), _=None)
+        GATE.create_cohort(GATE.CohortRequest(cohort_id=cohort, display_name="150 Scenario Verification"), _=None)
     except _HTTPException as exc:
         if exc.status_code != 409:
             raise
@@ -208,7 +229,7 @@ def run_progression() -> dict[str, Any]:
 
     for stage_index, stage_id in enumerate(STAGE_IDS):
         stage_gates = GATES_BY_STAGE[stage_id]
-        assert len(stage_gates) == 5
+        assert len(stage_gates) in {7, 8}
         stage_scenarios = 0
         for gate in stage_gates:
             current = CHALLENGE.list_hard_gates(learner_id=learner, x_training_learner_token=token)
@@ -283,7 +304,7 @@ def run_progression() -> dict[str, Any]:
 
 def main() -> int:
     report = run_progression()
-    print("Zodiac Bank 100-scenario / 50-hard-gate progression — END-TO-END")
+    print("Zodiac Bank 150-scenario / 75-hard-gate progression — END-TO-END")
     print("-" * 82)
     for stage in report["stages"]:
         print(f"  PASS {stage['stage_id']:26} {stage['gates']} hard gates, {stage['scenarios']} scenarios -> {stage['next_stage_id']}")

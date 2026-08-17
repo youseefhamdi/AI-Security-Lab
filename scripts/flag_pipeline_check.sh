@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Live flag-pipeline check: walks all 10 Zodiac Bank stages, 50 hard gates,
-# and 100 scenarios over HTTP.
+# Live flag-pipeline check: walks all 10 Zodiac Bank stages, 75 hard gates,
+# and 150 scenarios over HTTP.
 #
 # Requires the lab services to be running (RUNTIME=1). Every request is issued
 # with curl; python3 is used only to parse JSON and re-derive HMAC flags from
@@ -205,9 +205,9 @@ print(json.dumps({"learner_id":sys.argv[3],"scenario_ids":req["scenario_ids"],"e
   stage_index=$((stage_index + 1))
 done
 
-[[ "${gate_index}" == "50" ]] || fail "expected 50 hard gates, completed ${gate_index}"
+[[ "${gate_index}" == "75" ]] || fail "expected 75 hard gates, completed ${gate_index}"
 http_call POST "${GATE_URL}/api/gates/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"gate_id\":\"G01-scope-baseline\",\"flag\":\"$(expected_gate_flag G01-scope-baseline)\"}"
 [[ "${RESP_CODE}" == "200" ]] || fail "idempotent gate re-submission failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
 [[ "$(jget "${RESP_BODY}" 'd.get("status", "")')" == "completed" ]] || fail "idempotent gate status was not completed"
 log "NEG  idempotent gate re-submission accepted (completed)"
-log "RESULT: 10 stages, 50 hard gates, 100 scenarios verified"
+log "RESULT: 10 stages, 75 hard gates, 150 scenarios verified"

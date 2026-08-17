@@ -1898,7 +1898,7 @@ function renderChallengeGrid() {
   const start = (state.page - 1) * PAGE_SIZE;
   const shown = all.slice(start, start + PAGE_SIZE);
   const countEl = $("results-count");
-  if (countEl) countEl.innerHTML = `${shown.length} ${shown.length === 1 ? "challenge" : "challenges"} shown <span class="muted">· ${all.length} matched · ${allScenarios().length} total · 50 hard gates</span>`;
+  if (countEl) countEl.innerHTML = `${shown.length} ${shown.length === 1 ? "challenge" : "challenges"} shown <span class="muted">· ${all.length} matched · ${allScenarios().length} total · 75 hard gates</span>`;
   const clearBtn = $("clear-filters");
   if (clearBtn) {
     const hasFilters = state.challengeFilters.stage !== "all" || state.challengeFilters.difficulty !== "all" || state.challengeFilters.branch !== "all" || state.challengeFilters.status !== "all" || !!state.challengeFilters.q;
@@ -2977,7 +2977,7 @@ function renderActivity() {
   if (!box) return;
   const rows = [];
   if (state.range) {
-    rows.push({ t: "Range initialized", d: `${state.range.stages.length} stages · 100 scenarios`, kind: "ok" });
+    rows.push({ t: "Range initialized", d: `${state.range.stages.length} stages · 150 scenarios`, kind: "ok" });
   }
   if (state.currentStageId) {
     rows.push({ t: "Current stage", d: state.currentStageId, kind: "accent" });

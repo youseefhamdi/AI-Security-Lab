@@ -62,7 +62,7 @@ def evaluate_control_transfer(
     }
 
 
-def evaluate_scenario_pack(pack: dict[str, Any], *, expected_scenarios: int = 100, expected_gates: int = 50) -> dict[str, Any]:
+def evaluate_scenario_pack(pack: dict[str, Any], *, expected_scenarios: int = 150, expected_gates: int = 75) -> dict[str, Any]:
     scenarios = list(pack.get("scenarios", []))
     gates = list(pack.get("hard_gates", []))
     if len(scenarios) != expected_scenarios or len(gates) != expected_gates:
