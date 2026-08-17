@@ -403,15 +403,153 @@ def solution_playbook(scenario: dict[str, Any]) -> dict[str, str]:
     return playbook
 
 
+def _curl_command(path: str, method: str = "GET", *, query: str = "", headers: list[str] | None = None, body: dict[str, Any] | None = None) -> str:
+    """Build a copy/paste-safe command against the local challenge service."""
+    command = ["curl", "-sS", "-i", "-X", method, '"$LAB' + path + (query or "") + '"']
+    for header in ["X-Training-Learner-Token: $TOKEN", *(headers or [])]:
+        command.extend(["-H", json.dumps(header)])
+    if body is not None:
+        command.extend(["-H", json.dumps("Content-Type: application/json"), "--data", json.dumps(json.dumps(body, separators=(",", ":")))])
+    return " ".join(command)
+
+
+def _technical_family(scenario: dict[str, Any]) -> str:
+    scenario_id = str(scenario.get("id", "")).lower()
+    haystack = " ".join([scenario_id, str(scenario.get("title", "")), *[str(tag) for tag in scenario.get("threat_tags", [])]]).lower()
+    if "certificate" in haystack or "pfx" in haystack:
+        return "certificate"
+    if "mail" in haystack or "exchange" in haystack or "journaling" in haystack:
+        return "mail"
+    if "resume" in haystack or "ocr" in haystack or "document" in haystack:
+        return "document"
+    if "rbcd" in haystack or "delegation" in haystack:
+        return "rbcd"
+    if "kerberos" in haystack or "dcsync" in haystack or "shadow" in haystack:
+        return "identity-telemetry"
+    if "vault" in haystack or "llm" in haystack or "prompt" in haystack or "injection" in haystack:
+        return "prompt"
+    return str(scenario.get("stage_id", "generic"))
+
+
+def technical_runbook(scenario: dict[str, Any]) -> dict[str, Any]:
+    """Return an executable, answer-safe local runbook for a scenario.
+
+    Commands deliberately point at the challenge service and synthetic fixtures.
+    They teach the operator how to produce observations; HMAC-derived evidence
+    values remain learner/run-specific and are never placed in the guide.
+    """
+    scenario_id = str(scenario["id"])
+    family = _technical_family(scenario)
+    steps = list(scenario.get("steps", []))
+    base = f"/api/scenarios/{scenario_id}/telemetry?learner_id=$LEARNER"
+    procedures: list[dict[str, Any]] = []
+    if family == "certificate":
+        queries = [
+            ('observer.type:"apm-server" AND service.framework.name:"langgraph-planner"', "Find the planning span and record its trace/span identifiers."),
+            ('labels.user_input:search_certificate_files AND event.outcome:success', "Confirm certificate discovery completed and count only synthetic artifacts."),
+            ('span.name:tool_crack_pfx_files AND event.outcome:success', "Confirm the password-recovery signal; record the wordlist path, never a password."),
+        ]
+        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
+        expected = ["plan_llm / langgraph-planner fields", "search_certificate_files with success", "crack_pfx_files with a redacted result preview"]
+        remediation = "Verify the fixture shows certificate discovery, copy, cracking, and authentication as separate authorized events; quarantine the synthetic certificate path and rotate the synthetic identity."
+    elif family == "mail":
+        queries = [
+            ('service.name:"redteam_crew" AND labels.user_request:DCSync', "Locate the AI request and its selected credential-access plan."),
+            ('labels.final_output:TransportRule', "Correlate AI output with Exchange rule creation."),
+            ('powershell.file.script_block_text:DeleteMessage', "Verify the destructive mail-flow action in PowerShell telemetry."),
+        ]
+        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
+        expected = ["DCSync / DRSUAPI request", "New-TransportRule", "DeleteMessage with pre-delivery suppression"]
+        remediation = "Disable the synthetic transport rule, revoke the delegated Exchange identity, preserve message-tracking evidence, and require re-approval for mail-flow changes."
+    elif family == "document":
+        queries = [
+            ('pipeline:document-parser AND source:resume-fixture', "Establish the visible-document baseline and parser provenance."),
+            ('parser_output:instruction-like AND occlusion:hidden', "Identify hidden or low-contrast content treated as an instruction."),
+            ('decision:shortlist AND review:missing', "Prove the classifier decision crossed the human-review boundary."),
+        ]
+        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
+        expected = ["document parser source and checksum", "instruction-like parsed content", "shortlist decision without review approval"]
+        remediation = "Quarantine the document fixture, discard parser instructions from the decision context, and require an independent human review record before accepting a hiring decision."
+    elif family == "rbcd":
+        queries = [
+            ('tool:find_rbcd AND event.outcome:success', "Identify the synthetic computer with delegation configured."),
+            ('tool:create_machine_account AND event.outcome:success', "Record the created machine account identifier without reusing its secret."),
+            ('tool:set_rbcd OR tool:exploit_rbcd', "Correlate delegation configuration with the final administrative-share access signal."),
+        ]
+        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
+        expected = ["find_rbcd result", "create_machine_account result with secret redacted", "set_rbcd followed by exploit_rbcd and C$ access"]
+        remediation = "Remove the synthetic delegation relationship, delete the synthetic machine account, rotate its secret, and verify the target's delegation allow-list is restored."
+    elif family == "identity-telemetry":
+        queries = [
+            ('identity:directory AND operation:DCSync', "Locate directory replication or credential-access telemetry."),
+            ('authentication:kerberos OR operation:ticket', "Correlate ticket generation with the requesting synthetic identity."),
+            ('privilege:administrator AND outcome:success', "Validate the privileged authentication signal without exposing hashes or tickets."),
+        ]
+        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
+        expected = ["DCSync or directory replication event", "ticket operation with audience/identity", "privileged authentication success with secrets redacted"]
+        remediation = "Disable and rotate the synthetic identity, invalidate its tickets, review directory replication rights, and verify the least-privilege policy."
+    elif family == "prompt":
+        queries = [
+            ('surface:assistant AND view:baseline', "Capture a normal assistant response before introducing untrusted content."),
+            ('content:instruction-like AND trust:untrusted', "Locate the prompt, email, OCR, or tool-description content that crossed the instruction boundary."),
+            ('action:tool-call OR action:approval', "Verify whether validation and approval stopped the consequential path."),
+        ]
+        commands = [_curl_command(base, query="&query=" + query.replace(" ", "%20")) for query, _ in queries]
+        expected = ["baseline assistant/tool inventory", "untrusted instruction-like content", "blocked or approval-bound action"]
+        remediation = "Keep retrieved/document content in a data-only context, validate structured output, allow-list tools, and require explicit approval for every consequential action."
+    else:
+        endpoint_map = {
+            "L00-foundation": ("/health", "Confirm the service is healthy and local before touching the scenario."),
+            "L01-recon": ("/api/models?debug=1", "Compare normal and diagnostic model inventory responses and headers."),
+            "L02-prompt-injection": ("/api/support/chat", "Send a harmless controlled message and compare it with a baseline response."),
+            "L03-rag": ("/api/rag/query", "Compare published-only retrieval with the explicit synthetic draft fixture."),
+            "L04-agent-protocols": ("/api/agent/dispatch", "Test the delegated tool/path boundary using the documented synthetic request."),
+            "L05-memory": ("/api/memory/search", "Compare one synthetic user/run scope with a different run scope."),
+            "L06-identity-control-plane": ("/api/admin/approval", "Compare a request without identity claims with the synthetic risk-engine claim."),
+            "L07-supply-chain": ("/api/ci/artifacts", "Test artifact-name validation with a traversal-shaped synthetic name."),
+            "L08-detection-evasion": ("/api/logs/search", "Compare normal search normalization with the documented stealth fixture."),
+            "L09-apt-capstone": ("/api/campaign/execute", "Submit only previously earned synthetic evidence and inspect campaign correlation."),
+        }
+        endpoint, purpose = endpoint_map.get(str(scenario.get("stage_id")), ("/health", "Confirm the local challenge service is available."))
+        commands = [_curl_command(endpoint)]
+        queries = [(endpoint, purpose)]
+        expected = ["HTTP status, response body, and relevant response headers"]
+        remediation = "Record the control failure, apply the scenario's required controls, and rerun the same local request to verify the decision changed."
+    for index, step in enumerate(steps):
+        query, purpose = queries[min(index, len(queries) - 1)]
+        evidence_keys = sorted(str(key) for key in step.get("evidence", {}).keys())
+        procedures.append({
+            "step": index + 1,
+            "event": str(step.get("event", f"step-{index + 1}")),
+            "operation": purpose,
+            "request": commands[min(index, len(commands) - 1)],
+            "expected_observation": expected[min(index, len(expected) - 1)],
+            "record": ["timestamp", "HTTP status", "response fields", *evidence_keys],
+            "evidence_keys": evidence_keys,
+            "query": query,
+        })
+    return {
+        "family": family,
+        "target": "http://127.0.0.1:8060",
+        "prerequisites": ["Start the lab and use the disclosed localhost target only.", "Set LAB=http://127.0.0.1:8060 and keep the learner token out of screenshots.", "Capture headers and body separately; do not paste secrets into evidence."],
+        "start_command": f'LAB=http://127.0.0.1:8060; SCENARIO={scenario_id}; curl -sS -X POST "$LAB/api/scenarios/$SCENARIO/start" -H "X-Training-Learner-Token: $TOKEN" -H "Content-Type: application/json" --data \'{{"learner_id":"$LEARNER"}}\'',
+        "procedures": procedures,
+        "remediation": remediation,
+        "cleanup": f'curl -sS -X POST "$LAB/api/scenarios/{scenario_id}/reset" -H "X-Training-Learner-Token: $TOKEN" -H "Content-Type: application/json" --data \'{{"learner_id":"$LEARNER"}}\'',
+        "evidence_note": "The guide exposes evidence keys and safe observations, not the per-run expected values. Use Next-step hint and the candidate chips, then submit the event in order.",
+    }
+
+
 def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
-    """Build a premium, scenario-aware walkthrough without leaking answers."""
+    """Build a technical, answer-safe walkthrough tied to local procedures."""
     branch = str(scenario.get("branch", "forensics"))
     playbook = solution_playbook(scenario)
+    runbook = technical_runbook(scenario)
     method_by_branch = {
-        "attack": "Reproduce the declared signal on the localhost target, then stop before any real side effect.",
-        "defense": "Establish the clean baseline first, introduce one controlled variation, and compare the resulting signal.",
-        "forensics": "Preserve the observation, validate its provenance, and correlate it before drawing a conclusion.",
-        "recovery": "Contain the synthetic impact, verify the control boundary, and document the recovery proof.",
+        "attack": "Reproduce the declared signal on the localhost target, preserve the request/response pair, then stop before any real side effect.",
+        "defense": "Establish the clean baseline first, introduce one controlled variation, compare the response, and rerun after remediation.",
+        "forensics": "Preserve headers and body, validate provenance, correlate the event with the declared detection rule, and document the decision.",
+        "recovery": "Contain the synthetic impact, rotate or quarantine the affected identity/data path, then rerun the same verification request.",
     }
     phases = ["Orient", "Observe", "Validate", "Contain", "Recover"]
     steps = []
@@ -420,37 +558,32 @@ def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
         event = str(step.get("event", f"step-{index + 1}"))
         title = " ".join(word.capitalize() for word in re.split(r"[_-]+", event) if word)
         evidence_keys = sorted(str(key) for key in step.get("evidence", {}).keys())
+        procedure = runbook["procedures"][min(index, len(runbook["procedures"]) - 1)]
         phase = phases[min(index, len(phases) - 1)]
-        if index == 0:
-            action = "Establish scope and baseline"
-            look_for = playbook["setup"]
-        elif index == total - 1:
-            action = "Reconcile and close the chain"
-            look_for = playbook["finish"]
-        else:
-            action = "Run the controlled investigation"
-            look_for = playbook["investigation"]
-        steps.append(
-            {
-                "step": index + 1,
-                "event": event,
-                "title": title or f"Step {index + 1}",
-                "phase": phase,
-                "action": action,
-                "look_for": look_for,
-                "text": str(step.get("observation", "")),
-                "method": method_by_branch.get(branch, method_by_branch["forensics"]),
-                "success_look": f"Record the {', '.join(evidence_keys) or 'bounded observation'} evidence, explain the signal, and continue only when the decision is defensible.",
-                "evidence_keys": evidence_keys,
-                "figure": f"/assets/solution/{scenario['id']}/{index + 1}.svg",
-            }
-        )
+        steps.append({
+            "step": index + 1,
+            "event": event,
+            "title": title or f"Step {index + 1}",
+            "phase": phase,
+            "action": procedure["operation"],
+            "look_for": procedure["expected_observation"],
+            "text": str(step.get("observation", "")),
+            "method": method_by_branch.get(branch, method_by_branch["forensics"]),
+            "request": procedure["request"],
+            "query": procedure["query"],
+            "record": procedure["record"],
+            "success_look": f"The request produces the expected observation; record {', '.join(evidence_keys) or 'bounded evidence'} and submit the machine event in order.",
+            "evidence_keys": evidence_keys,
+            "figure": f"/assets/solution/{scenario['id']}/{index + 1}.svg",
+        })
     return {
-        "intro": "This is a guided investigation, not an answer dump. Watch the motion reel, follow the method, inspect the disclosed localhost surface, and submit only evidence you can explain.",
+        "version": "technical-runbook-v3",
+        "intro": "Technical runbook: execute the local request, inspect the response/telemetry, record the declared fields, and submit the matching evidence event. The guide does not disclose the per-run answers.",
         "reel": f"/assets/solution/{scenario['id']}/reel.svg",
         "motion": {"duration_seconds": 8, "format": "animated-svg", "reduced_motion_supported": True},
-        "method": "Orient → observe → validate → decide. Each chapter maps 1:1 to a machine-checked question.",
+        "method": "Setup → baseline → controlled test → correlate → remediate → verify. Every chapter maps to one machine-checked event.",
         "playbook": playbook,
+        "runbook": runbook,
         "steps": steps,
     }
 
@@ -486,7 +619,10 @@ def solution_figure_svg(scenario: dict[str, Any], step_number: int) -> str:
     stage_id = str(scenario.get("stage_id", ""))
     scenario_id = str(scenario.get("id", ""))
     width, height = 840, 400
-    lines = _wrap_svg_text(observation)
+    runbook = technical_runbook(scenario)
+    procedure = runbook["procedures"][step_number - 1] if step_number <= len(runbook["procedures"]) else None
+    figure_copy = f"{procedure['operation']}. Observe: {procedure['expected_observation']}." if procedure else observation
+    lines = _wrap_svg_text(figure_copy)
     esc_text = lambda value: (  # noqa: E731 - tiny local escaper for SVG text
         value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
     )
@@ -759,6 +895,87 @@ def trainer_range(x_training_learner_token: str = Header(default=""), learner_id
             }
             for stage_id in STAGES
         ],
+    }
+
+
+def _telemetry_records(scenario: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return safe synthetic telemetry records for the technical runbook.
+
+    These records model the investigation surfaces from the CWF briefs while
+    redacting passwords, hashes, tokens, and private customer content.
+    """
+    family = _technical_family(scenario)
+    scenario_id = str(scenario.get("id", ""))
+    common = {"scenario_id": scenario_id, "environment": "synthetic-training", "network": "loopback"}
+    if family == "certificate":
+        rows = [
+            {"timestamp": "2026-08-17T09:00:01Z", "observer.type": "apm-server", "service.framework.name": "langgraph-planner", "span.name": "plan_llm", "labels.response": "search_certificate_files", "event.outcome": "success", "target": "synthetic-dc-01"},
+            {"timestamp": "2026-08-17T09:00:04Z", "span.name": "tool_search_certificate_files", "event.outcome": "success", "labels.result_preview": "5 synthetic PFX fixtures discovered; secret material redacted"},
+            {"timestamp": "2026-08-17T09:00:09Z", "span.name": "tool_copy_certificate_file", "event.outcome": "success", "labels.result_preview": "4 synthetic certificate fixtures copied; one fixture not copied"},
+            {"timestamp": "2026-08-17T09:00:13Z", "span.name": "tool_crack_pfx_files", "event.outcome": "success", "labels.wordlist_path": "/opt/lab/fixtures/rockyou.txt", "labels.results_preview": "password values redacted"},
+            {"timestamp": "2026-08-17T09:00:18Z", "span.name": "tool_execute_with_certificate", "event.outcome": "success", "labels.certificate": "administrator.pfx", "labels.result_preview": "administrator authentication; NTLM material redacted"},
+        ]
+    elif family == "mail":
+        rows = [
+            {"timestamp": "2026-08-17T10:00:01Z", "service.name": "redteam_crew", "labels.user_request": "DCSync with svc_backup", "labels.plan": "ImpacketTool / secretsdump", "event.outcome": "success"},
+            {"timestamp": "2026-08-17T10:00:06Z", "service.name": "redteam_crew", "labels.final_output": "DRSUAPI credential extraction; Administrator material redacted", "event.outcome": "success"},
+            {"timestamp": "2026-08-17T10:00:12Z", "service.name": "redteam_crew", "labels.plan": "Exchange PowerShell / New-TransportRule", "event.outcome": "success"},
+            {"timestamp": "2026-08-17T10:00:16Z", "winlog.channel": "Microsoft-Windows-PowerShell/Operational", "event.code": 4104, "powershell.file.script_block_text": "New-TransportRule; DeleteMessage $true", "event.outcome": "success"},
+            {"timestamp": "2026-08-17T10:00:20Z", "log.type": "exchange-message-tracking", "event.action": "DeleteMessage", "delivery": "before mailbox delivery", "target": "synthetic-mailbox"},
+        ]
+    elif family == "document":
+        rows = [
+            {"timestamp": "2026-08-17T11:00:01Z", "pipeline": "document-parser", "source": "resume-fixture", "representation": "visible-text", "event.outcome": "success"},
+            {"timestamp": "2026-08-17T11:00:04Z", "pipeline": "document-parser", "source": "resume-fixture", "parser_output": "instruction-like", "occlusion": "hidden", "trust": "untrusted"},
+            {"timestamp": "2026-08-17T11:00:08Z", "classifier": "resume-screening", "decision": "shortlist", "review": "missing", "event.outcome": "success"},
+        ]
+    elif family == "rbcd":
+        rows = [
+            {"timestamp": "2026-08-17T12:00:01Z", "tool": "find_rbcd", "event.outcome": "success", "labels.final_answer": "synthetic target computer identified"},
+            {"timestamp": "2026-08-17T12:00:05Z", "tool": "create_machine_account", "event.outcome": "success", "labels.result_preview": "synthetic machine account created; password and NTLM hash redacted"},
+            {"timestamp": "2026-08-17T12:00:09Z", "tool": "set_rbcd", "event.outcome": "success", "labels.result_preview": "synthetic delegation relationship configured"},
+            {"timestamp": "2026-08-17T12:00:14Z", "tool": "exploit_rbcd", "event.outcome": "success", "command": "dir \\\\synthetic-target\\C$", "share": "C$"},
+        ]
+    elif family == "identity-telemetry":
+        rows = [
+            {"timestamp": "2026-08-17T13:00:01Z", "operation": "DCSync", "service": "directory-replication", "identity": "synthetic-service-account", "event.outcome": "success"},
+            {"timestamp": "2026-08-17T13:00:07Z", "operation": "ticket-generation", "authentication": "Kerberos", "audience": "synthetic-service", "event.outcome": "success"},
+            {"timestamp": "2026-08-17T13:00:12Z", "privilege": "Administrator", "authentication": "certificate-or-ticket", "event.outcome": "success", "secrets": "redacted"},
+        ]
+    elif family == "prompt":
+        rows = [
+            {"timestamp": "2026-08-17T14:00:01Z", "surface": "assistant", "view": "baseline", "tools": "declared tools only", "event.outcome": "success"},
+            {"timestamp": "2026-08-17T14:00:05Z", "content": "instruction-like", "trust": "untrusted", "source": "synthetic fixture", "event.outcome": "detected"},
+            {"timestamp": "2026-08-17T14:00:09Z", "action": "tool-call-or-approval", "authorization": "approval-required", "result": "blocked", "event.outcome": "success"},
+        ]
+    else:
+        rows = [
+            {"timestamp": "2026-08-17T15:00:01Z", "event": str(step.get("event", "scenario-observation")), "observation": str(step.get("observation", "")), "evidence_types": sorted(str(key) for key in step.get("evidence", {}))}
+            for step in scenario.get("steps", [])
+        ]
+    return [{**common, **row} for row in rows]
+
+
+@app.get("/api/scenarios/{scenario_id}/telemetry")
+def scenario_telemetry(scenario_id: str, query: str = "", learner_id: str = "", x_training_learner_token: str = Header(default="")) -> dict[str, Any]:
+    """Query answer-safe synthetic telemetry used by CWF-style runbooks."""
+    learner_id = safe_learner(learner_id)
+    require_learner_access(learner_id, x_training_learner_token)
+    scenario = SCENARIO_BY_ID.get(scenario_id)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail="unknown scenario")
+    require_current_stage(learner_id, scenario["stage_id"])
+    records = _telemetry_records(scenario)
+    terms = [term for term in re.findall(r"[A-Za-z0-9_.-]+", query.lower()) if term not in {"and", "or"}]
+    if terms:
+        records = [record for record in records if any(term in json.dumps(record, sort_keys=True).lower() for term in terms)]
+    return {
+        "scenario_id": scenario_id,
+        "query": query,
+        "synthetic": True,
+        "record_count": len(records),
+        "records": records,
+        "redactions": ["password", "ntlm_hash", "bearer_token", "private_customer_content", "expected_evidence_values"],
     }
 
 

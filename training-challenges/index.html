@@ -825,6 +825,34 @@
   .flow-lane.locked { opacity: .72; }
   .flow-art-note { margin: 10px 0 0; font-size: 12px; color: #66667a; line-height: 1.5; }
 
+  /* technical solution runbook */
+  .sol-runbook { position: relative; z-index: 1; margin: 16px 0 18px; padding: 16px; border: 1px solid rgba(0,212,255,.28); border-radius: 14px; background: linear-gradient(145deg, rgba(4,12,22,.9), rgba(17,24,39,.86)); }
+  .sol-runbook-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .sol-runbook-head h4 { margin: 4px 0 0; color: var(--text); font-size: 19px; }
+  .sol-runbook-note { margin: 10px 0 13px; color: var(--text-3); font-size: 12.5px; line-height: 1.55; }
+  .sol-prereqs { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 14px; }
+  .sol-prereqs strong { width: 100%; color: var(--yellow); font: 700 9px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; }
+  .sol-prereqs span { padding: 6px 9px; border: 1px solid rgba(255,191,36,.22); border-radius: 8px; color: var(--text-3); background: rgba(255,191,36,.05); font-size: 11px; }
+  .sol-command-label { margin: 9px 0 5px; color: var(--cyan); font: 700 9px var(--mono); letter-spacing: 1.3px; text-transform: uppercase; }
+  .sol-command { margin: 0; overflow-x: auto; padding: 11px 12px; border: 1px solid rgba(0,212,255,.2); border-radius: 9px; background: #050a11; color: #b9f5ff; font: 11px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; }
+  .sol-command code { color: inherit; }
+  .sol-procedures { display: grid; gap: 9px; margin-top: 14px; }
+  .sol-procedure { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 11px; border: 1px solid rgba(255,255,255,.1); border-radius: 11px; background: rgba(0,0,0,.2); }
+  .sol-procedure-index { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: rgba(124,58,237,.2); color: #c4b5fd; font: 700 10px var(--mono); }
+  .sol-procedure-body { min-width: 0; }
+  .sol-procedure-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  .sol-procedure-head strong { color: var(--text); font-size: 13px; }
+  .sol-procedure-head code { color: var(--cyan); font: 10px var(--mono); }
+  .sol-procedure-purpose { margin: 4px 0 6px; color: var(--text-3); font-size: 11.5px; line-height: 1.45; }
+  .sol-procedure-grid { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr); gap: 8px; margin-top: 8px; }
+  .sol-procedure-grid > div { min-width: 0; padding: 8px; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: rgba(255,255,255,.03); }
+  .sol-procedure-grid span { display: block; margin-bottom: 4px; color: var(--muted); font: 700 8px var(--mono); letter-spacing: .9px; text-transform: uppercase; }
+  .sol-procedure-grid code { color: #d8b4fe; font: 10px/1.4 var(--mono); overflow-wrap: anywhere; }
+  .sol-procedure-grid .chip { padding: 3px 6px; font-size: 9.5px; }
+  .sol-remediation { margin-top: 13px; padding: 11px; border: 1px solid rgba(0,255,136,.2); border-radius: 10px; background: rgba(0,255,136,.04); }
+  .sol-remediation strong { color: var(--green); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .sol-remediation p { margin: 5px 0 0; color: var(--text-3); font-size: 12px; line-height: 1.5; }
+
   /* solution / synthesis */
   .syn-chips { margin: 8px 0 14px; }
   .syn-field { margin-top: 12px; }
@@ -1185,7 +1213,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.6V11c0 4.4-3 7.6-7 9.4-4-1.8-7-5-7-9.4V5.6L12 3z"/><path d="M9 11.5l2 2 4-4"/></svg>
           </span>
           <h3>Hard gates</h3>
-          <p>50 synthesis gates that validate evidence chains, detection coverage and required controls.</p>
+          <p>75 synthesis gates that validate evidence chains, detection coverage and required controls.</p>
         </div>
         <div class="feature-card">
           <span class="feature-cover" aria-hidden="true" style="background:linear-gradient(135deg, #ff3366, #ff6b35)">
@@ -2529,7 +2557,22 @@ function renderSolutionGuide(sc) {
   const guide = sc.solution_guide || { steps: [] };
   const guideSteps = guide.steps || [];
   const playbook = guide.playbook || {};
+  const runbook = guide.runbook || { prerequisites: [], procedures: [], remediation: "", cleanup: "" };
   const reel = guide.reel || `/assets/solution/${encodeURIComponent(sc.scenario_id)}/reel.svg`;
+  const procedureRows = (runbook.procedures || []).map((p) => `
+    <article class="sol-procedure">
+      <div class="sol-procedure-index">${String(p.step).padStart(2, "0")}</div>
+      <div class="sol-procedure-body">
+        <div class="sol-procedure-head"><strong>${esc(p.operation)}</strong><code>${esc(p.event)}</code></div>
+        <p class="sol-procedure-purpose">${esc(p.expected_observation)}</p>
+        <div class="sol-command-label">REQUEST / QUERY</div>
+        <pre class="sol-command"><code>${esc(p.request)}</code></pre>
+        <div class="sol-procedure-grid">
+          <div><span>Query target</span><code>${esc(p.query)}</code></div>
+          <div><span>Record</span><div class="chip-grid">${chips(p.record, "timestamp and response")}</div></div>
+        </div>
+      </div>
+    </article>`).join("");
   const markers = guideSteps.map((s) => `
     <div class="sol-reel-marker"><b>${String(s.step).padStart(2, "0")}</b><span>${esc(s.phase || s.title)}</span></div>`).join("");
   const steps = guideSteps.map((s) => `
@@ -2557,11 +2600,11 @@ function renderSolutionGuide(sc) {
     <div class="solution-studio">
       <div class="sol-studio-head">
         <div>
-          <span class="sol-kicker">ZODIAC SOLUTION STUDIO · VISUAL WALKTHROUGH</span>
+          <span class="sol-kicker">ZODIAC SOLUTION STUDIO · TECHNICAL RUNBOOK V3</span>
           <h3 class="sol-studio-title">Watch the method. Then run the evidence.</h3>
           <p class="sol-studio-copy">${esc(guide.intro || "Follow the signal in order and submit only evidence you can explain.")}</p>
         </div>
-        <div class="sol-reel-meta"><span class="pill accent">${guideSteps.length} chapters</span><span class="pill ok">animated figure</span><span class="pill">8 sec loop</span></div>
+        <div class="sol-reel-meta"><span class="pill accent">${guideSteps.length} procedures</span><span class="pill ok">${esc(guide.version || "technical-runbook")}</span><span class="pill">8 sec loop</span></div>
       </div>
       <div class="sol-playbook" aria-label="Solution playbook">
         <div class="sol-playbook-card"><span class="sol-playbook-label">Mission brief</span><p>${esc(playbook.mission || sc.objective)}</p></div>
@@ -2570,6 +2613,14 @@ function renderSolutionGuide(sc) {
         <div class="sol-playbook-card"><span class="sol-playbook-label">Finish condition</span><p>${esc(playbook.finish || "Reconcile the evidence chain before closing the lab.")}</p></div>
         <div class="sol-playbook-card boundary"><span class="sol-playbook-label">Safety boundary</span><p>${esc(playbook.boundary || "Synthetic localhost-only exercise. No real credentials or side effects.")}</p></div>
       </div>
+      <section class="sol-runbook" aria-label="Technical runbook">
+        <div class="sol-runbook-head"><div><span class="sol-kicker">OPERATOR RUNBOOK · ${esc(runbook.family || "synthetic lab")}</span><h4>Execute the local procedure</h4></div><span class="pill accent">${(runbook.procedures || []).length} verified actions</span></div>
+        <p class="sol-runbook-note">${esc(runbook.evidence_note || "Run each request locally, inspect the response, then submit the matching machine event.")}</p>
+        <div class="sol-prereqs"><strong>Before you start</strong>${(runbook.prerequisites || []).map((item) => `<span>✓ ${esc(item)}</span>`).join("")}</div>
+        <div class="sol-command-label">START THE RUN</div><pre class="sol-command"><code>${esc(runbook.start_command || "LAB=http://127.0.0.1:8060")}</code></pre>
+        <div class="sol-procedures">${procedureRows}</div>
+        <div class="sol-remediation"><strong>Remediate and verify</strong><p>${esc(runbook.remediation || "Apply the declared controls and repeat the same local request.")}</p><div class="sol-command-label">CLEANUP / RESET</div><pre class="sol-command"><code>${esc(runbook.cleanup || "POST /api/scenarios/{scenario_id}/reset")}</code></pre></div>
+      </section>
       <div class="sol-reel" data-reel>
         <img src="${esc(reel)}" alt="Animated solution path for ${esc(sc.title)}" width="960" height="420" decoding="async" />
         <div class="sol-reel-controls"><button type="button" data-reel-toggle aria-label="Pause solution animation" aria-pressed="false">Ⅱ</button></div>
@@ -3175,7 +3226,7 @@ function renderDashboard() {
     stats.innerHTML = `
       <div class="stat"><b class="num">${completed}</b><span>/ ${stages.length || 10} stages</span></div>
       <div class="stat"><b class="num">${esc(gatesDone)}</b><span>/ ${esc(gatesTotal)} hard gates</span></div>
-      <div class="stat"><b class="num">100</b><span>scenarios</span></div>
+      <div class="stat"><b class="num">150</b><span>scenarios</span></div>
       <div class="stat"><b class="num">L${profile ? esc(profile.level) : "—"}</b><span>current level</span></div>`;
   }
   renderProgression();
