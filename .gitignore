@@ -1,5 +1,6 @@
 .env
 .env.*
+!.env.example
 
 # Docker volumes and runtime state
 volumes/

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/youseefhamdi/AI-Security-Lab#-contents
+    about: Read the README and docs before opening an issue.
+  - name: Security advisory
+    url: https://github.com/youseefhamdi/AI-Security-Lab/security/advisories/new
+    about: Report a suspected vulnerability privately (see SECURITY.md).

@@ -43,8 +43,41 @@
 
 </div>
 
+## 🚀 Quick start
+
+First run? Get from clone to the trainer console in ~5 minutes.
+
+```bash
+git clone https://github.com/youseefhamdi/AI-Security-Lab.git
+cd AI-Security-Lab
+make setup          # copy .env + generate strong local secrets
+make up             # start the core lab (detects an inference provider)
+```
+
+Then open **http://127.0.0.1:8060** and log in with a learner you create:
+
+```bash
+export TRAINING_ADMIN_KEY='<instructor key from .env>'
+python3 scripts/zodiac_bank_admin.py cohort-create cohort-2026 "My Cohort"
+python3 scripts/zodiac_bank_admin.py cohort-add cohort-2026 analyst-01  # returns learner token
+```
+
+Need a model? Drop any `.gguf` under `models/` (a small one is fine), or start
+Ollama / LM Studio first — the lab auto-detects it and **never downloads a
+model**. Full walkthrough: [docs/quickstart.md](docs/quickstart.md).
+
+> **Podman?** The same commands work. For a host inference backend set
+> `INFERENCE_CONTAINER_HOST=host.containers.internal` in `.env`.
+
+**No Docker yet?** Verify the whole lab offline: `make verify`.
+
+---
+
 ## 📚 Contents
 
+- [Quick start](#-quick-start)
+- [Architecture overview](docs/architecture.md)
+- [Contributing](CONTRIBUTING.md) · [Code of conduct](CODE_OF_CONDUCT.md) · [Security policy](SECURITY.md)
 - [What this project is](#-what-this-project-is)
 - [About Zodiac Bank](#-about-zodiac-bank-ai-security-lab)
 - [ZODIAC BANK brand](#-zodiac-bank-brand)

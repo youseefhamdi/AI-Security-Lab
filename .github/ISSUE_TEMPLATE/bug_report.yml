@@ -1,0 +1,63 @@
+name: Bug report
+description: Report a defect or regression in the lab
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill this out so we can reproduce it.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear, concise description of the bug.
+      placeholder: "When I run X, I expect Y but get Z."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Ordered steps to trigger the bug.
+      placeholder: "1. Run `make up`\n2. Open http://127.0.0.1:8060\n3. ..."
+    validations:
+      required: true
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Runtime profile
+      options:
+        - core
+        - lite
+        - full
+        - offline (no services)
+    validations:
+      required: true
+  - type: dropdown
+    id: security-mode
+    attributes:
+      label: Security mode
+      options:
+        - strict
+        - development
+        - not sure
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: OS and Docker/Podman setup.
+      placeholder: "Ubuntu 24.04, Docker Desktop / Podman"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      description: Paste any error output. Wrap in triple backticks.
+      render: shell
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that helps — commit hash, model used, etc.
