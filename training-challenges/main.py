@@ -47,7 +47,7 @@ from zodiac_scenario_engine import (  # noqa: E402
 
 CONFIG = RuntimeConfig.from_env(challenge=True)
 CATALOG = Catalog.load(CONFIG)
-validate_security(CONFIG)
+validate_security(CONFIG, require_admin=False)
 STORE = ProgressStore(CONFIG, CATALOG)
 RUNS = ChallengeStore(CONFIG)
 SCENARIOS = CATALOG.pack

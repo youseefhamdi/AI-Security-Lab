@@ -252,10 +252,12 @@ class ChallengeStore:
         db.commit(); return db
 
 
-def validate_security(config: RuntimeConfig) -> None:
+def validate_security(config: RuntimeConfig, *, require_admin: bool = True) -> None:
     if config.security_mode != "strict": return
-    if config.secret == DEFAULT_FLAG_SECRET.encode() or len(config.secret) < 32: raise RuntimeError("strict security requires TRAINING_FLAG_SECRET with at least 32 bytes")
-    if not config.admin_key or len(config.admin_key) < 24: raise RuntimeError("strict security requires TRAINING_ADMIN_KEY with at least 24 characters")
+    if config.secret == DEFAULT_FLAG_SECRET.encode() or len(config.secret) < 32:
+        raise RuntimeError("strict security requires TRAINING_FLAG_SECRET with at least 32 bytes")
+    if require_admin and (not config.admin_key or len(config.admin_key) < 24):
+        raise RuntimeError("strict security requires TRAINING_ADMIN_KEY with at least 24 characters")
 
 
 __all__ = ["Catalog", "ChallengeStore", "DEFAULT_FLAG_SECRET", "FLAG_HEX_LENGTH", "ProgressStore", "RuntimeConfig", "gate_flag", "hmac_flag", "normalize_flag", "stage_flag", "utc_now", "validate_id", "validate_security"]
