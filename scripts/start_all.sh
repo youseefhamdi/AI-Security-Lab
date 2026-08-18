@@ -12,7 +12,7 @@ print_brand() {
   if [[ "${RUNTIME:-0}" == "1" && -t 1 && "${NO_ANIMATION:-0}" != "1" ]]; then
     local frame
     for frame in '◐' '◓' '◑' '◒'; do
-      printf '\r  [ZODIAC] Spartan core activation %s' "$frame"
+      printf '\r  [ZODIAC] constellation core activation %s' "$frame"
       sleep 0.12
     done
     printf '\033[2K\r'

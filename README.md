@@ -89,7 +89,7 @@ The lab models a complete training environment: branches, employees, staff roles
 
 ### What makes it different
 
-- **Progressive by design:** 10 hard-gated stages, 75 sequential hard gates, and 150 multi-step scenarios require evidence discovery before advancement.
+- **Progressive by design:** 10 hard-gated stages, 83 sequential hard gates, and 166 multi-step scenarios require evidence discovery before advancement.
 - **System-level AI security:** prompt injection, retrieval poisoning, memory persistence, tool misuse, identity, orchestration, fraud, and APT response are tested as connected attack paths.
 - **Operationally realistic:** deterministic intent → authorization → virtual settlement boundaries, maker/checker controls, branch isolation, risk escalation, receipts, and audit evidence.
 - **Threat-to-control mapping:** current agentic, financial-services, payment-fraud, and AI supply-chain risks become reproducible, gated exercises and machine-checked controls that students learn to bypass and then defend.
@@ -103,7 +103,7 @@ The lab models a complete training environment: branches, employees, staff roles
 
 | 🎯 Scenarios | 🚪 Hard gates | 🪜 Stages | 🏦 Branches / staff | 🛡️ Security phases |
 | --- | --- | --- | --- | --- |
-| **150** | **75** | **10** | **3 / 12** | **4** |
+| **166** | **83** | **10** | **3 / 12** | **5** |
 
 | 💥 Attack surface | 🧠 System coverage | 🛰️ Telemetry | 🧱 Runtime profiles |
 | --- | --- | --- | --- |
@@ -111,9 +111,10 @@ The lab models a complete training environment: branches, employees, staff roles
 
 ### 🆕 2026 scenario catalog release
 
-The current catalog covers **January 1, 2026 through August 17, 2026** and expands the original range to 150 bounded scenarios. The added material is research-informed rather than a claim that the lab reproduces any named incident or vendor vulnerability.
+The current catalog covers **January 1, 2026 through August 17, 2026** and expands the original range to 166 bounded scenarios. The added material is research-informed rather than a claim that the lab reproduces any named incident or vendor vulnerability.
 
 - **50 new scenarios** are loaded from `training-config/scenario-expansion-2026.json`.
+- **16 novel agentic-threat scenarios** are loaded from `training-config/scenario-expansion-2026b.json`, closing the coverage gap for threats ZBT-16…23 — agentjacking, agent-to-agent lateral movement, non-human identity lifecycle abuse, multimodal/vision injection, GenAI trace gaps, runtime registry squatting, deepfake fraud orchestration, and evolutionary red-teaming.
 - **9 CWF-style investigation labs** are included: LLM Vault Breach, Zero-Click Email Injection, AI Resume Screening Injection, AI Certificate Heist, AI Mail Assassin, Kerberos TGT Fabrication, Agentic Spy Journaling, AI Shadow Credential Chain, and Agent Impersonation/RBCD.
 - Current themes include agent sandbox boundaries, prompt-queue isolation, MCP and agent-card drift, shell-tool prompt injection, RAG cache isolation, workload identity, token exposure, AI dependency confusion, model-layer tampering, detector drift, low-and-slow evasion, multi-agent correlation, and agentic payment authorization.
 - Every new lab remains **synthetic-training-only**, uses bounded evidence types, forbids external egress, and has no real credentials, real targets, or financial side effects.
@@ -122,7 +123,7 @@ Research context is maintained from CISA 2026 vulnerability bulletins, the [Chec
 
 ```mermaid
 flowchart LR
-  A["🎯 150 Scenarios"] --> B["🚪 75 Hard Gates"]
+  A["🎯 166 Scenarios"] --> B["🚪 83 Hard Gates"]
   B --> C["🪜 10 Stages"]
   C --> D["🛡️ Phase 1-4 Hardening"]
   D --> E["🧨 APT Capstone"]
@@ -156,9 +157,9 @@ flowchart LR
 
 ## ⚔️ ZODIAC BANK brand
 
-The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Spartan defense emblem, hard-gated progression, graph RAG, and APT-range training.
+The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Zodiac constellation mark, hard-gated progression, graph RAG, and APT-range training.
 
-The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a Spartan defense emblem. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 166-scenario and 83-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
+The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a Zodiac constellation mark. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 166-scenario and 83-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
@@ -166,9 +167,9 @@ RUNTIME=1 ./scripts/start_all.sh
 
 Brand assets:
 
-| Hero banner | Spartan emblem | Operative key art |
+| Hero banner | Zodiac constellation mark | Operative key art |
 | --- | --- | --- |
-| <img src="docs/assets/ai-security-lab-banner.svg" alt="Zodiac Bank cinematic banner" width="520" /> | <img src="docs/assets/zodiac-spartan-logo.svg" alt="Zodiac Bank spartan emblem" width="140" /> | <img src="docs/assets/hero-operative.png" alt="Cyber operative hero art" width="420" /> |
+| <img src="docs/assets/ai-security-lab-banner.svg" alt="Zodiac Bank cinematic banner" width="520" /> | <img src="docs/assets/zodiac-mark.svg" alt="Zodiac Bank constellation mark" width="140" /> | <img src="docs/assets/hero-operative.png" alt="Cyber operative hero art" width="420" /> |
 
 - Runtime identity: `ZODIAC BANK SECURITY LAB`
 - Motion-safe behavior: SVG animations stop when the viewer requests reduced motion.
@@ -539,11 +540,11 @@ curl --fail http://127.0.0.1:5050/health
 curl --fail http://127.0.0.1:8060/health
 ```
 
-The health responses should report `150` scenarios and `75` hard gates. The browser trainer also exposes the current lab URL, a step-by-step solution guide with generated figures, the Questions evidence panel, and the flag-submission panel.
+The health responses should report `166` scenarios and `83` hard gates. The browser trainer also exposes the current lab URL, a step-by-step solution guide with generated figures, the Questions evidence panel, and the flag-submission panel.
 
 ### 1. Start the smallest core
 
-Use the branded helper so the ZODIAC Spartan activation appears in the terminal:
+Use the branded helper so the ZODIAC constellation activation appears in the terminal:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
@@ -593,7 +594,7 @@ The bank is dynamic rather than a static lesson list. Each accepted flag atomica
 python3 scripts/zodiac_bank_progression_test.py
 ```
 
-The walkthrough solves all 150 scenarios across 75 hard gates, confirms each hard-gate synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
+The walkthrough solves all 166 scenarios across 83 hard gates, confirms each hard-gate synthesis flag is byte-identical to both services' HMAC formula, and asserts the negative paths (invalid flag → 401, locked-stage flag → 403, wrong evidence and tampered chained proof → 409, idempotent re-submission). It is also wired into the offline evaluator as the `flag_progression_e2e` regression check.
 
 Once the core profile is running, a real learner walks the same journey in the browser:
 

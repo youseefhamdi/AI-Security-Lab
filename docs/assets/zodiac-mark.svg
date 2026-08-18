@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Zodiac constellation mark</title>
+  <desc id="desc">Premium astrological zodiac wheel with a security shield and star constellation inlay.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#12233a"/>
+      <stop offset=".55" stop-color="#0b1626"/>
+      <stop offset="1" stop-color="#06090f"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset=".5" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#67e8f9"/>
+      <stop offset=".55" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset=".5" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="starGlow" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- backplate -->
+  <circle cx="256" cy="256" r="252" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="252" fill="none" stroke="#0f2538" stroke-width="2"/>
+
+  <!-- outer ring -->
+  <circle cx="256" cy="256" r="238" fill="none" stroke="url(#ring)" stroke-width="7" opacity=".95"/>
+  <circle cx="256" cy="256" r="221" fill="none" stroke="#5eead4" stroke-opacity=".22" stroke-width="1.5" stroke-dasharray="2 9"/>
+
+  <!-- constellation web -->
+  <g stroke="#7dd3fc" stroke-opacity=".14" stroke-width="1" fill="none">
+    <polygon points="256,60 354,86 426,158 452,256 426,354 354,426 256,452 158,426 86,354 60,256 86,158 158,86"/>
+    <path d="M256 60 L256 452 M60 256 L452 256 M354 86 L158 426 M158 86 L354 426"/>
+  </g>
+
+  <!-- zodiac nodes: 4 amber cardinal anchors + 8 cyan stars -->
+  <g fill="none">
+    <circle cx="256" cy="60" r="6.5" fill="url(#gold)" filter="url(#starGlow)"/>
+    <circle cx="452" cy="256" r="6.5" fill="url(#gold)" filter="url(#starGlow)"/>
+    <circle cx="256" cy="452" r="6.5" fill="url(#gold)" filter="url(#starGlow)"/>
+    <circle cx="60" cy="256" r="6.5" fill="url(#gold)" filter="url(#starGlow)"/>
+    <g fill="#67e8f9" stroke="#67e8f9" stroke-width="1" opacity=".85">
+      <circle cx="354" cy="86" r="3.4"/>
+      <circle cx="426" cy="158" r="3.4"/>
+      <circle cx="426" cy="354" r="3.4"/>
+      <circle cx="354" cy="426" r="3.4"/>
+      <circle cx="158" cy="426" r="3.4"/>
+      <circle cx="86" cy="354" r="3.4"/>
+      <circle cx="86" cy="158" r="3.4"/>
+      <circle cx="158" cy="86" r="3.4"/>
+    </g>
+  </g>
+
+  <!-- security shield inlay -->
+  <path d="M256 168 L330 200 V262 C330 318 298 346 256 360 C214 346 182 318 182 262 V200 Z"
+        fill="rgba(10,22,36,.72)" stroke="url(#shield)" stroke-width="5" filter="url(#soft)"/>
+  <path d="M256 178 L320 205 V260 C320 308 292 333 256 346 C220 333 192 308 192 260 V205 Z"
+        fill="none" stroke="url(#gold)" stroke-opacity=".55" stroke-width="1.5"/>
+
+  <!-- constellation star -->
+  <path d="M256 216 L268 248 L300 256 L268 264 L256 296 L244 264 L212 256 L244 248 Z"
+        fill="url(#gold)" filter="url(#starGlow)"/>
+  <circle cx="256" cy="256" r="3.6" fill="#fef3c7"/>
+  <circle cx="232" cy="226" r="2" fill="#67e8f9"/>
+  <circle cx="280" cy="286" r="2" fill="#67e8f9"/>
+</svg>
