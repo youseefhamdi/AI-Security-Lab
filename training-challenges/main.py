@@ -192,11 +192,12 @@ def technical_runbook(scenario: dict[str, Any]) -> dict[str, Any]:
 
 
 def solution_guide_view(scenario: dict[str, Any]) -> dict[str, Any]:
-    runbook=technical_runbook(scenario); phases=["Orient","Observe","Validate","Contain","Recover"]
+    runbook=technical_runbook(scenario)
     steps=[]
     for i, step in enumerate(scenario.get("steps", [])):
-        proc=runbook["procedures"][i]; event=str(step.get("event",f"step-{i+1}")); steps.append({"step":i+1,"event":event,"title":event.replace("_"," ").title(),"phase":phases[min(i,4)],"action":proc["operation"],"look_for":proc["expected_observation"],"text":proc["expected_observation"],"request":proc["request"],"record":proc["record"],"evidence_keys":proc["evidence_keys"],"figure":f"/assets/solution/{scenario['id']}/{i+1}.svg"})
-    return {"version":"technical-runbook-v4","intro":f"{runbook['track']['label']} case file. Establish the baseline, run one controlled variation, and close with a redacted {runbook['track']['artifact']} record.","reel":f"/assets/solution/{scenario['id']}/reel.svg","motion":{"reduced_motion_supported":True,"pause_supported":True},"method":"Orient → baseline → controlled test → correlate → remediate → verify.","playbook":{"mission":scenario["objective"],"investigation":f"Trace {scenario['title']} through the declared local surface and preserve the {runbook['track']['artifact']}.","decision":"Keep untrusted content data-only and enforce the declared controls.","finish":"Reconcile observations, detections, controls, and closure proof."},"runbook":runbook,"steps":steps}
+        proc=runbook["procedures"][i]; event=str(step.get("event",f"step-{i+1}")); title=event.replace("_"," ").title(); steps.append({"step":i+1,"event":event,"title":title,"phase":title,"action":proc["operation"],"look_for":proc["expected_observation"],"text":proc["expected_observation"],"request":proc["request"],"record":proc["record"],"evidence_keys":proc["evidence_keys"],"figure":f"/assets/solution/{scenario['id']}/{i+1}.svg"})
+    method=" → ".join(s["title"] for s in steps)+"." if steps else "Establish the baseline, compare, and assert the scope."
+    return {"version":"technical-runbook-v4","intro":f"{runbook['track']['label']} case file. Establish the baseline, run one controlled variation, and close with a redacted {runbook['track']['artifact']} record.","reel":f"/assets/solution/{scenario['id']}/reel.svg","motion":{"reduced_motion_supported":True,"pause_supported":True},"method":method,"playbook":{"mission":scenario["objective"],"investigation":f"Trace {scenario['title']} through the declared local surface and preserve the {runbook['track']['artifact']}.","decision":"Keep untrusted content data-only and enforce the declared controls.","finish":"Reconcile observations, detections, controls, and closure proof."},"runbook":runbook,"steps":steps}
 
 
 def scenario_view(scenario: dict[str, Any], run: Any = None) -> dict[str, Any]:

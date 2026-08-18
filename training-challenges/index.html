@@ -2676,14 +2676,13 @@ function renderSolutionGuide(sc) {
         </div>
       </article>`).join("");
   const markers = guideSteps.map((s) => `
-    <div class="sol-reel-marker"><b>${String(s.step).padStart(2, "0")}</b><span>${esc(s.phase || s.title)}</span></div>`).join("");
+    <div class="sol-reel-marker"><b>${String(s.step).padStart(2, "0")}</b><span>${esc(s.title || s.phase)}</span></div>`).join("");
   const steps = guideSteps.map((s) => `
       <section class="sol-step" id="solution-step-${String(s.step)}">
         <header class="sol-step-head">
           <div>
-            <span class="sol-step-phase">${esc(s.phase || "Investigation")}</span>
+            <span class="sol-step-phase">${esc(s.event)}</span>
             <h4>${esc(s.title)}</h4>
-            <span class="sol-step-event">machine event · <code>${esc(s.event)}</code></span>
           </div>
           <span class="sol-step-count">${String(s.step).padStart(2, "0")} / ${guideSteps.length}</span>
         </header>
