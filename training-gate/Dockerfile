@@ -3,6 +3,7 @@ WORKDIR /app
 COPY training-gate/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY training-gate/main.py .
+COPY lab_core /app/lab_core
 COPY scripts/zodiac_bank_profiles.py .
 COPY scripts/zodiac_scenario_engine.py .
 COPY training-config/bank-profiles.json /app/config/bank-profiles.json

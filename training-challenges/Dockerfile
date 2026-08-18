@@ -3,6 +3,7 @@ WORKDIR /app
 COPY training-challenges/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY training-challenges/main.py .
+COPY lab_core /app/lab_core
 COPY training-challenges/index.html .
 COPY training-challenges/assets/flows /app/assets/flows
 COPY docs/assets /app/docs/assets

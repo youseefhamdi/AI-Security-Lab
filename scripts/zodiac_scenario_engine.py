@@ -53,47 +53,195 @@ VOCABULARY: dict[str, list[str]] = {
 
 
 
+TECHNICAL_TRACKS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "certificate", "keywords": ("certificate", "pfx", "credential-access"),
+        "label": "certificate and identity telemetry",
+        "artifact": "certificate discovery, copy, recovery, and authentication records",
+        "baseline": "Establish which synthetic certificate artifacts and identity events exist before the controlled test.",
+        "test": "Correlate certificate handling and authentication signals while keeping key material redacted.",
+        "close": "Quarantine the certificate path, rotate the synthetic identity, and verify the authorization boundary.",
+    },
+    {
+        "id": "mail", "keywords": ("email", "exchange", "mail", "journaling", "transport-rule"),
+        "label": "mail-flow and assistant telemetry",
+        "artifact": "message, assistant, PowerShell, and delivery-trace records",
+        "baseline": "Establish the normal mailbox, assistant, and delivery path before introducing the message fixture.",
+        "test": "Correlate untrusted message content with file access, reply, journaling, or transport-rule activity.",
+        "close": "Disable the synthetic mail-flow change, preserve the message timeline, and require re-approval.",
+    },
+    {
+        "id": "document", "keywords": ("resume", "document", "ocr", "multimodal", "image", "screening"),
+        "label": "document and multimodal pipeline",
+        "artifact": "source checksum, parser output, hidden-content marker, and reviewer decision",
+        "baseline": "Record the visible document representation, parser provenance, and clean classifier decision.",
+        "test": "Compare visible content with instruction-like OCR or parsed content and identify the trust transition.",
+        "close": "Quarantine the fixture, discard parser instructions, and require an independent review record.",
+    },
+    {
+        "id": "delegation", "keywords": ("rbcd", "delegation", "active-directory", "machine-account"),
+        "label": "delegation and privileged-access telemetry",
+        "artifact": "target discovery, account creation, delegation configuration, and share-access records",
+        "baseline": "Record the synthetic target and existing delegation relationships before changing one authorization edge.",
+        "test": "Correlate machine-account or delegated-agent creation with the resulting privileged access signal.",
+        "close": "Remove the synthetic delegation edge, delete or rotate the identity, and verify the target allow-list.",
+    },
+    {
+        "id": "identity", "keywords": ("oidc", "jwt", "token", "kerberos", "dcsync", "shadow"),
+        "label": "identity and authentication telemetry",
+        "artifact": "issuer, audience, identity, ticket, directory, and approval fields",
+        "baseline": "Record the approved issuer, audience, role, and synthetic identity before testing the claim.",
+        "test": "Correlate the identity claim with directory, ticket, or privileged-operation telemetry without exposing secrets.",
+        "close": "Invalidate the synthetic identity, rotate tokens, and verify least privilege and audience binding.",
+    },
+    {
+        "id": "prompt", "keywords": ("prompt", "injection", "shell", "unicode", "multilingual", "tool-call"),
+        "label": "instruction-boundary and tool authorization",
+        "artifact": "baseline response, untrusted content marker, typed output, and approval decision",
+        "baseline": "Capture the clean assistant response and the tools available to the approved role.",
+        "test": "Trace where untrusted text attempts to become an instruction, structured output, or tool invocation.",
+        "close": "Keep content data-only, validate the output schema, and require explicit approval for consequential actions.",
+    },
+    {
+        "id": "retrieval", "keywords": ("rag", "vector", "embedding", "retrieval", "cache", "citation", "policy"),
+        "label": "retrieval provenance and tenant isolation",
+        "artifact": "query, tenant, source, ranking, cache, citation, and answer lineage",
+        "baseline": "Record the authoritative source, tenant scope, and citation chain for the clean query.",
+        "test": "Compare the retrieved source and cache state after the poisoned, stale, or cross-tenant fixture is introduced.",
+        "close": "Quarantine the source or cache entry, restore tenant filtering, and verify provenance end to end.",
+    },
+    {
+        "id": "protocol", "keywords": ("mcp", "a2a", "agent-card", "webhook", "tool", "oauth", "capability"),
+        "label": "agent protocol and tool integrity",
+        "artifact": "agent card, manifest, audience, nonce, tool schema, and delegation receipt",
+        "baseline": "Inventory the signed agent or tool manifest and the allow-listed capabilities for the caller.",
+        "test": "Correlate the requested capability with identity, audience, nonce, manifest, and tool-result integrity.",
+        "close": "Reject the drift or replay, pin the manifest, and require re-approval before the tool chain resumes.",
+    },
+    {
+        "id": "memory", "keywords": ("memory", "retention", "privacy", "summary", "context", "tombstone", "feedback"),
+        "label": "memory provenance and scope isolation",
+        "artifact": "write authorization, source lineage, tenant scope, retention, and derived recall",
+        "baseline": "Record the clean memory scope, source lineage, and retention state for the synthetic user or run.",
+        "test": "Compare the requested scope with the persisted summary, cache, or derived memory after the fixture is introduced.",
+        "close": "Rollback or tombstone the poisoned record, verify deletion, and preserve tenant isolation evidence.",
+    },
+    {
+        "id": "supply-chain", "keywords": ("supply-chain", "dependency", "package", "model", "container", "artifact", "dataset", "skill", "publisher"),
+        "label": "artifact provenance and promotion control",
+        "artifact": "publisher, manifest, digest, workspace, review, and runtime-load records",
+        "baseline": "Record the approved publisher, digest, manifest, workspace, and review state before promotion.",
+        "test": "Correlate the changed package, model, dataset, or skill with manifest and runtime evidence.",
+        "close": "Quarantine the mismatch, pin the digest, and require independent review before promotion.",
+    },
+    {
+        "id": "detection", "keywords": ("detector", "alert", "evasion", "velocity", "threshold", "suppression", "baseline"),
+        "label": "detection baseline and evasion telemetry",
+        "artifact": "normalization, behavior baseline, alert state, risk threshold, and circuit-breaker records",
+        "baseline": "Record the normal event shape, detector version, threshold, and alert path before the evasion fixture.",
+        "test": "Compare normalized and distributed behavior against the baseline and identify the blind spot.",
+        "close": "Restore the detector or circuit breaker, preserve the evasion delta, and verify the new control catches it.",
+    },
+    {
+        "id": "incident-response", "keywords": ("apt", "campaign", "mule", "payment", "recovery", "rollback", "containment", "residual-risk"),
+        "label": "campaign correlation and recovery verification",
+        "artifact": "identity, timeline, tool, funds-flow, containment, and recovery records",
+        "baseline": "Build the clean campaign timeline and identify the synthetic identities, tools, and approval checkpoints.",
+        "test": "Correlate the multi-stage activity without treating agent consensus or a single receipt as proof.",
+        "close": "Contain the campaign, rotate identities, verify rollback, and reconcile residual risk before closure.",
+    },
+)
+
+
+def _technical_track_for_spec(spec: dict[str, Any]) -> dict[str, Any]:
+    haystack = " ".join([
+        str(spec.get("title", "")),
+        str(spec.get("objective", "")),
+        *[str(value) for value in spec.get("threat_tags", [])],
+        *[str(value) for value in spec.get("concepts", [])],
+    ]).lower()
+    for track in TECHNICAL_TRACKS:
+        if any(keyword in haystack for keyword in track["keywords"]):
+            return track
+    stage_defaults = {
+        "L00-foundation": "detection",
+        "L01-recon": "protocol",
+        "L02-prompt-injection": "prompt",
+        "L03-rag": "retrieval",
+        "L04-agent-protocols": "protocol",
+        "L05-memory": "memory",
+        "L06-identity-control-plane": "identity",
+        "L07-supply-chain": "supply-chain",
+        "L08-detection-evasion": "detection",
+        "L09-apt-capstone": "incident-response",
+    }
+    default_id = stage_defaults.get(str(spec.get("stage_id")), "incident-response")
+    return next(track for track in TECHNICAL_TRACKS if track["id"] == default_id)
+
+
 def _generated_scenario(spec: dict[str, Any]) -> dict[str, Any]:
-    """Materialize a research scenario from a safe, answer-free specification."""
+    """Materialize a research scenario as a four-chapter technical case file.
+
+    Expansion records are intentionally small manifests. This compiler turns
+    each one into a distinct operator journey: baseline, boundary transition,
+    telemetry correlation, and closure proof. It never writes literal answers;
+    the per-run HMAC engine still derives those values at execution time.
+    """
     scenario_id = str(spec["id"])
-    prefix = re.sub(r"[^a-z0-9]+", "_", scenario_id.lower()).strip("_")
-    tags = ", ".join(spec.get("threat_tags", []))
+    prefix = re.sub(r"[^a-z0-9]+", "_", scenario_id.lower()).strip("_")[:48]
+    title = str(spec["title"])
+    objective = str(spec["objective"])
+    tag_values = [str(value) for value in spec.get("threat_tags", []) or spec.get("concepts", [])]
+    focus = ", ".join(tag_values[:3]) or "the declared control boundary"
+    controls = ", ".join(str(value) for value in spec.get("required_controls", [])) or "the declared controls"
+    detections = ", ".join(str(value) for value in spec.get("detection_rule_ids", [])) or "the declared detections"
+    track = _technical_track_for_spec(spec)
+    steps = [
+        {
+            "id": "s1",
+            "event": f"{prefix}_baseline"[:64],
+            "observation": f"Baseline for {title}: map {focus}, record the clean {track['label']} state, and preserve the approved scope before testing {objective.lower()}.",
+            "evidence": {"surface": "marker", "trust": "trust-class", "decision": "decision"},
+        },
+        {
+            "id": "s2",
+            "event": f"{prefix}_boundary"[:64],
+            "observation": f"Controlled boundary transition for {title}: the synthetic fixture tests {focus} while remaining loopback-only; identify where data could become authority.",
+            "evidence": {"signal": "marker", "control": "control", "proof": "chained-proof"},
+        },
+        {
+            "id": "s3",
+            "event": f"{prefix}_correlation"[:64],
+            "observation": f"Correlation for {title}: join the identity, request, telemetry, and {detections} records without treating one receipt or model response as proof.",
+            "evidence": {"subject": "entity-id", "detection": "detection-rule", "proof": "chained-proof"},
+        },
+        {
+            "id": "s4",
+            "event": f"{prefix}_closure"[:64],
+            "observation": f"Closure proof for {title}: apply {controls}, preserve the redacted {track['artifact']}, and verify the corrected decision after the fixture is removed.",
+            "evidence": {"finding": "result", "response": "decision", "proof": "chained-proof"},
+        },
+    ]
     return {
         "id": scenario_id,
         "stage_id": spec["stage_id"],
         "difficulty": spec["difficulty"],
         "branch": spec["branch"],
-        "title": spec["title"],
-        "objective": spec["objective"],
+        "title": title,
+        "objective": objective,
+        "technical_track": track["id"],
+        "technical_artifact": track["artifact"],
         "clues": [
-            f"Treat this as a localhost-only synthetic exercise focused on {tags or 'the declared control boundary'}.",
-            "Capture the baseline before changing one trust, identity, retrieval, or workflow variable.",
-            "The expected result is evidence of a control decision, not a real side effect.",
+            f"Orient: treat this as a localhost-only synthetic exercise focused on {focus}.",
+            f"Investigate: capture the {track['artifact']} before and after one controlled transition.",
+            f"Correlate: reconcile {detections} with the identity, request, and decision timeline.",
+            f"Verify: enforce {controls}; never create a real side effect.",
         ],
         "detection_rule_ids": spec["detection_rule_ids"],
         "required_controls": spec["required_controls"],
         "concepts": spec.get("concepts", []),
         "threat_tags": spec.get("threat_tags", []),
-        "steps": [
-            {
-                "id": "s1",
-                "event": f"{prefix}_baseline"[:64],
-                "observation": f"The synthetic baseline for {spec['title']} is recorded before the adversarial variation.",
-                "evidence": {"surface": "marker", "trust": "trust-class", "decision": "decision"},
-            },
-            {
-                "id": "s2",
-                "event": f"{prefix}_test"[:64],
-                "observation": f"The declared {spec.get('threat_tags', ['security'])[0]} boundary is tested without contacting an external target.",
-                "evidence": {"signal": "marker", "control": "control", "proof": "chained-proof"},
-            },
-            {
-                "id": "s3",
-                "event": f"{prefix}_contain"[:64],
-                "observation": "The learner records the detection, authorization, quarantine, or recovery decision as bounded evidence.",
-                "evidence": {"finding": "result", "response": "decision", "proof": "chained-proof"},
-            },
-        ],
+        "steps": steps,
     }
 
 
@@ -106,6 +254,24 @@ def load_scenario_pack(path: Path) -> dict[str, Any]:
     ]
     gates_path = path.with_name("hard-gates.json")
     existing_ids = {str(item["id"]) for item in document.get("scenarios", [])}
+    # Canonical scenarios predate the research expansion and do not all carry
+    # the richer track metadata. Enrich them at load time so every lab gets a
+    # named technical lane and an answer-safe artifact contract without
+    # duplicating 150 records in another manifest.
+    for scenario in document.get("scenarios", []):
+        stage_requirement = document.get("stage_requirements", {}).get(str(scenario.get("stage_id", "")), {})
+        enriched_spec = {
+            **scenario,
+            "threat_tags": scenario.get("threat_tags") or stage_requirement.get("concepts", []),
+            "concepts": scenario.get("concepts") or stage_requirement.get("concepts", []),
+        }
+        track = _technical_track_for_spec(enriched_spec)
+        scenario.setdefault("technical_track", track["id"])
+        scenario.setdefault("technical_artifact", track["artifact"])
+        if not scenario.get("threat_tags"):
+            scenario["threat_tags"] = [track["id"]]
+        if not scenario.get("concepts"):
+            scenario["concepts"] = stage_requirement.get("concepts", [track["id"]])
     expansion_pack_ids: list[str] = []
     research_basis: list[str] = []
     for expansion_path in expansion_paths:
