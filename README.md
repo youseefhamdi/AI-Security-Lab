@@ -157,9 +157,9 @@ flowchart LR
 
 ## ⚔️ ZODIAC BANK brand
 
-The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Zodiac constellation mark, hard-gated progression, graph RAG, and APT-range training.
+The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, fighter emblem, hard-gated progression, graph RAG, and APT-range training.
 
-The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a Zodiac constellation mark. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 166-scenario and 83-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
+The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a fighter emblem. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 166-scenario and 83-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
@@ -167,9 +167,9 @@ RUNTIME=1 ./scripts/start_all.sh
 
 Brand assets:
 
-| Hero banner | Zodiac constellation mark | Operative key art |
+| Hero banner | Fighter emblem | Operative key art |
 | --- | --- | --- |
-| <img src="docs/assets/ai-security-lab-banner.svg" alt="Zodiac Bank cinematic banner" width="520" /> | <img src="docs/assets/zodiac-mark.svg" alt="Zodiac Bank constellation mark" width="140" /> | <img src="docs/assets/hero-operative.png" alt="Cyber operative hero art" width="420" /> |
+| <img src="docs/assets/ai-security-lab-banner.svg" alt="Zodiac Bank cinematic banner" width="520" /> | <img src="docs/assets/zodiac-fighter-icon.png" alt="Zodiac Bank fighter emblem" width="140" /> | <img src="docs/assets/hero-operative.png" alt="Cyber operative hero art" width="420" /> |
 
 - Runtime identity: `ZODIAC BANK SECURITY LAB`
 - Motion-safe behavior: SVG animations stop when the viewer requests reduced motion.
