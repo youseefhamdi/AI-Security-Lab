@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""End-to-end verification of the 150-scenario, 75-hard-gate Zodiac Bank range.
+"""End-to-end verification of the 166-scenario, 83-hard-gate Zodiac Bank range.
 
 The harness drives the real gate and challenge handlers with FastAPI stubbed only
-for offline environments. Each of the 75 gates requires two scenarios, chained
+for offline environments. Each of the 83 gates requires two scenarios, chained
 per-run evidence, gate synthesis, a gate HMAC flag, and gate submission. The
 final gate in each stage completes that stage and promotes the dynamic bank
 profile.
@@ -211,7 +211,7 @@ def synthesize_gate(learner: str, token: str, gate: dict[str, Any], tokens: list
 
 def enroll(cohort: str, learner: str) -> str:
     try:
-        GATE.create_cohort(GATE.CohortRequest(cohort_id=cohort, display_name="150 Scenario Verification"), _=None)
+        GATE.create_cohort(GATE.CohortRequest(cohort_id=cohort, display_name="166 Scenario Verification"), _=None)
     except _HTTPException as exc:
         if exc.status_code != 409:
             raise
@@ -229,7 +229,7 @@ def run_progression() -> dict[str, Any]:
 
     for stage_index, stage_id in enumerate(STAGE_IDS):
         stage_gates = GATES_BY_STAGE[stage_id]
-        assert len(stage_gates) in {7, 8}
+        assert len(stage_gates) in {7, 8, 9, 10}
         stage_scenarios = 0
         for gate in stage_gates:
             current = CHALLENGE.list_hard_gates(learner_id=learner, x_training_learner_token=token)
@@ -304,7 +304,7 @@ def run_progression() -> dict[str, Any]:
 
 def main() -> int:
     report = run_progression()
-    print("Zodiac Bank 150-scenario / 75-hard-gate progression — END-TO-END")
+    print("Zodiac Bank 166-scenario / 83-hard-gate progression — END-TO-END")
     print("-" * 82)
     for stage in report["stages"]:
         print(f"  PASS {stage['stage_id']:26} {stage['gates']} hard gates, {stage['scenarios']} scenarios -> {stage['next_stage_id']}")

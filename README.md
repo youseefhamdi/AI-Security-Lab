@@ -158,7 +158,7 @@ flowchart LR
 
 The README hero and runtime use the same **Zodiac Bank** visual system: a neon banking attack surface, Spartan defense emblem, hard-gated progression, graph RAG, and APT-range training.
 
-The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a Spartan defense emblem. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 150-scenario and 75-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
+The hero is a self-contained cinematic cyber-bank SVG: a premium dark vault scene, glowing Zodiac security ring, holographic security-posture ledger, branch-network telemetry, cyan/indigo security rails, and a Spartan defense emblem. It now surfaces the completed Phase 1–4 hardening—identity and capability binding, fraud telemetry, no-egress sandbox, privacy, and resilient recovery—alongside the 166-scenario and 83-hard-gate range. It includes a `prefers-reduced-motion` fallback, communicates the lab identity without exposing credentials, model paths, or runtime secrets, and remains visually complete when SVG motion is reduced. The terminal startup banner is activated with:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh
@@ -1206,7 +1206,7 @@ style L08 fill:#111827,stroke:#64748b,color:#cbd5e1
 style L09 fill:#3a0d2e,stroke:#f97316,color:#ffedd5
 ```
 
-- **150 scenarios** across all 10 stages, organized into **75 hard gates** (including employee-loop, virtual-settlement, CWF-style investigation, and 2026 research-informed paths);
+- **166 scenarios** across all 10 stages, organized into **83 hard gates** (including employee-loop, virtual-settlement, CWF-style investigation, and 2026 research-informed paths);
 - **dynamic bank posture**: each accepted stage flag promotes a persistent learner profile with stricter controls, narrower synthetic data scope, changing branch visibility, smaller agent budgets, and a new active service surface;
 - **per-run evidence**: every run derives its expected values server-side from the flag secret, learner, scenario, step, and a fresh nonce — the repository contains **no literal answers**, and each learner/run sees different values;
 - **candidate pools**: each step exposes the correct value among distractors from a bounded vocabulary; static values from another run are rejected;
@@ -1221,7 +1221,7 @@ style L09 fill:#3a0d2e,stroke:#f97316,color:#ffedd5
 
 The challenge service serves a browser-based trainer console at `http://127.0.0.1:8060` (no extra dependencies). The console provides:
 
-- a full 150-scenario / 75-hard-gate range map across all 10 stages with per-stage status;
+- a full 166-scenario / 83-hard-gate range map across all 10 stages with per-stage status;
 - progressive objective clues, detection rules, and required controls per scenario;
 - start, next-step hint, candidate-chip evidence picker, and reset controls for the current stage;
 - hard-gate synthesis with required evidence tokens, detection coverage, controls, timeline, and concept checks;
@@ -1297,7 +1297,7 @@ python3 scripts/validate_zodiac_bank.py
 python3 scripts/zodiac_bank_progression_test.py
 ```
 
-The suite validates 11 evaluator checks, all 10 hard-gated stages, 150 scenarios and 75 hard gates, financial ledger invariants, negative authorization paths, RAG/memory tenant boundaries, and concurrency controls. It is offline-safe and does not require an inference model. n8n is intentionally not part of this stage; if added later, it must remain an optional event-routing or approval UI layer and never become the ledger or authorization authority.
+The suite validates 11 evaluator checks, all 10 hard-gated stages, 166 scenarios and 83 hard gates, financial ledger invariants, negative authorization paths, RAG/memory tenant boundaries, and concurrency controls. It is offline-safe and does not require an inference model. n8n is intentionally not part of this stage; if added later, it must remain an optional event-routing or approval UI layer and never become the ledger or authorization authority.
 
 ## 🧪 Run the training exercises
 
@@ -1411,7 +1411,7 @@ docs/
 ```text
 apps/                  Aurora, Phoenix, and Assistant
 training-gate/         Zodiac Bank hard-flag progression service
-training-challenges/   Hard-range API and browser trainer UI (150 scenarios / 75 gates + dynamic bank state)
+training-challenges/   Hard-range API and browser trainer UI (166 scenarios / 83 gates + dynamic bank state)
 bank-data/             Canonical branches, employees, customers, accounts, cases, operations, and workflows
 mcp-server/            Deliberately vulnerable MCP server
 mcp-wrapper/           HTTP wrapper for MCP tools
@@ -1425,7 +1425,7 @@ docs/                  Security notes and attack-surface guides
 orchestrator-config/   Symmetric Zodiac Bank orchestrator manifests
 loop-config/           Synthetic workflow inputs for Loop Engineering
 mem0-config/           Optional Mem0 configuration
-training-config/       Zodiac Bank curriculum, gate, threat model, profiles, 150 scenarios, and 75 hard gates (evidence types only)
+training-config/       Zodiac Bank curriculum, gate, threat model, profiles, 166 scenarios, and 83 hard gates (evidence types only)
 detection-config/       Synthetic Sigma-like AI/APT detection rules
 scripts/zodiac_scenario_engine.py  Shared scenario validation and evidence primitives
 models/                Local GGUF files; ignored by Git

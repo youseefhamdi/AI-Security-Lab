@@ -62,9 +62,15 @@ def evaluate_control_transfer(
     }
 
 
-def evaluate_scenario_pack(pack: dict[str, Any], *, expected_scenarios: int = 150, expected_gates: int = 75) -> dict[str, Any]:
+def evaluate_scenario_pack(pack: dict[str, Any], *, expected_scenarios: int | None = None, expected_gates: int | None = None) -> dict[str, Any]:
     scenarios = list(pack.get("scenarios", []))
     gates = list(pack.get("hard_gates", []))
+    # The hard-range contract is "one gate per two scenarios"; derive the
+    # expected counts from the manifest unless the caller pins them.
+    if expected_scenarios is None:
+        expected_scenarios = len(scenarios)
+    if expected_gates is None:
+        expected_gates = expected_scenarios // 2
     if len(scenarios) != expected_scenarios or len(gates) != expected_gates:
         raise EvaluationError("scenario pack size does not match the hard-range contract")
     ids = [str(item.get("id")) for item in scenarios]

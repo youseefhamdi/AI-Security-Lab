@@ -80,7 +80,7 @@ def check_resilience_and_evaluation() -> dict[str, Any]:
     challenge = (ROOT / "training-challenges" / "main.py").read_text(encoding="utf-8")
     assert "/api/bank/operations/{run_id}/checkpoint" in challenge and "/api/bank/checkpoints/{checkpoint_id}/recover" in challenge
     evaluation = run_held_out_evaluation(load_scenario_pack(SCENARIO_PATH))
-    assert evaluation["range"]["scenarios"] == 150 and evaluation["range"]["hard_gates"] == 75
+    assert evaluation["range"]["scenarios"] == 166 and evaluation["range"]["hard_gates"] == 83
     assert evaluation["transfer"]["recall"] == 1.0 and evaluation["model_calls"] == 0
     return {"checkpoint_recovery": True, "checkpoint_tamper_detection": True, "ledger_reconciliation": True, "circuit_breaker": True, "kill_switch": True, "held_out_transfer": True}
 
@@ -383,7 +383,7 @@ def check_hard_scenario_range() -> dict[str, Any]:
     dockerfile = (ROOT / "training-challenges" / "Dockerfile").read_text(encoding="utf-8")
     trainer_ui = (ROOT / "training-challenges" / "index.html").read_text(encoding="utf-8")
     scenario_pack = SCENARIO_PATH.read_text(encoding="utf-8")
-    assert result["scenarios"] == 150 and result["hard_gates"] == 75
+    assert result["scenarios"] == 166 and result["hard_gates"] == 83
     assert "scenario_event" in challenge and "synthesize_stage" in challenge
     assert "stage synthesis is retired in strict mode" in challenge
     assert "current hard gate" in challenge
@@ -416,7 +416,7 @@ def check_flag_progression() -> dict[str, Any]:
     report = run_progression()
     assert report["passed"], "full 10-stage flag progression failed"
     assert report["stages_completed"] == 10, "expected exactly 10 completed stages"
-    assert report["total_scenarios"] == 150, "expected all 150 scenarios solved"
+    assert report["total_scenarios"] == 166, "expected all 166 scenarios solved"
     assert all(value is True for value in report["negatives"].values()), "a negative path check failed"
     last = report["stages"][-1]
     assert last["stage_id"] == "L09-apt-capstone" and last["next_stage_id"] is None, "capstone did not complete the curriculum"

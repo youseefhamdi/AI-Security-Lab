@@ -2039,7 +2039,8 @@ function renderChallengeGrid() {
   const start = (state.page - 1) * PAGE_SIZE;
   const shown = all.slice(start, start + PAGE_SIZE);
   const countEl = $("results-count");
-  if (countEl) countEl.innerHTML = `${shown.length} ${shown.length === 1 ? "challenge" : "challenges"} shown <span class="muted">· ${all.length} matched · ${allScenarios().length} total · 75 hard gates</span>`;
+  const totalGates = ((state.range && state.range.stages) || []).reduce((n, s) => n + (s.hard_gate_count || 0), 0);
+  if (countEl) countEl.innerHTML = `${shown.length} ${shown.length === 1 ? "challenge" : "challenges"} shown <span class="muted">· ${all.length} matched · ${allScenarios().length} total · ${totalGates || Math.floor(allScenarios().length / 2)} hard gates</span>`;
   const clearBtn = $("clear-filters");
   if (clearBtn) {
     const hasFilters = state.challengeFilters.stage !== "all" || state.challengeFilters.difficulty !== "all" || state.challengeFilters.branch !== "all" || state.challengeFilters.status !== "all" || !!state.challengeFilters.q;
@@ -3247,7 +3248,7 @@ function renderProgression() {
   body.innerHTML = `
     <div class="prog-row"><span>Stage progress</span><b>${completed} / ${stages.length || 10}</b></div>
     <div class="progress-bar"><span style="width:${pct}%"></span></div>
-    <div class="prog-row" style="margin-top:16px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 75)}</b></div>
+    <div class="prog-row" style="margin-top:16px"><span>Hard gates</span><b>${esc(meta.completed_gate_count ?? "—")} / ${esc(meta.total_hard_gates ?? 83)}</b></div>
     ${meta.current_gate_id ? `<div class="prog-row"><span>Current gate</span><b class="accent">${esc(meta.current_gate_id)}</b></div>` : ""}
     <div style="margin-top:12px">${gatesHtml}</div>`;
 }
@@ -3257,7 +3258,7 @@ function renderActivity() {
   if (!box) return;
   const rows = [];
   if (state.range) {
-    rows.push({ t: "Range initialized", d: `${state.range.stages.length} stages · 150 scenarios`, kind: "ok" });
+    rows.push({ t: "Range initialized", d: `${state.range.stages.length} stages · ${allScenarios().length} scenarios`, kind: "ok" });
   }
   if (state.currentStageId) {
     rows.push({ t: "Current stage", d: state.currentStageId, kind: "accent" });

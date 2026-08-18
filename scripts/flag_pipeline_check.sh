@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Live flag-pipeline check: walks all 10 Zodiac Bank stages, 75 hard gates,
-# and 150 scenarios over HTTP.
+# Live flag-pipeline check: walks all 10 Zodiac Bank stages, 83 hard gates,
+# and 166 scenarios over HTTP.
 #
 # Requires the lab services to be running (RUNTIME=1). Every request is issued
 # with curl; python3 is used only to parse JSON and re-derive HMAC flags from
@@ -128,20 +128,26 @@ wrong_evidence_tested=0
 for stage in "${STAGES[@]}"; do
   GATES_FOR_STAGE=()
   while IFS= read -r line; do GATES_FOR_STAGE+=("${line}"); done < <(
-    python3 -c 'import json,sys
-p=json.load(open(sys.argv[1]))
-print("\n".join(g["gate_id"] for g in p["gates"] if g["stage_id"] == sys.argv[2]))' "${ROOT_DIR}/training-config/hard-gates.json" "${stage}"
+    python3 -c 'import sys
+sys.path.insert(0,sys.argv[1])
+from zodiac_scenario_engine import load_scenario_pack
+from pathlib import Path
+p=load_scenario_pack(Path(sys.argv[2]))
+print("\n".join(g["gate_id"] for g in p["hard_gates"] if g["stage_id"] == sys.argv[3]))' "${SCRIPT_DIR}" "${ROOT_DIR}/training-config/scenarios.json" "${stage}"
   )
-  [[ "${#GATES_FOR_STAGE[@]}" == "5" ]] || fail "${stage}: expected five hard gates"
+  [[ "${#GATES_FOR_STAGE[@]}" -gt 0 ]] || fail "${stage}: no hard gates found"
 
   for gate in "${GATES_FOR_STAGE[@]}"; do
     http_call GET "${CHALLENGE_URL}/api/gates?learner_id=${LEARNER_ID}" "${LEARNER_AUTH}"
     [[ "${RESP_CODE}" == "200" ]] || fail "${gate}: gate listing failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
     current_gate="$(jget "${RESP_BODY}" 'd.get("current_gate_id") or ""')"
     [[ "${current_gate}" == "${gate}" ]] || fail "expected current gate ${gate}, got ${current_gate}"
-    req="$(python3 -c 'import json,sys
-p=json.load(open(sys.argv[1]))
-print(json.dumps(next(g for g in p["gates"] if g["gate_id"] == sys.argv[2])) )' "${ROOT_DIR}/training-config/hard-gates.json" "${gate}")"
+    req="$(python3 -c 'import sys,json
+sys.path.insert(0,sys.argv[1])
+from zodiac_scenario_engine import load_scenario_pack
+from pathlib import Path
+p=load_scenario_pack(Path(sys.argv[2]))
+print(json.dumps(next(g for g in p["hard_gates"] if g["gate_id"] == sys.argv[3])))' "${SCRIPT_DIR}" "${ROOT_DIR}/training-config/scenarios.json" "${gate}")"
 
     scenario_ids=()
     while IFS= read -r line; do scenario_ids+=("${line}"); done < <(jget "${req}" '"\n".join(d["scenario_ids"])')
@@ -188,7 +194,7 @@ print(json.dumps({"learner_id":sys.argv[3],"scenario_ids":req["scenario_ids"],"e
     [[ "${RESP_CODE}" == "200" ]] || fail "${gate} flag rejected (HTTP ${RESP_CODE}): ${RESP_BODY}"
     [[ "$(jget "${RESP_BODY}" 'd.get("accepted")')" == "True" ]] || fail "${gate}: gate did not accept flag"
     gate_index=$((gate_index + 1))
-    if [[ "${gate}" == "${GATES_FOR_STAGE[4]}" ]]; then
+    if [[ "${gate}" == "${GATES_FOR_STAGE[-1]}" ]]; then
       expected_next=""
       if [[ $((stage_index + 1)) -lt "${#STAGES[@]}" ]]; then expected_next="${STAGES[$((stage_index + 1))]}"; fi
       next="$(jget "${RESP_BODY}" 'd.get("next_stage_id") or ""')"
@@ -201,13 +207,13 @@ print(json.dumps({"learner_id":sys.argv[3],"scenario_ids":req["scenario_ids"],"e
     fi
     log "PASS ${gate} (${#scenario_ids[@]} scenarios)"
   done
-  log "PASS ${stage}: five hard gates complete"
+  log "PASS ${stage}: ${#GATES_FOR_STAGE[@]} hard gates complete"
   stage_index=$((stage_index + 1))
 done
 
-[[ "${gate_index}" == "75" ]] || fail "expected 75 hard gates, completed ${gate_index}"
+[[ "${gate_index}" == "83" ]] || fail "expected 83 hard gates, completed ${gate_index}"
 http_call POST "${GATE_URL}/api/gates/submit" "${LEARNER_AUTH}" "{\"learner_id\":\"${LEARNER_ID}\",\"gate_id\":\"G01-scope-baseline\",\"flag\":\"$(expected_gate_flag G01-scope-baseline)\"}"
 [[ "${RESP_CODE}" == "200" ]] || fail "idempotent gate re-submission failed (HTTP ${RESP_CODE}): ${RESP_BODY}"
 [[ "$(jget "${RESP_BODY}" 'd.get("status", "")')" == "completed" ]] || fail "idempotent gate status was not completed"
 log "NEG  idempotent gate re-submission accepted (completed)"
-log "RESULT: 10 stages, 75 hard gates, 150 scenarios verified"
+log "RESULT: 10 stages, 83 hard gates, 166 scenarios verified"

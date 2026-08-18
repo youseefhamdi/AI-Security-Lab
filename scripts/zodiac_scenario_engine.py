@@ -251,13 +251,14 @@ def load_scenario_pack(path: Path) -> dict[str, Any]:
     expansion_paths = [
         path.with_name("scenario-expansion.json"),
         path.with_name("scenario-expansion-2026.json"),
+        path.with_name("scenario-expansion-2026b.json"),
     ]
     gates_path = path.with_name("hard-gates.json")
     existing_ids = {str(item["id"]) for item in document.get("scenarios", [])}
     # Canonical scenarios predate the research expansion and do not all carry
     # the richer track metadata. Enrich them at load time so every lab gets a
     # named technical lane and an answer-safe artifact contract without
-    # duplicating 150 records in another manifest.
+    # duplicating 166 records in another manifest.
     for scenario in document.get("scenarios", []):
         stage_requirement = document.get("stage_requirements", {}).get(str(scenario.get("stage_id", "")), {})
         enriched_spec = {
@@ -431,14 +432,18 @@ def validate_scenarios(document: dict[str, Any], curriculum: dict[str, Any]) -> 
         if not gate.get("detection_rule_ids") or not gate.get("required_controls") or not gate.get("concepts"):
             errors.append(f"hard gate {gate_id} lacks detection, control, or concept requirements")
     # Gate IDs carry readable suffixes, so validate order/rank and count
-    # separately rather than requiring opaque IDs.
-    if len(gates) != 75:
-        errors.append(f"expected exactly 75 hard gates for 150 scenarios, found {len(gates)}")
+    # separately rather than requiring opaque IDs. One hard gate covers exactly
+    # two scenarios, so the gate count and per-stage distribution are derived
+    # from the scenario manifest rather than hardcoded.
+    expected_gate_count = len(scenarios) // 2
+    if len(gates) != expected_gate_count:
+        errors.append(f"expected exactly {expected_gate_count} hard gates for {len(scenarios)} scenarios, found {len(gates)}")
     ranks = [gate.get("rank") for gate in gates]
     if ranks != list(range(1, len(gates) + 1)):
         errors.append("hard gate ranks must be contiguous and ordered")
-    if set(gates_by_stage) != curriculum_ids or any(len(values) not in {7, 8} for values in gates_by_stage.values()):
-        errors.append("each curriculum stage must contain seven or eight hard gates for its even scenario count")
+    scenario_count_by_stage = {stage_id: len(ids) for stage_id, ids in by_stage.items()}
+    if set(gates_by_stage) != curriculum_ids or any(len(values) != scenario_count_by_stage.get(stage_id, 0) // 2 for stage_id, values in gates_by_stage.items()):
+        errors.append("each curriculum stage must contain exactly one hard gate per pair of scenarios")
     if gated_scenarios != scenario_ids:
         errors.append("every scenario must belong to exactly one hard gate")
     for stage_id, requirement in requirements.items():
