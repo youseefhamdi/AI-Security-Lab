@@ -825,33 +825,7 @@
   .flow-lane.locked { opacity: .72; }
   .flow-art-note { margin: 10px 0 0; font-size: 12px; color: #66667a; line-height: 1.5; }
 
-  /* technical solution runbook */
-  .sol-runbook { position: relative; z-index: 1; margin: 16px 0 18px; padding: 16px; border: 1px solid rgba(0,212,255,.28); border-radius: 14px; background: linear-gradient(145deg, rgba(4,12,22,.9), rgba(17,24,39,.86)); }
-  .sol-runbook-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .sol-runbook-head h4 { margin: 4px 0 0; color: var(--text); font-size: 19px; }
-  .sol-runbook-note { margin: 10px 0 13px; color: var(--text-3); font-size: 12.5px; line-height: 1.55; }
-  .sol-prereqs { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 14px; }
-  .sol-prereqs strong { width: 100%; color: var(--yellow); font: 700 9px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; }
-  .sol-prereqs span { padding: 6px 9px; border: 1px solid rgba(255,191,36,.22); border-radius: 8px; color: var(--text-3); background: rgba(255,191,36,.05); font-size: 11px; }
-  .sol-command-label { margin: 9px 0 5px; color: var(--cyan); font: 700 9px var(--mono); letter-spacing: 1.3px; text-transform: uppercase; }
-  .sol-command { margin: 0; overflow-x: auto; padding: 11px 12px; border: 1px solid rgba(0,212,255,.2); border-radius: 9px; background: #050a11; color: #b9f5ff; font: 11px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; }
-  .sol-command code { color: inherit; }
-  .sol-procedures { display: grid; gap: 9px; margin-top: 14px; }
-  .sol-procedure { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 11px; border: 1px solid rgba(255,255,255,.1); border-radius: 11px; background: rgba(0,0,0,.2); }
-  .sol-procedure-index { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: rgba(124,58,237,.2); color: #c4b5fd; font: 700 10px var(--mono); }
-  .sol-procedure-body { min-width: 0; }
-  .sol-procedure-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
-  .sol-procedure-head strong { color: var(--text); font-size: 13px; }
-  .sol-procedure-head code { color: var(--cyan); font: 10px var(--mono); }
-  .sol-procedure-purpose { margin: 4px 0 6px; color: var(--text-3); font-size: 11.5px; line-height: 1.45; }
-  .sol-procedure-grid { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr); gap: 8px; margin-top: 8px; }
-  .sol-procedure-grid > div { min-width: 0; padding: 8px; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: rgba(255,255,255,.03); }
-  .sol-procedure-grid span { display: block; margin-bottom: 4px; color: var(--muted); font: 700 8px var(--mono); letter-spacing: .9px; text-transform: uppercase; }
-  .sol-procedure-grid code { color: #d8b4fe; font: 10px/1.4 var(--mono); overflow-wrap: anywhere; }
-  .sol-procedure-grid .chip { padding: 3px 6px; font-size: 9.5px; }
-  .sol-remediation { margin-top: 13px; padding: 11px; border: 1px solid rgba(0,255,136,.2); border-radius: 10px; background: rgba(0,255,136,.04); }
-  .sol-remediation strong { color: var(--green); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
-  .sol-remediation p { margin: 5px 0 0; color: var(--text-3); font-size: 12px; line-height: 1.5; }
+  /* solution studio console styles (see studio block below) */
 
   /* solution / synthesis */
   .syn-chips { margin: 8px 0 14px; }
@@ -864,212 +838,304 @@
      ============================================================ */
   .lab-access {
     position: relative; overflow: hidden;
-    background: rgba(255, 255, 255, .05);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 24px 22px;
+    border: 1px solid #24404c; border-radius: 14px;
+    background: linear-gradient(150deg, rgba(16, 35, 45, .92), rgba(7, 16, 22, .97));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+    color: #c1d3d4; padding: 18px 16px;
   }
-  .lab-access::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad); opacity: .9; }
+  .lab-access::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #65e6b1, #73d9ee); opacity: .9; }
   .la-icon {
-    width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center;
-    background: var(--grad); box-shadow: 0 8px 24px rgba(0, 212, 255, .3);
-    margin-bottom: 16px;
+    width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center;
+    background: rgba(101, 230, 177, .08); border: 1px solid rgba(101, 230, 177, .4);
+    box-shadow: none; margin-bottom: 13px;
   }
-  .la-icon svg { width: 24px; height: 24px; color: #fff; }
-  .lab-access h3 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--text); }
-  .la-question { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--text-2); }
-  .la-sub { margin: 0 0 16px; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .la-icon svg { width: 22px; height: 22px; color: #65e6b1; }
+  .lab-access h3 { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: #edf7f5; letter-spacing: -.01em; }
+  .la-question { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: #edf7f5; }
+  .la-sub { margin: 0 0 14px; font-size: 12px; color: #829ca2; line-height: 1.55; }
   .la-progress { margin: 0 0 6px; }
-  .la-progress .lp-row { display: flex; justify-content: space-between; font: 600 11px var(--mono); color: var(--muted); margin-bottom: 6px; }
-  .la-progress .lp-row b { color: var(--cyan); }
-  .la-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .la-progress .lp-row { display: flex; justify-content: space-between; font: 600 10px var(--mono); color: #829ca2; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .6px; }
+  .la-progress .lp-row b { color: #65e6b1; }
+  .lab-access .progress-bar { background: #24404c; }
+  .lab-access .progress-bar > span { background: linear-gradient(90deg, #65e6b1, #73d9ee); box-shadow: 0 0 10px rgba(101, 230, 177, .4); }
+  .la-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 13px; }
   .la-actions .row2 { display: flex; gap: 8px; }
   .la-actions .row2 .btn { flex: 1; }
-  .la-meta { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+  .lab-access .btn { min-height: 40px; border-color: #335562; background: rgba(255, 255, 255, .035); }
+  .lab-access .btn:hover:not(:disabled) { border-color: #65e6b1; background: rgba(101, 230, 177, .08); }
+  .lab-access .btn-primary { border-color: transparent; background: linear-gradient(105deg, #56d9a7, #73d9ee); color: #062018; box-shadow: none; }
+  .lab-access .btn-primary:hover:not(:disabled) { filter: none; transform: none; background: linear-gradient(105deg, #56d9a7, #73d9ee); }
+  .lab-access .btn-danger { border-color: rgba(251, 113, 133, .45); color: #fb7185; background: transparent; }
+  .lab-access .btn-danger:hover:not(:disabled) { background: rgba(251, 113, 133, .08); border-color: #fb7185; }
+  .la-meta { margin-top: 13px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .lab-access .pill { margin: 0; padding: 4px 8px; border: 1px solid #24404c; border-radius: 999px; background: rgba(255, 255, 255, .03); color: #829ca2; font: 600 9px var(--mono); text-transform: uppercase; letter-spacing: .6px; }
+  .lab-access .pill.ok { color: #65e6b1; border-color: rgba(101, 230, 177, .35); background: rgba(101, 230, 177, .06); }
+  .lab-access .pill.warn { color: #f3c969; border-color: rgba(243, 201, 105, .35); background: rgba(243, 201, 105, .06); }
+  .lab-access .pill.accent { color: #73d9ee; border-color: rgba(115, 217, 238, .35); background: rgba(115, 217, 238, .06); }
+  .lab-access .pill.danger { color: #ffabb8; border-color: rgba(251, 113, 133, .35); background: rgba(251, 113, 133, .06); }
   .la-done {
-    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
-    border: 1px solid rgba(0, 255, 136, .4); background: var(--success-soft);
-    color: var(--green); font: 600 12.5px var(--sans);
+    margin-top: 12px; padding: 11px 12px; border-radius: 8px;
+    border: 1px solid #24404c; border-left: 2px solid #65e6b1;
+    background: rgba(101, 230, 177, .06); color: #b9f7dc; font: 600 12px var(--sans);
   }
 
   /* questions panel — full-width lab steps */
   .q-panel {
-    background: var(--card);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    overflow: hidden;
+    border: 1px solid #24404c; border-radius: 14px;
+    background: rgba(8, 20, 28, .55); overflow: hidden;
   }
   .q-panel > h2 {
-    margin: 0; padding: 18px 22px 15px;
-    font: 700 14px var(--display); letter-spacing: 1.4px; text-transform: uppercase; color: var(--text);
-    border-bottom: 1px solid var(--border-soft);
-    display: flex; align-items: center; gap: 10px;
+    margin: 0; padding: 13px 15px;
+    font: 700 10.5px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: #edf7f5;
+    border-bottom: 1px solid #24404c;
+    display: flex; align-items: center; gap: 9px;
   }
-  .q-panel > h2 svg { color: var(--cyan); }
-  .q-panel > h2 .q-panel-sub { margin-left: auto; font: 500 11px var(--mono); letter-spacing: .4px; text-transform: none; color: var(--faint); }
-  #questions-list { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 18px; }
+  .q-panel > h2 svg { color: #65e6b1; }
+  .q-panel > h2 .q-panel-sub { margin-left: auto; font: 500 9px var(--mono); letter-spacing: .5px; text-transform: none; color: #5b747c; }
+  #questions-list { padding: 14px 15px; display: flex; flex-direction: column; gap: 12px; }
   .q-card {
-    border: 1px solid var(--border); border-radius: 14px;
-    background: var(--surface); padding: 18px 20px;
+    border: 1px solid #24404c; border-radius: 12px;
+    background: linear-gradient(150deg, rgba(16, 35, 45, .9), rgba(7, 16, 22, .96)); padding: 15px;
     transition: border-color .15s, box-shadow .15s;
   }
-  .q-card.current { border-color: rgba(124, 58, 237, .55); box-shadow: 0 0 0 1px rgba(124, 58, 237, .15), 0 14px 30px rgba(0, 0, 0, .25); }
-  .q-card.done { border-color: rgba(0, 255, 136, .3); }
+  .q-card.current { border-color: rgba(115, 217, 238, .55); box-shadow: 0 0 0 1px rgba(115, 217, 238, .15), 0 14px 30px rgba(0, 0, 0, .25); }
+  .q-card.done { border-color: rgba(101, 230, 177, .35); }
   .q-card.locked { opacity: .55; }
   .q-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .q-head .q-flag {
     width: 26px; height: 26px; flex: 0 0 26px; border-radius: 8px;
     display: grid; place-items: center;
-    background: rgba(124, 58, 237, .14); border: 1px solid rgba(124, 58, 237, .4);
+    background: rgba(115, 217, 238, .1); border: 1px solid rgba(115, 217, 238, .4);
   }
-  .q-head .q-flag svg { width: 13px; height: 13px; color: var(--purple-2); }
-  .q-card.done .q-head .q-flag { background: var(--success-soft); border-color: rgba(0, 255, 136, .45); }
-  .q-card.done .q-head .q-flag svg { color: var(--green); }
-  .q-head .q-num { font: 700 11px var(--mono); letter-spacing: 1.2px; color: var(--text-2); text-transform: uppercase; }
+  .q-head .q-flag svg { width: 13px; height: 13px; color: #73d9ee; }
+  .q-card.done .q-head .q-flag { background: rgba(101, 230, 177, .1); border-color: rgba(101, 230, 177, .45); }
+  .q-card.done .q-head .q-flag svg { color: #65e6b1; }
+  .q-head .q-num { font: 700 11px var(--mono); letter-spacing: 1.2px; color: #edf7f5; text-transform: uppercase; }
   .q-pill { margin-left: auto; font: 700 9.5px var(--mono); letter-spacing: .8px; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
-  .q-pill.current { color: var(--purple-2); background: rgba(124, 58, 237, .15); border: 1px solid rgba(124, 58, 237, .45); }
-  .q-pill.ok { color: var(--green); background: var(--success-soft); border: 1px solid rgba(0, 255, 136, .4); }
-  .q-pill.locked { color: var(--faint); background: var(--glass-2); border: 1px solid var(--border); }
-  .q-text { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: var(--text-2); line-height: 1.55; }
-  .q-event { margin: 0 0 12px; font: 500 12.5px var(--mono); color: var(--faint); }
-  .q-event code { color: var(--cyan); background: rgba(0, 212, 255, .08); border: 1px solid rgba(0, 212, 255, .2); border-radius: 5px; padding: 1px 7px; }
-  .q-locked-text { margin: 0; font-size: 13px; color: var(--faint); font-style: italic; }
+  .q-pill.current { color: #73d9ee; background: rgba(115, 217, 238, .12); border: 1px solid rgba(115, 217, 238, .4); }
+  .q-pill.ok { color: #65e6b1; background: rgba(101, 230, 177, .1); border: 1px solid rgba(101, 230, 177, .4); }
+  .q-pill.locked { color: #5b747c; background: rgba(255, 255, 255, .03); border: 1px solid #24404c; }
+  .q-text { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #edf7f5; line-height: 1.55; }
+  .q-event { margin: 0 0 12px; font: 500 12px var(--mono); color: #5b747c; }
+  .q-event code { color: #73d9ee; background: rgba(115, 217, 238, .08); border: 1px solid #24404c; border-radius: 5px; padding: 1px 7px; }
+  .q-locked-text { margin: 0; font-size: 12.5px; color: #5b747c; font-style: italic; }
   .q-hint-btn {
     margin-top: 12px; display: inline-flex; align-items: center; gap: 7px;
-    border: 1px solid rgba(124, 58, 237, .5); background: transparent; color: var(--purple-2);
-    border-radius: 9px; padding: 8px 14px; font: 600 12.5px var(--sans); cursor: pointer;
-    transition: background .13s, filter .13s;
+    border: 1px solid #335562; background: rgba(255, 255, 255, .03); color: #73d9ee;
+    border-radius: 8px; padding: 8px 13px; font: 600 12px var(--sans); cursor: pointer;
+    transition: background .13s, border-color .13s, color .13s;
   }
-  .q-hint-btn:hover { background: rgba(124, 58, 237, .14); filter: brightness(1.1); }
+  .q-hint-btn:hover { background: rgba(101, 230, 177, .08); border-color: #65e6b1; color: #65e6b1; filter: none; }
   .q-hint-btn svg { width: 14px; height: 14px; }
 
   /* evidence form inside question card */
   .ev-row { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr); gap: 10px; margin-top: 10px; align-items: center; }
-  .ev-row input { font: 12px var(--mono); }
+  .ev-row input { font: 12px var(--mono); border-color: #24404c; background: rgba(5, 14, 20, .6); color: #73d9ee; }
   .candidate-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
   .candidate-chip {
-    border: 1px solid var(--border); border-radius: 9px; padding: 8px 14px;
-    font: 600 12.5px var(--mono); background: var(--glass-2); color: var(--text); cursor: pointer;
+    border: 1px solid #24404c; border-radius: 8px; padding: 8px 13px;
+    font: 600 12px var(--mono); background: rgba(255, 255, 255, .03); color: #edf7f5; cursor: pointer;
     transition: border-color .13s, background .13s, color .13s, transform .05s;
   }
-  .candidate-chip:hover { border-color: rgba(124, 58, 237, .6); }
+  .candidate-chip:hover { border-color: #73d9ee; }
   .candidate-chip.selected {
-    border-color: var(--purple-2); color: #fff; background: var(--grad-purple); font-weight: 700;
-    box-shadow: 0 0 10px rgba(124, 58, 237, .4);
+    border-color: transparent; color: #062018; background: linear-gradient(105deg, #56d9a7, #73d9ee); font-weight: 700;
+    box-shadow: none;
   }
   .q-submit { margin-top: 14px; display: flex; gap: 8px; align-items: center; }
   .q-submit .btn { flex: 1; }
+  .q-panel .btn-purple { border-color: transparent; background: linear-gradient(105deg, #56d9a7, #73d9ee); color: #062018; box-shadow: none; }
+  .q-panel .btn-purple:hover:not(:disabled) { filter: none; transform: none; }
+  .q-panel .step-box { border-color: #24404c; border-left-color: #73d9ee; background: rgba(5, 14, 20, .5); }
+  .q-panel .step-box .event { color: #73d9ee; }
 
-  /* solution studio — premium walkthrough, animated reel, and evidence chapters */
-  .solution-studio { position: relative; overflow: hidden; margin: -4px 0 22px; padding: 18px; border: 1px solid rgba(0, 212, 255, .18); border-radius: 16px; background: radial-gradient(720px 280px at 85% -10%, rgba(0,212,255,.12), transparent 62%), linear-gradient(135deg, rgba(255,255,255,.045), rgba(124,58,237,.04)); }
-  .solution-studio::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .3; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 34px 34px; mask-image: linear-gradient(to bottom, #000, transparent 80%); }
-  .sol-studio-head, .sol-studio-head > * { position: relative; z-index: 1; }
-  .sol-studio-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
-  .sol-kicker { color: var(--cyan); font: 700 9.5px var(--mono); letter-spacing: 1.8px; text-transform: uppercase; }
-  .sol-case-file { display: grid; grid-template-columns: minmax(130px, .8fr) minmax(180px, 1.4fr) minmax(180px, 1.4fr) minmax(180px, 1.4fr); gap: 8px; margin: 0 0 14px; padding: 10px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: #0c131c; }
-  .sol-case-cell { min-width: 0; padding: 7px 9px; border-left: 2px solid rgba(0,212,255,.35); }
-  .sol-case-cell span { display: block; margin-bottom: 4px; color: var(--muted); font: 700 8px var(--mono); letter-spacing: 1.1px; text-transform: uppercase; }
-  .sol-case-cell strong, .sol-case-cell code { display: block; overflow-wrap: anywhere; color: var(--text-2); font-size: 11px; line-height: 1.4; }
-  .sol-case-cell code { color: var(--cyan); font: 10px/1.45 var(--mono); }
-  .sol-case-cell .chip-grid { gap: 4px; }
-  .sol-case-cell .chip { padding: 3px 5px; font-size: 8.5px; }
-  .sol-runbook { background: #0c131c; }
-  .sol-command { border-radius: 7px; }
-  .sol-procedure { background: #101923; }
-  .sol-reel { margin-top: 16px; }
-  .sol-reel object:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
-  .sol-studio-title { margin: 4px 0 3px; color: var(--text); font: 700 21px var(--display); letter-spacing: -.02em; }
-  .sol-studio-copy { max-width: 700px; margin: 0; color: var(--text-3); font-size: 13px; line-height: 1.55; }
+  /* ============================================================
+     SOLUTION STUDIO — clean lab-apps console style
+     (Phoenix / Aurora / Assistant language: panels, eyebrows,
+      key/value rows, contract blocks, terminal code, pill chips)
+     ============================================================ */
+  .solution-studio {
+    --sl-void: #071016; --sl-panel: #10212b; --sl-panel2: #142b36;
+    --sl-line: #24404c; --sl-line2: #335562;
+    --sl-text: #edf7f5; --sl-copy: #c1d3d4; --sl-muted: #829ca2; --sl-faint: #5b747c;
+    --sl-mint: #65e6b1; --sl-cyan: #73d9ee; --sl-amber: #f3c969; --sl-red: #fb7185; --sl-violet: #b8a7ff;
+    position: relative; margin: -4px 0 22px; padding: 18px; display: grid; gap: 14px;
+    border: 1px solid var(--sl-line); border-radius: 16px;
+    background: radial-gradient(760px 320px at 90% -12%, rgba(54, 128, 158, .22), transparent 62%), linear-gradient(150deg, rgba(16, 35, 45, .92), rgba(7, 16, 22, .97));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+    color: var(--sl-copy);
+  }
+  .solution-studio ::selection { background: rgba(115, 217, 238, .3); color: #fff; }
+
+  /* header */
+  .sol-studio-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .sol-kicker { color: var(--sl-mint); font: 700 10px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; }
+  .sol-studio-title { margin: 5px 0 0; color: var(--sl-text); font: 700 clamp(21px, 3vw, 27px)/1.1 var(--display); letter-spacing: -.03em; }
+  .sol-studio-copy { max-width: 760px; margin: 7px 0 0; color: var(--sl-muted); font-size: 12.5px; line-height: 1.55; }
   .sol-reel-meta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
-  .sol-reel-meta .pill { font-size: 9.5px; }
-  .sol-reel { position: relative; z-index: 1; overflow: hidden; border: 1px solid rgba(255,255,255,.13); border-radius: 14px; background: #070b12; box-shadow: 0 18px 40px rgba(0,0,0,.34); }
-  .sol-reel object { display: block; width: 100%; aspect-ratio: 1120 / 478; border: 0; background: #070b12; }
-  .sol-reel::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.04), transparent 50%, rgba(0,0,0,.34)); }
-  .sol-reel-controls { position: absolute; z-index: 2; right: 12px; bottom: 12px; display: flex; gap: 7px; align-items: center; }
-  .sol-reel-controls button { min-width: 40px; min-height: 40px; border: 1px solid rgba(255,255,255,.22); border-radius: 10px; background: rgba(6,10,17,.78); color: var(--text); cursor: pointer; backdrop-filter: blur(10px); transition: border-color .15s, background .15s, transform .15s; }
-  .sol-reel-controls button:hover { border-color: var(--cyan); background: rgba(0,212,255,.14); transform: translateY(-1px); }
-  .sol-reel-controls button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  .sol-reel-meta .pill { margin: 0; padding: 6px 10px; border: 1px solid var(--sl-line); border-radius: 999px; background: transparent; color: var(--sl-muted); font: 600 9.5px var(--mono); letter-spacing: .7px; text-transform: uppercase; }
+  .sol-reel-meta .pill.accent { color: var(--sl-cyan); border-color: rgba(115, 217, 238, .35); }
+  .sol-reel-meta .pill.ok { color: var(--sl-mint); border-color: rgba(101, 230, 177, .35); }
+
+  /* console panels + key/value rows (case file) */
+  .sol-panel { border: 1px solid var(--sl-line); border-radius: 14px; background: rgba(8, 20, 28, .55); overflow: hidden; }
+  .sol-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 13px 15px; border-bottom: 1px solid var(--sl-line); color: var(--sl-text); font: 700 10.5px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; }
+  .sol-panel-title span { color: var(--sl-faint); font-size: 9px; letter-spacing: .5px; }
+  .sol-panel-body { padding: 6px 15px 14px; }
+  .sol-kv { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--sl-line); font: 600 10.5px var(--mono); }
+  .sol-kv:last-child { border-bottom: 0; }
+  .sol-kv > span { flex: 0 0 auto; color: var(--sl-muted); font-size: 9.5px; letter-spacing: .8px; text-transform: uppercase; }
+  .sol-kv > code { flex: 1 1 auto; color: var(--sl-cyan); text-align: right; overflow-wrap: anywhere; }
+  .sol-kv .sol-chips { flex: 1 1 auto; justify-content: flex-end; }
+
+  /* pill chips */
+  .sol-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sol-chips .chip { margin: 0; padding: 4px 8px; border: 1px solid var(--sl-line); border-radius: 999px; background: rgba(255, 255, 255, .03); color: var(--sl-muted); font: 600 9px var(--mono); text-transform: uppercase; }
+  .sol-chips .chip.ok { color: var(--sl-mint); border-color: rgba(101, 230, 177, .35); background: rgba(101, 230, 177, .06); }
+
+  /* contract blocks (decision brief / playbook) */
+  .sol-contract-grid { display: grid; gap: 8px; padding: 14px 15px; }
+  .sol-contract { padding: 11px 12px; border: 1px solid var(--sl-line); border-left: 2px solid var(--sl-mint); border-radius: 8px; background: rgba(101, 230, 177, .04); color: var(--sl-copy); font-size: 12px; line-height: 1.5; }
+  .sol-contract b { display: block; margin-bottom: 3px; color: var(--sl-mint); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .sol-contract.warn { border-left-color: var(--sl-amber); background: rgba(243, 201, 105, .05); }
+  .sol-contract.warn b { color: var(--sl-amber); }
+
+  /* operator runbook */
+  .sol-runbook { border: 1px solid var(--sl-line); border-radius: 14px; background: rgba(8, 20, 28, .55); overflow: hidden; }
+  .sol-runbook-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 15px; border-bottom: 1px solid var(--sl-line); }
+  .sol-runbook-head h4 { margin: 5px 0 0; color: var(--sl-text); font-size: 19px; }
+  .sol-runbook-note { margin: 7px 0 0; color: var(--sl-muted); font-size: 12px; line-height: 1.5; }
+  .sol-runbook-count { flex: 0 0 auto; padding: 5px 9px; border: 1px solid var(--sl-line); border-radius: 999px; color: var(--sl-cyan); font: 600 9px var(--mono); text-transform: uppercase; white-space: nowrap; }
+  .sol-runbook-body { padding: 14px 15px; display: grid; gap: 12px; }
+  .sol-label { color: var(--sl-muted); font: 700 9px var(--mono); letter-spacing: 1.1px; text-transform: uppercase; }
+  .sol-prereqs { display: flex; flex-wrap: wrap; gap: 7px; }
+  .sol-prereqs .sol-label { width: 100%; }
+  .sol-prereqs .req { padding: 6px 9px; border: 1px solid var(--sl-line); border-radius: 8px; color: var(--sl-copy); background: rgba(255, 255, 255, .03); font-size: 11px; }
+  .sol-command { display: grid; gap: 5px; }
+  .sol-terminal { position: relative; margin: 0; }
+  .sol-terminal pre { margin: 0; padding: 11px 12px; padding-right: 74px; border: 1px solid var(--sl-line); border-radius: 8px; background: #050c12; color: var(--sl-cyan); font: 11px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .sol-terminal pre code { color: inherit; }
+  .sol-copy { position: absolute; top: 7px; right: 7px; padding: 5px 9px; border: 1px solid var(--sl-line2); border-radius: 7px; background: rgba(5, 14, 20, .92); color: var(--sl-muted); font: 700 9px var(--mono); letter-spacing: .5px; text-transform: uppercase; cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+  .sol-copy:hover { border-color: var(--sl-mint); color: var(--sl-mint); background: rgba(101, 230, 177, .1); }
+  .sol-copy:focus-visible { outline: 2px solid var(--sl-mint); outline-offset: 2px; }
+  .sol-procedures { display: grid; gap: 9px; }
+  .sol-procedure { border: 1px solid var(--sl-line); border-radius: 10px; background: rgba(5, 14, 20, .6); overflow: hidden; }
+  .sol-procedure-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--sl-line); background: rgba(255, 255, 255, .02); }
+  .sol-procedure-index { color: var(--sl-violet); font: 700 10px var(--mono); }
+  .sol-procedure-head strong { color: var(--sl-text); font-size: 12.5px; }
+  .sol-procedure-head code { color: var(--sl-muted); font: 10px var(--mono); }
+  .sol-procedure-body { padding: 11px 12px 12px; display: grid; gap: 9px; }
+  .sol-procedure-purpose { margin: 0; color: var(--sl-muted); font-size: 11.5px; line-height: 1.45; }
+  .sol-procedure-grid { display: grid; grid-template-columns: minmax(160px, .8fr) minmax(0, 1.2fr); gap: 8px; }
+  .sol-procedure-grid > div { min-width: 0; padding: 8px 9px; border: 1px solid var(--sl-line); border-radius: 8px; background: rgba(255, 255, 255, .025); }
+  .sol-procedure-grid span { display: block; margin-bottom: 4px; color: var(--sl-faint); font: 700 8px var(--mono); letter-spacing: .9px; text-transform: uppercase; }
+  .sol-procedure-grid code { color: var(--sl-cyan); font: 10px/1.4 var(--mono); overflow-wrap: anywhere; }
+  .sol-procedure-grid .sol-chips .chip { padding: 3px 6px; font-size: 8.5px; }
+  .sol-remediation { padding: 11px 12px; border: 1px solid var(--sl-line); border-left: 2px solid var(--sl-mint); border-radius: 8px; background: rgba(101, 230, 177, .05); }
+  .sol-remediation strong { display: block; margin-bottom: 3px; color: var(--sl-mint); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .sol-remediation p { margin: 0; color: var(--sl-copy); font-size: 12px; line-height: 1.5; }
+
+  /* runbook sequence reel */
+  .sol-reel { overflow: hidden; border: 1px solid var(--sl-line); border-radius: 12px; background: #050c12; }
+  .sol-reel-stage { position: relative; }
+  .sol-reel object { display: block; width: 100%; aspect-ratio: 1120 / 478; border: 0; background: #050c12; }
+  .sol-reel object:focus-visible { outline: 2px solid var(--sl-mint); outline-offset: -2px; }
+  .sol-reel-controls { position: absolute; z-index: 2; right: 12px; bottom: 12px; display: flex; gap: 7px; }
+  .sol-reel-controls button { min-width: 40px; min-height: 40px; border: 1px solid var(--sl-line2); border-radius: 9px; background: rgba(5, 14, 20, .86); color: var(--sl-text); cursor: pointer; transition: border-color .15s, background .15s, transform .15s; }
+  .sol-reel-controls button:hover { border-color: var(--sl-mint); background: rgba(101, 230, 177, .12); transform: translateY(-1px); }
+  .sol-reel-controls button:focus-visible { outline: 2px solid var(--sl-mint); outline-offset: 2px; }
   .sol-reel.is-paused object { filter: saturate(.75); }
-  .sol-reel-track { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(var(--sol-step-count), minmax(0, 1fr)); gap: 6px; padding: 10px 12px 12px; border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.28); }
-  .sol-reel-track::before { content: ""; position: absolute; left: 12px; right: 12px; top: 16px; height: 2px; background: rgba(255,255,255,.12); }
-  .sol-reel-beacon { position: absolute; top: 11px; left: 12px; width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 4px rgba(0,212,255,.12), 0 0 18px var(--cyan); animation: solBeacon 8s linear infinite; }
+  .sol-reel-track { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(var(--sol-step-count), minmax(0, 1fr)); gap: 6px; padding: 10px 12px 12px; border-top: 1px solid var(--sl-line); background: rgba(3, 10, 15, .6); }
+  .sol-reel-track::before { content: ""; position: absolute; left: 12px; right: 12px; top: 16px; height: 2px; background: var(--sl-line); }
+  .sol-reel-beacon { position: absolute; top: 11px; left: 12px; width: 9px; height: 9px; border-radius: 50%; background: var(--sl-mint); box-shadow: 0 0 0 4px rgba(101, 230, 177, .14), 0 0 18px var(--sl-mint); animation: solBeacon 8s linear infinite; }
   .sol-reel.is-paused .sol-reel-beacon { animation-play-state: paused; }
-  @keyframes solBeacon { from { transform: translateX(0); } to { transform: translateX(calc(100% - 9px)); } }
-  .sol-reel-marker { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--muted); font: 600 10px var(--mono); text-align: center; }
-  .sol-reel-marker b { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid rgba(0,212,255,.42); border-radius: 50%; background: #0b1522; color: var(--cyan); font-size: 9px; }
+  @keyframes solBeacon { 0% { left: 12px; } 100% { left: calc(100% - 21px); } }
+  .sol-reel-marker { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--sl-muted); font: 600 10px var(--mono); text-align: center; }
+  .sol-reel-marker b { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--sl-line2); border-radius: 50%; background: var(--sl-panel); color: var(--sl-cyan); font-size: 9px; }
   .sol-reel-marker span { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
-  .sol-guide-intro { margin: 0 0 16px; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
-  .sol-method { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; padding: 10px 12px; border: 1px solid rgba(0,255,136,.2); border-radius: 10px; background: rgba(0,255,136,.05); color: var(--text-3); font-size: 12.5px; }
-  .sol-method strong { color: var(--green); font: 700 10px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
-  .sol-playbook { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0 16px; }
-  .sol-playbook-card { min-height: 112px; padding: 12px; border: 1px solid rgba(255,255,255,.1); border-radius: 11px; background: rgba(4,8,15,.46); }
-  .sol-playbook-card.boundary { border-color: rgba(255,170,60,.3); background: rgba(255,170,60,.045); }
-  .sol-playbook-label { display: block; margin-bottom: 6px; color: var(--cyan); font: 700 9px var(--mono); letter-spacing: 1.25px; text-transform: uppercase; }
-  .sol-playbook-card.boundary .sol-playbook-label { color: var(--yellow); }
-  .sol-playbook-card p { margin: 0; color: var(--text-3); font-size: 12px; line-height: 1.5; }
-  .sol-step-brief { display: grid; grid-template-columns: minmax(130px, .7fr) minmax(0, 1.3fr); gap: 10px; margin: 0 0 12px; padding: 10px 11px; border: 1px solid rgba(0,212,255,.15); border-radius: 10px; background: rgba(0,212,255,.045); }
-  .sol-step-brief span { display: block; color: var(--cyan); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
-  .sol-step-brief strong { display: block; margin-top: 3px; color: var(--text); font-size: 12.5px; line-height: 1.4; }
-  .sol-step-brief p { margin: 0; color: var(--text-3); font-size: 12px; line-height: 1.5; }
-  .sol-chapters { display: grid; gap: 14px; }
-  .sol-step { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 15px; border: 1px solid var(--border); border-radius: 15px; background: linear-gradient(145deg, rgba(26,26,46,.96), rgba(11,14,24,.98)); padding: 16px; overflow: hidden; transition: border-color .2s, transform .2s, box-shadow .2s; }
-  .sol-step::after { content: ""; position: absolute; top: 0; bottom: 0; left: 51px; width: 1px; background: linear-gradient(var(--cyan), transparent 80%); opacity: .35; }
-  .sol-step:hover { border-color: rgba(0,212,255,.42); transform: translateY(-2px); box-shadow: 0 16px 34px rgba(0,0,0,.28), 0 0 24px rgba(0,212,255,.07); }
-  .sol-step-num { position: relative; z-index: 1; align-self: start; width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--grad); color: #fff; font: 700 12px var(--mono); box-shadow: 0 7px 22px rgba(0,212,255,.25); }
-  .sol-step-content { position: relative; z-index: 1; min-width: 0; }
-  .sol-step-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 5px; }
-  .sol-step-head h4 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text); }
-  .sol-step-phase { color: var(--cyan); font: 700 9px var(--mono); letter-spacing: 1.4px; text-transform: uppercase; }
-  .sol-step-event { display: block; margin-top: 3px; font: 500 10.5px var(--mono); color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sol-step-event code { color: var(--cyan); background: rgba(0,212,255,.08); border: 1px solid rgba(0,212,255,.2); border-radius: 5px; padding: 1px 6px; }
-  .sol-step-text { margin: 11px 0 12px; font-size: 13.5px; color: var(--text-3); line-height: 1.6; }
-  .sol-step-method { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 0 0 12px; padding: 10px 11px; border-left: 2px solid var(--purple-2); border-radius: 0 9px 9px 0; background: rgba(124,58,237,.08); color: var(--text-3); font-size: 12px; line-height: 1.5; }
-  .sol-step-method strong, .sol-step-success strong { color: var(--purple-2); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
-  .sol-step-success { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 0 0 13px; color: var(--muted); font-size: 12px; line-height: 1.5; }
-  .sol-step-success strong { color: var(--green); }
-  .sol-step-figure { margin: 0 0 13px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; overflow: hidden; background: var(--bg); }
-  .sol-step-figure img { width: 100%; display: block; aspect-ratio: 1120 / 500; object-fit: contain; background: #0b1017; }
-  .sol-evidence-label { margin: 0 0 7px; color: var(--faint); font: 700 9px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; }
+  .sol-method { display: flex; align-items: baseline; gap: 10px; margin: 12px 0 0; padding: 11px 12px; border: 1px solid var(--sl-line); border-left: 2px solid var(--sl-cyan); border-radius: 8px; background: rgba(115, 217, 238, .05); color: var(--sl-copy); font-size: 12px; line-height: 1.5; }
+  .sol-method strong { color: var(--sl-cyan); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+
+  /* evidence chapters */
+  .sol-chapters { display: grid; gap: 12px; }
+  .sol-step { border: 1px solid var(--sl-line); border-radius: 14px; background: linear-gradient(150deg, rgba(16, 35, 45, .9), rgba(7, 16, 22, .96)); overflow: hidden; }
+  .sol-step-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 14px 15px; border-bottom: 1px solid var(--sl-line); }
+  .sol-step-head h4 { margin: 5px 0 0; color: var(--sl-text); font-size: 16px; line-height: 1.3; }
+  .sol-step-phase { color: var(--sl-mint); font: 700 9px var(--mono); letter-spacing: 1.4px; text-transform: uppercase; }
+  .sol-step-event { display: block; margin-top: 4px; font: 500 10.5px var(--mono); color: var(--sl-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sol-step-event code { color: var(--sl-cyan); }
+  .sol-step-count { flex: 0 0 auto; padding: 5px 9px; border: 1px solid var(--sl-line); border-radius: 999px; color: var(--sl-muted); font: 600 9px var(--mono); white-space: nowrap; }
+  .sol-step-body { padding: 14px 15px 15px; display: grid; gap: 10px; }
+  .sol-step-text { margin: 0; color: var(--sl-copy); font-size: 12.5px; line-height: 1.55; }
+  .sol-step-brief { display: grid; grid-template-columns: minmax(130px, .7fr) minmax(0, 1.3fr); gap: 9px; }
+  .sol-step-brief > div { min-width: 0; padding: 9px 10px; border: 1px solid var(--sl-line); border-radius: 8px; background: rgba(255, 255, 255, .025); }
+  .sol-step-brief span { display: block; margin-bottom: 4px; color: var(--sl-faint); font: 700 8px var(--mono); letter-spacing: .9px; text-transform: uppercase; }
+  .sol-step-brief strong { color: var(--sl-text); font-size: 12px; line-height: 1.4; }
+  .sol-step-brief p { margin: 0; color: var(--sl-copy); font-size: 11.5px; line-height: 1.5; }
+  .sol-step-method, .sol-step-success { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; padding: 10px 11px; border: 1px solid var(--sl-line); border-left: 2px solid var(--sl-violet); border-radius: 8px; background: rgba(184, 167, 255, .05); color: var(--sl-copy); font-size: 12px; line-height: 1.5; }
+  .sol-step-success { border-left-color: var(--sl-mint); background: rgba(101, 230, 177, .05); }
+  .sol-step-method strong, .sol-step-success strong { color: var(--sl-violet); font: 700 9px var(--mono); letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+  .sol-step-success strong { color: var(--sl-mint); }
+  .sol-step-figure { margin: 0; border: 1px solid var(--sl-line); border-radius: 10px; overflow: hidden; background: #050c12; }
+  .sol-step-figure img { width: 100%; display: block; aspect-ratio: 900 / 300; object-fit: contain; background: #050c12; }
+  .sol-evidence { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+  .sol-evidence-label { color: var(--sl-faint); font: 700 8.5px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .sol-evidence .chip { margin: 0; padding: 4px 8px; border: 1px solid var(--sl-line); border-radius: 999px; background: rgba(255, 255, 255, .03); color: var(--sl-muted); font: 600 9px var(--mono); text-transform: uppercase; }
+  .sol-evidence .chip.ok { color: var(--sl-mint); border-color: rgba(101, 230, 177, .35); background: rgba(101, 230, 177, .06); }
+
+  @media (max-width: 760px) {
+    .sol-studio-head { display: block; }
+    .sol-reel-meta { justify-content: flex-start; margin-top: 12px; }
+    .sol-runbook-head { display: block; }
+    .sol-runbook-count { display: inline-block; margin-top: 10px; }
+    .sol-procedure-grid, .sol-step-brief { grid-template-columns: 1fr; }
+    .sol-kv { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .sol-kv > code, .sol-kv .sol-chips { justify-content: flex-start; text-align: left; }
+  }
 
   /* flag submission panel (sidebar) */
   .flag-panel {
     position: relative; overflow: hidden;
-    background: rgba(255, 255, 255, .05);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 22px;
+    border: 1px solid #24404c; border-radius: 14px;
+    background: linear-gradient(150deg, rgba(16, 35, 45, .92), rgba(7, 16, 22, .97));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+    color: #c1d3d4; padding: 18px 16px;
   }
-  .flag-panel::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad-danger); opacity: .9; }
-  .flag-panel h3 { margin: 0 0 6px; font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 9px; }
-  .flag-panel h3 svg { color: var(--red); }
-  .flag-panel .fp-sub { margin: 0 0 14px; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
-  .flag-panel input { font: 600 12.5px var(--mono); letter-spacing: .4px; }
+  .flag-panel::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #fb7185, #f3c969); opacity: .9; }
+  .flag-panel h3 { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: #edf7f5; display: flex; align-items: center; gap: 9px; }
+  .flag-panel h3 svg { color: #fb7185; }
+  .flag-panel .fp-sub { margin: 0 0 13px; font-size: 12px; color: #829ca2; line-height: 1.55; }
+  .flag-panel .fp-sub code { color: #73d9ee; }
+  .flag-panel input { font: 600 12px var(--mono); letter-spacing: .4px; border-color: #24404c; background: rgba(5, 14, 20, .6); }
   .flag-panel .fp-btn { margin-top: 10px; width: 100%; }
+  .flag-panel .btn-primary { border-color: transparent; background: linear-gradient(105deg, #56d9a7, #73d9ee); color: #062018; box-shadow: none; }
+  .flag-panel .btn-primary:hover:not(:disabled) { filter: none; transform: none; background: linear-gradient(105deg, #56d9a7, #73d9ee); }
   .flag-panel .fp-format {
-    margin: 12px 0 0; font: 500 10.5px var(--mono); color: var(--faint); line-height: 1.6; word-break: break-all;
+    margin: 12px 0 0; font: 500 10px var(--mono); color: #5b747c; line-height: 1.6; word-break: break-all;
   }
-  .flag-panel .fp-format code { color: var(--yellow); background: rgba(245, 165, 36, .1); border: 1px solid rgba(245, 165, 36, .25); border-radius: 5px; padding: 1px 6px; }
+  .flag-panel .fp-format code { color: #f3c969; background: rgba(243, 201, 105, .08); border: 1px solid rgba(243, 201, 105, .25); border-radius: 5px; padding: 1px 6px; }
   #flag-result { margin-top: 12px; }
   #flag-result .step-box { margin-top: 0; }
 
   /* lab target URL links */
-  .la-targets { margin-top: 14px; }
+  .la-targets { margin-top: 13px; }
   .la-targets .la-label {
     display: block; margin-bottom: 8px;
-    font: 700 9.5px var(--mono); letter-spacing: 1.4px; text-transform: uppercase; color: var(--cyan);
+    font: 700 9px var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: #73d9ee;
   }
-  .la-targets .la-label b { color: var(--green); }
-  .la-target-list { display: flex; flex-direction: column; gap: 7px; }
+  .la-targets .la-label b { color: #65e6b1; }
+  .la-target-list { display: flex; flex-direction: column; gap: 6px; }
   .la-target-link {
     display: flex; align-items: center; gap: 8px;
-    border: 1px solid var(--border); border-radius: 9px;
-    background: rgba(0, 212, 255, .06); padding: 8px 12px;
-    font: 600 12px var(--mono); color: var(--cyan);
+    border: 1px solid #24404c; border-radius: 8px;
+    background: rgba(115, 217, 238, .05); padding: 8px 11px;
+    font: 600 11.5px var(--mono); color: #73d9ee;
     transition: border-color .13s, background .13s, transform .05s;
   }
-  .la-target-link:hover { border-color: rgba(0, 212, 255, .55); background: rgba(0, 212, 255, .12); transform: translateY(-1px); }
+  .la-target-link:hover { border-color: #65e6b1; background: rgba(101, 230, 177, .08); transform: translateY(-1px); }
   .la-target-link svg { width: 13px; height: 13px; flex: 0 0 13px; opacity: .8; }
-  .la-target-link .lt-url { margin-left: auto; color: var(--text-3); font-size: 11px; }
-  .la-target-link:hover .lt-url { color: var(--cyan); }
+  .la-target-link .lt-url { margin-left: auto; color: #829ca2; font-size: 10px; }
+  .la-target-link:hover .lt-url { color: #65e6b1; }
 
   /* ============================================================
      FOOTER + TOAST
@@ -1119,7 +1185,7 @@
     .challenge-grid { grid-template-columns: 1fr; }
     .detail-hero { flex-direction: column; align-items: flex-start; }
     .detail-illus { flex-basis: auto; width: 100%; height: 160px; }
-    .brief-grid, .flow-brief, .flow-lane-grid, .lab-dossier-grid, .lab-chain-steps, .sol-playbook, .sol-step-brief, .sol-case-file { grid-template-columns: 1fr; }
+    .brief-grid, .flow-brief, .flow-lane-grid, .lab-dossier-grid, .lab-chain-steps, .sol-step-brief { grid-template-columns: 1fr; }
     .ch-hero-title { font-size: 38px; }
     .ev-row { grid-template-columns: 1fr; }
   }
@@ -1379,6 +1445,7 @@ const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.queryS
  * @property {number} step_count
  * @property {string[]} detection_rule_ids
  * @property {string[]} required_controls
+ * @property {string[]} [target_services]
  * @property {{step: number, id: string, event: string, observation: string, evidence_keys: string[]}[]} flow_steps
  */
 
@@ -1440,6 +1507,7 @@ const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.queryS
  * @property {{level: number, text: string}[]} [hints]
  * @property {string[]} [target_services]
  * @property {string[]} [skills]
+ * @property {string[]} [success_criteria]
  */
 
 /**
@@ -1447,6 +1515,7 @@ const $$ = (selector) => /** @type {NodeListOf<HTMLElement>} */ (document.queryS
  * @property {string|null} current_gate_id
  * @property {number} [completed_gate_count]
  * @property {number} [total_hard_gates]
+ * @property {HardGate[]} [gates]
  */
 
 /**
@@ -1540,7 +1609,7 @@ const STAGE_TARGET_SERVICES = {
 
 /**
  * Render clickable lab-target links for a scenario's stage services.
- * @param {{target_services?: string[]}|null} stage
+ * @param {{target_services?: string[]; id?: string}|null} stage
  * @param {string} status
  * @returns {string}
  */
@@ -2562,7 +2631,7 @@ function buildEvidenceForm(hint) {
   if (submit) submit.addEventListener("click", () => submitEvent(hint));
 }
 
-/** Render the premium step-by-step solution studio for the open lab. */
+/** Render the lab-solution studio in the clean console style of the lab apps. */
 function renderSolutionGuide(sc) {
   const box = $("guide-body");
   if (!box) return;
@@ -2572,82 +2641,122 @@ function renderSolutionGuide(sc) {
   const runbook = guide.runbook || { prerequisites: [], procedures: [], remediation: "", cleanup: "", case_file: {} };
   const caseFile = runbook.case_file || {};
   const reel = guide.reel || `/assets/solution/${encodeURIComponent(sc.scenario_id)}/reel.svg`;
+  const command = (label, text) => `
+      <div class="sol-command">
+        <span class="sol-label">${label}</span>
+        <div class="sol-terminal"><pre><code>${esc(text)}</code></pre><button type="button" class="sol-copy" data-copy aria-label="Copy ${esc(label)}">Copy</button></div>
+      </div>`;
   const procedureRows = (runbook.procedures || []).map((p) => `
-    <article class="sol-procedure">
-      <div class="sol-procedure-index">${String(p.step).padStart(2, "0")}</div>
-      <div class="sol-procedure-body">
-        <div class="sol-procedure-head"><strong>${esc(p.operation)}</strong><code>${esc(p.event)}</code></div>
-        <p class="sol-procedure-purpose">${esc(p.expected_observation)}</p>
-        <div class="sol-command-label">REQUEST / QUERY</div>
-        <pre class="sol-command"><code>${esc(p.request)}</code></pre>
-        <div class="sol-procedure-grid">
-          <div><span>Query target</span><code>${esc(p.query)}</code></div>
-          <div><span>Record</span><div class="chip-grid">${chips(p.record, "timestamp and response")}</div></div>
+      <article class="sol-procedure">
+        <div class="sol-procedure-head">
+          <span class="sol-procedure-index">${String(p.step).padStart(2, "0")}</span>
+          <strong>${esc(p.operation)}</strong>
+          <code>${esc(p.event)}</code>
         </div>
-      </div>
-    </article>`).join("");
+        <div class="sol-procedure-body">
+          <p class="sol-procedure-purpose">${esc(p.expected_observation)}</p>
+          ${command("Request / query", p.request)}
+          <div class="sol-procedure-grid">
+            <div><span>Query target</span><code>${esc(p.query || p.surface || "local surface")}</code></div>
+            <div><span>Record</span><div class="sol-chips">${chips(p.record, "timestamp and response")}</div></div>
+          </div>
+        </div>
+      </article>`).join("");
   const markers = guideSteps.map((s) => `
     <div class="sol-reel-marker"><b>${String(s.step).padStart(2, "0")}</b><span>${esc(s.phase || s.title)}</span></div>`).join("");
   const steps = guideSteps.map((s) => `
-    <article class="sol-step" id="solution-step-${String(s.step)}">
-      <span class="sol-step-num" aria-label="Step ${String(s.step)}">${String(s.step).padStart(2, "0")}</span>
-      <div class="sol-step-content">
-        <div class="sol-step-head">
+      <section class="sol-step" id="solution-step-${String(s.step)}">
+        <header class="sol-step-head">
           <div>
             <span class="sol-step-phase">${esc(s.phase || "Investigation")}</span>
             <h4>${esc(s.title)}</h4>
             <span class="sol-step-event">machine event · <code>${esc(s.event)}</code></span>
           </div>
-          <span class="pill accent">${String(s.step).padStart(2, "0")} / ${guideSteps.length}</span>
+          <span class="sol-step-count">${String(s.step).padStart(2, "0")} / ${guideSteps.length}</span>
+        </header>
+        <div class="sol-step-body">
+          <p class="sol-step-text">${esc(s.text)}</p>
+          <div class="sol-step-brief">
+            <div><span>Operator move</span><strong>${esc(s.action || "Run the controlled investigation")}</strong></div>
+            <div><span>What to look for</span><p>${esc(s.look_for || "Explain the signal before continuing.")}</p></div>
+          </div>
+          <div class="sol-step-method"><strong>Method</strong><span>${esc(s.method || "Inspect the disclosed localhost surface and preserve bounded evidence.")}</span></div>
+          <div class="sol-step-success"><strong>Success looks like</strong><span>${esc(s.success_look || "The observation is explained and its evidence is ready for submission.")}</span></div>
+          <figure class="sol-step-figure"><img src="${esc(s.figure)}" alt="Technical figure: ${esc(s.title)}" loading="lazy" width="900" height="300" /></figure>
+          <div class="sol-evidence"><span class="sol-evidence-label">Evidence contract</span>${chips(s.evidence_keys, "bounded observation")}</div>
         </div>
-        <p class="sol-step-text">${esc(s.text)}</p>
-        <div class="sol-step-brief"><div><span>Operator move</span><strong>${esc(s.action || "Run the controlled investigation")}</strong></div><div><span>What to look for</span><p>${esc(s.look_for || "Explain the signal before continuing.")}</p></div></div>
-        <div class="sol-step-method"><strong>Method</strong><span>${esc(s.method || "Inspect the disclosed localhost surface and preserve bounded evidence.")}</span></div>
-        <div class="sol-step-success"><strong>Success looks like</strong><span>${esc(s.success_look || "The observation is explained and its evidence is ready for submission.")}</span></div>
-        <div class="sol-step-figure"><img src="${esc(s.figure)}" alt="Technical figure: ${esc(s.title)}" loading="lazy" width="1120" height="470" /></div>
-        <p class="sol-evidence-label">Evidence contract for this chapter</p>
-        <div class="chip-grid">${chips(s.evidence_keys, "bounded observation")}</div>
-      </div>
-    </article>`).join("");
+      </section>`).join("");
   box.innerHTML = `
     <div class="solution-studio">
-      <div class="sol-studio-head">
+      <header class="sol-studio-head">
         <div>
-          <span class="sol-kicker">ZODIAC SOLUTION STUDIO · TECHNICAL RUNBOOK V3</span>
+          <span class="sol-kicker">Zodiac solution studio · technical runbook</span>
           <h3 class="sol-studio-title">Operator case file</h3>
           <p class="sol-studio-copy">${esc(guide.intro || "Execute the local procedure, inspect the returned signal, preserve the declared evidence, and submit the event in order.")}</p>
         </div>
-        <div class="sol-reel-meta"><span class="pill accent">${guideSteps.length} procedures</span><span class="pill ok">simple technical figure</span><span class="pill">quiet motion</span></div>
-      </div>
-      <div class="sol-case-file" aria-label="Technical case metadata">
-        <div class="sol-case-cell"><span>Case</span><strong>${esc(caseFile.scenario_id || sc.scenario_id)}</strong><code>${esc(caseFile.surface_name || "local surface")}</code></div>
-        <div class="sol-case-cell"><span>Threat tags</span><div class="chip-grid">${chips(caseFile.threat_tags || [], "threat tag")}</div></div>
-        <div class="sol-case-cell"><span>Detections</span><div class="chip-grid">${chips(caseFile.detection_rule_ids || [], "detection rule")}</div></div>
-        <div class="sol-case-cell"><span>Controls</span><div class="chip-grid">${chips(caseFile.required_controls || [], "required control")}</div></div>
-      </div>
-      <div class="sol-playbook" aria-label="Solution playbook">
-        <div class="sol-playbook-card"><span class="sol-playbook-label">Mission brief</span><p>${esc(playbook.mission || sc.objective)}</p></div>
-        <div class="sol-playbook-card"><span class="sol-playbook-label">Investigation lens</span><p>${esc(playbook.investigation || "Trace the declared signal and compare claim with evidence.")}</p></div>
-        <div class="sol-playbook-card"><span class="sol-playbook-label">Decision rule</span><p>${esc(playbook.decision || "Apply the declared controls before accepting the finding.")}</p></div>
-        <div class="sol-playbook-card"><span class="sol-playbook-label">Finish condition</span><p>${esc(playbook.finish || "Reconcile the evidence chain before closing the lab.")}</p></div>
-        <div class="sol-playbook-card boundary"><span class="sol-playbook-label">Safety boundary</span><p>${esc(playbook.boundary || "Synthetic localhost-only exercise. No real credentials or side effects.")}</p></div>
-      </div>
-      <section class="sol-runbook" aria-label="Technical runbook">
-        <div class="sol-runbook-head"><div><span class="sol-kicker">OPERATOR RUNBOOK · ${esc(runbook.family || "synthetic lab")}</span><h4>Execute the local procedure</h4></div><span class="pill accent">${(runbook.procedures || []).length} verified actions</span></div>
-        <p class="sol-runbook-note">${esc(runbook.evidence_note || "Run each request locally, inspect the response, then submit the matching machine event.")}</p>
-        <div class="sol-prereqs"><strong>Before you start</strong>${(runbook.prerequisites || []).map((item) => `<span>✓ ${esc(item)}</span>`).join("")}</div>
-        <div class="sol-command-label">START THE RUN</div><pre class="sol-command"><code>${esc(runbook.start_command || "LAB=http://127.0.0.1:8060")}</code></pre>
-        <div class="sol-procedures">${procedureRows}</div>
-        <div class="sol-remediation"><strong>Remediate and verify</strong><p>${esc(runbook.remediation || "Apply the declared controls and repeat the same local request.")}</p><div class="sol-command-label">CLEANUP / RESET</div><pre class="sol-command"><code>${esc(runbook.cleanup || "POST /api/scenarios/{scenario_id}/reset")}</code></pre></div>
+        <div class="sol-reel-meta">
+          <span class="pill accent">${guideSteps.length} procedures</span>
+          <span class="pill ok">simple technical figure</span>
+          <span class="pill">quiet motion</span>
+        </div>
+      </header>
+
+      <section class="sol-panel" aria-label="Case file">
+        <h4 class="sol-panel-title">Case file <span>read-only metadata</span></h4>
+        <div class="sol-panel-body">
+          <div class="sol-kv"><span>Case</span><code>${esc(caseFile.scenario_id || sc.scenario_id)}</code></div>
+          <div class="sol-kv"><span>Surface</span><code>${esc(caseFile.surface_name || "local surface")}</code></div>
+          <div class="sol-kv"><span>Threat tags</span><div class="sol-chips">${chips(caseFile.threat_tags, "threat tag")}</div></div>
+          <div class="sol-kv"><span>Detections</span><div class="sol-chips">${chips(caseFile.detection_rule_ids, "detection rule")}</div></div>
+          <div class="sol-kv"><span>Controls</span><div class="sol-chips">${chips(caseFile.required_controls, "required control")}</div></div>
+        </div>
       </section>
-      <div class="sol-reel" data-reel>
-        <object data="${esc(reel)}" type="image/svg+xml" aria-label="Technical runbook sequence for ${esc(sc.title)}" width="1120" height="478"><span>Technical runbook sequence for ${esc(sc.title)}</span></object>
-        <div class="sol-reel-controls"><button type="button" data-reel-toggle aria-label="Pause solution animation" aria-pressed="false">Ⅱ</button></div>
-        <div class="sol-reel-track" style="--sol-step-count:${Math.max(1, guideSteps.length)}"><span class="sol-reel-beacon" aria-hidden="true"></span>${markers}</div>
-      </div>
-    </div>
-    <p class="sol-method"><strong>Operating method</strong><span>${esc(guide.method || "Orient → observe → validate → decide. Each chapter maps to a machine-checked question.")}</span></p>
-    <div class="sol-chapters">${steps || '<p class="muted">No solution guide for this lab yet.</p>'}</div>`;
+
+      <section class="sol-panel" aria-label="Decision brief">
+        <h4 class="sol-panel-title">Decision brief <span>playbook</span></h4>
+        <div class="sol-contract-grid">
+          <div class="sol-contract"><b>Mission brief</b>${esc(playbook.mission || sc.objective)}</div>
+          <div class="sol-contract"><b>Investigation lens</b>${esc(playbook.investigation || "Trace the declared signal and compare claim with evidence.")}</div>
+          <div class="sol-contract"><b>Decision rule</b>${esc(playbook.decision || "Apply the declared controls before accepting the finding.")}</div>
+          <div class="sol-contract"><b>Finish condition</b>${esc(playbook.finish || "Reconcile the evidence chain before closing the lab.")}</div>
+          <div class="sol-contract warn"><b>Safety boundary</b>${esc(playbook.boundary || "Synthetic localhost-only exercise. No real credentials or side effects.")}</div>
+        </div>
+      </section>
+
+      <section class="sol-runbook" aria-label="Operator runbook">
+        <div class="sol-runbook-head">
+          <div>
+            <span class="sol-kicker">Operator runbook · ${esc(runbook.family || "synthetic lab")}</span>
+            <h4>Execute the local procedure</h4>
+            <p class="sol-runbook-note">${esc(runbook.evidence_note || "Run each request locally, inspect the response, then submit the matching machine event.")}</p>
+          </div>
+          <span class="sol-runbook-count">${(runbook.procedures || []).length} verified actions</span>
+        </div>
+        <div class="sol-runbook-body">
+          ${(runbook.prerequisites || []).length ? `<div class="sol-prereqs"><span class="sol-label">Before you start</span>${(runbook.prerequisites || []).map((item) => `<span class="req">✓ ${esc(item)}</span>`).join("")}</div>` : ""}
+          ${command("Start the run", runbook.start_command || "LAB=http://127.0.0.1:8060")}
+          <div class="sol-procedures">${procedureRows || '<p class="muted">No operator procedures available.</p>'}</div>
+          <div class="sol-remediation"><strong>Remediate and verify</strong><p>${esc(runbook.remediation || "Apply the declared controls and repeat the same local request.")}</p></div>
+          ${command("Cleanup / reset", runbook.cleanup || "POST /api/scenarios/{scenario_id}/reset")}
+        </div>
+      </section>
+
+      <section class="sol-panel" aria-label="Runbook sequence">
+        <h4 class="sol-panel-title">Runbook sequence <span>${guideSteps.length} chapters</span></h4>
+        <div class="sol-panel-body">
+          <div class="sol-reel" data-reel>
+            <div class="sol-reel-stage">
+              <object data="${esc(reel)}" type="image/svg+xml" aria-label="Technical runbook sequence for ${esc(sc.title)}" width="1120" height="478"><span>Technical runbook sequence for ${esc(sc.title)}</span></object>
+              <div class="sol-reel-controls"><button type="button" data-reel-toggle aria-label="Pause solution animation" aria-pressed="false">Ⅱ</button></div>
+            </div>
+            <div class="sol-reel-track" style="--sol-step-count:${Math.max(1, guideSteps.length)}"><span class="sol-reel-beacon" aria-hidden="true"></span>${markers}</div>
+          </div>
+          <p class="sol-method"><strong>Operating method</strong><span>${esc(guide.method || "Orient → observe → validate → decide. Each chapter maps to a machine-checked question.")}</span></p>
+        </div>
+      </section>
+
+      <div class="sol-chapters">${steps || '<p class="muted">No solution guide for this lab yet.</p>'}</div>
+    </div>`;
   const toggle = box.querySelector("[data-reel-toggle]");
   const reelBox = box.querySelector("[data-reel]");
   if (toggle && reelBox) {
@@ -2656,9 +2765,7 @@ function renderSolutionGuide(sc) {
       const root = media && media.contentDocument && media.contentDocument.documentElement;
       if (root) root.setAttribute("data-paused", String(paused));
     };
-    if (media) media.addEventListener("load", () => {
-      setEmbeddedMotion(reelBox.classList.contains("is-paused"));
-    });
+    if (media) media.addEventListener("load", () => setEmbeddedMotion(reelBox.classList.contains("is-paused")));
     toggle.addEventListener("click", () => {
       const paused = reelBox.classList.toggle("is-paused");
       setEmbeddedMotion(paused);
@@ -2667,6 +2774,17 @@ function renderSolutionGuide(sc) {
       toggle.setAttribute("aria-pressed", String(paused));
     });
   }
+  box.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
+    const block = button.closest(".sol-terminal");
+    const value = block && block.querySelector("pre") ? block.querySelector("pre").textContent.trim() : "";
+    try {
+      await navigator.clipboard.writeText(value);
+      button.textContent = "Copied";
+      window.setTimeout(() => { button.textContent = "Copy"; }, 1400);
+    } catch (error) {
+      button.textContent = "Select manually";
+    }
+  }));
 }
 
 /** Render the synthesis (solution) panel for the currently unlocked hard gate. */
