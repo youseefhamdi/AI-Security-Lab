@@ -1082,6 +1082,7 @@
   .sol-evidence-label { color: var(--sl-faint); font: 700 8.5px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
   .sol-evidence .chip { margin: 0; padding: 4px 8px; border: 1px solid var(--sl-line); border-radius: 999px; background: rgba(255, 255, 255, .03); color: var(--sl-muted); font: 600 9px var(--mono); text-transform: uppercase; }
   .sol-evidence .chip.ok { color: var(--sl-mint); border-color: rgba(101, 230, 177, .35); background: rgba(101, 230, 177, .06); }
+  .sol-safety { margin: 0; color: var(--sl-faint); font: 600 10px var(--mono); letter-spacing: .5px; text-transform: uppercase; text-align: center; }
 
   @media (max-width: 760px) {
     .sol-studio-head { display: block; }
@@ -2640,6 +2641,9 @@ function renderSolutionGuide(sc) {
   const playbook = guide.playbook || {};
   const runbook = guide.runbook || { prerequisites: [], procedures: [], remediation: "", cleanup: "", case_file: {} };
   const caseFile = runbook.case_file || {};
+  const track = runbook.track || {};
+  const surface = caseFile.surface || "/health";
+  const target = runbook.target || "http://127.0.0.1:8060";
   const reel = guide.reel || `/assets/solution/${encodeURIComponent(sc.scenario_id)}/reel.svg`;
   const command = (label, text) => `
       <div class="sol-command">
@@ -2657,8 +2661,8 @@ function renderSolutionGuide(sc) {
           <p class="sol-procedure-purpose">${esc(p.expected_observation)}</p>
           ${command("Request / query", p.request)}
           <div class="sol-procedure-grid">
-            <div><span>Query target</span><code>${esc(p.query || p.surface || "local surface")}</code></div>
-            <div><span>Record</span><div class="sol-chips">${chips(p.record, "timestamp and response")}</div></div>
+            <div><span>Surface</span><code>${esc(p.surface || surface)}</code></div>
+            <div><span>Record</span><div class="sol-chips">${chips(p.record, "record keys")}</div></div>
           </div>
         </div>
       </article>`).join("");
@@ -2675,29 +2679,30 @@ function renderSolutionGuide(sc) {
           <span class="sol-step-count">${String(s.step).padStart(2, "0")} / ${guideSteps.length}</span>
         </header>
         <div class="sol-step-body">
-          <p class="sol-step-text">${esc(s.text)}</p>
           <div class="sol-step-brief">
-            <div><span>Operator move</span><strong>${esc(s.action || "Run the controlled investigation")}</strong></div>
+            <div><span>Operator move</span><strong>${esc(s.action || "Run the controlled request.")}</strong></div>
             <div><span>What to look for</span><p>${esc(s.look_for || "Explain the signal before continuing.")}</p></div>
           </div>
-          <div class="sol-step-method"><strong>Method</strong><span>${esc(s.method || "Inspect the disclosed localhost surface and preserve bounded evidence.")}</span></div>
-          <div class="sol-step-success"><strong>Success looks like</strong><span>${esc(s.success_look || "The observation is explained and its evidence is ready for submission.")}</span></div>
+          ${s.request ? command("Request / query", s.request) : ""}
+          <div class="sol-procedure-grid">
+            <div><span>Record</span><div class="sol-chips">${chips(s.record, "record keys")}</div></div>
+            <div><span>Evidence contract</span><div class="sol-chips">${chips(s.evidence_keys, "evidence keys")}</div></div>
+          </div>
           <figure class="sol-step-figure"><img src="${esc(s.figure)}" alt="Technical figure: ${esc(s.title)}" loading="lazy" width="900" height="300" /></figure>
-          <div class="sol-evidence"><span class="sol-evidence-label">Evidence contract</span>${chips(s.evidence_keys, "bounded observation")}</div>
         </div>
       </section>`).join("");
   box.innerHTML = `
     <div class="solution-studio">
       <header class="sol-studio-head">
         <div>
-          <span class="sol-kicker">Zodiac solution studio · technical runbook</span>
-          <h3 class="sol-studio-title">Operator case file</h3>
+          <span class="sol-kicker">Zodiac solution studio · ${esc(track.label || "technical runbook")}</span>
+          <h3 class="sol-studio-title">${esc(caseFile.title || "Operator case file")}</h3>
           <p class="sol-studio-copy">${esc(guide.intro || "Execute the local procedure, inspect the returned signal, preserve the declared evidence, and submit the event in order.")}</p>
         </div>
         <div class="sol-reel-meta">
-          <span class="pill accent">${guideSteps.length} procedures</span>
-          <span class="pill ok">simple technical figure</span>
-          <span class="pill">quiet motion</span>
+          <span class="pill accent">${guideSteps.length} steps</span>
+          <span class="pill ok">${esc(runbook.family || "synthetic lab")}</span>
+          <span class="pill">${esc(guide.version || "runbook")}</span>
         </div>
       </header>
 
@@ -2705,7 +2710,10 @@ function renderSolutionGuide(sc) {
         <h4 class="sol-panel-title">Case file <span>read-only metadata</span></h4>
         <div class="sol-panel-body">
           <div class="sol-kv"><span>Case</span><code>${esc(caseFile.scenario_id || sc.scenario_id)}</code></div>
-          <div class="sol-kv"><span>Surface</span><code>${esc(caseFile.surface_name || "local surface")}</code></div>
+          <div class="sol-kv"><span>Track</span><code>${esc(caseFile.technical_track_label || sc.technical_track_label || track.label || "—")}</code></div>
+          <div class="sol-kv"><span>Surface</span><code>${esc(surface)}</code></div>
+          <div class="sol-kv"><span>Artifact</span><code>${esc(caseFile.technical_artifact || sc.technical_artifact || track.artifact || "—")}</code></div>
+          <div class="sol-kv"><span>Work product</span><code>${esc(caseFile.work_product || "—")}</code></div>
           <div class="sol-kv"><span>Threat tags</span><div class="sol-chips">${chips(caseFile.threat_tags, "threat tag")}</div></div>
           <div class="sol-kv"><span>Detections</span><div class="sol-chips">${chips(caseFile.detection_rule_ids, "detection rule")}</div></div>
           <div class="sol-kv"><span>Controls</span><div class="sol-chips">${chips(caseFile.required_controls, "required control")}</div></div>
@@ -2719,7 +2727,7 @@ function renderSolutionGuide(sc) {
           <div class="sol-contract"><b>Investigation lens</b>${esc(playbook.investigation || "Trace the declared signal and compare claim with evidence.")}</div>
           <div class="sol-contract"><b>Decision rule</b>${esc(playbook.decision || "Apply the declared controls before accepting the finding.")}</div>
           <div class="sol-contract"><b>Finish condition</b>${esc(playbook.finish || "Reconcile the evidence chain before closing the lab.")}</div>
-          <div class="sol-contract warn"><b>Safety boundary</b>${esc(playbook.boundary || "Synthetic localhost-only exercise. No real credentials or side effects.")}</div>
+          <div class="sol-contract warn"><b>Verification</b>${esc(runbook.verification || caseFile.verification || "Repeat the surface and reconcile the declared controls.")}</div>
         </div>
       </section>
 
@@ -2728,12 +2736,12 @@ function renderSolutionGuide(sc) {
           <div>
             <span class="sol-kicker">Operator runbook · ${esc(runbook.family || "synthetic lab")}</span>
             <h4>Execute the local procedure</h4>
-            <p class="sol-runbook-note">${esc(runbook.evidence_note || "Run each request locally, inspect the response, then submit the matching machine event.")}</p>
+            <p class="sol-runbook-note">${esc(track.label || "Track")} · local target ${esc(target)}. Run each request, inspect the response, and preserve the declared record keys.</p>
           </div>
           <span class="sol-runbook-count">${(runbook.procedures || []).length} verified actions</span>
         </div>
         <div class="sol-runbook-body">
-          ${(runbook.prerequisites || []).length ? `<div class="sol-prereqs"><span class="sol-label">Before you start</span>${(runbook.prerequisites || []).map((item) => `<span class="req">✓ ${esc(item)}</span>`).join("")}</div>` : ""}
+          <div class="sol-kv"><span>Target</span><code>${esc(target)}</code></div>
           ${command("Start the run", runbook.start_command || "LAB=http://127.0.0.1:8060")}
           <div class="sol-procedures">${procedureRows || '<p class="muted">No operator procedures available.</p>'}</div>
           <div class="sol-remediation"><strong>Remediate and verify</strong><p>${esc(runbook.remediation || "Apply the declared controls and repeat the same local request.")}</p></div>
@@ -2756,6 +2764,7 @@ function renderSolutionGuide(sc) {
       </section>
 
       <div class="sol-chapters">${steps || '<p class="muted">No solution guide for this lab yet.</p>'}</div>
+      <p class="sol-safety">Synthetic localhost-only exercise — no credentials · no external targets · no side effects</p>
     </div>`;
   const toggle = box.querySelector("[data-reel-toggle]");
   const reelBox = box.querySelector("[data-reel]");
