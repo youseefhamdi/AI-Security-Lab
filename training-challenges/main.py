@@ -21,7 +21,8 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 
-ROOT = Path(__file__).resolve().parent.parent
+SERVICE_DIR = Path(__file__).resolve().parent
+ROOT = SERVICE_DIR.parent if (SERVICE_DIR.parent / "training-config").is_dir() else SERVICE_DIR
 if str(ROOT) not in sys.path: sys.path.insert(0, str(ROOT))
 SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path: sys.path.insert(0, str(SCRIPTS))
@@ -60,10 +61,32 @@ SECURITY_MODE = CONFIG.security_mode
 # Stable compatibility prefix: ZODIAC-BANK- flags are issued only by bounded synthesis.
 TRAINER_UI = Path(__file__).with_name("index.html")
 ASSETS_DIR = ROOT / "docs" / "assets"
+if not ASSETS_DIR.is_dir():
+    ASSETS_DIR = SERVICE_DIR / "docs" / "assets"
+STAGE_COVER_FILES = {
+    "L00-foundation": "stage-l00-foundation.png",
+    "L01-recon": "stage-l01-recon.png",
+    "L02-prompt-injection": "stage-l02-prompt-injection.png",
+    "L03-rag": "stage-l03-rag.png",
+    "L04-agent-protocols": "stage-l04-agent-protocols.png",
+    "L05-memory": "stage-l05-memory.png",
+    "L06-identity-control-plane": "stage-l06-identity.png",
+    "L07-supply-chain": "stage-l07-supply-chain.png",
+    "L08-detection-evasion": "stage-l08-detection-evasion.png",
+    "L09-apt-capstone": "stage-l09-apt-capstone.png",
+}
 BANK_ORCHESTRATORS: dict[str, BankOrchestrator] = {}
 BANK_ORCHESTRATORS_LOCK = threading.Lock()
 
 app = FastAPI(title="Zodiac Bank Hard Challenge Range", version="4.0")
+
+try:
+    from fastapi.staticfiles import StaticFiles
+    if ASSETS_DIR.is_dir():
+        app.mount("/docs/assets", StaticFiles(directory=str(ASSETS_DIR)), name="docs-assets")
+except (ImportError, AttributeError):
+    # The dependency-free progression harness stubs FastAPI without staticfiles.
+    pass
 
 
 @app.middleware("http")
@@ -219,7 +242,7 @@ def cover_asset(asset_name: str) -> Any:
     path=ASSETS_DIR/asset_name
     if not path.is_file() and asset_name.startswith("challenge-"):
         number=int(re.search(r"([0-9]+)",asset_name).group(1)); items=list(SCENARIO_BY_ID.values());
-        if 1<=number<=len(items): path=ASSETS_DIR/f"stage-l{str(STAGES.index(items[number-1]['stage_id'])).zfill(2)}-foundation.png"
+        if 1<=number<=len(items): path=ASSETS_DIR/STAGE_COVER_FILES.get(str(items[number-1]["stage_id"]), "stage-l00-foundation.png")
     if not path.is_file(): raise HTTPException(status_code=404, detail="cover asset not found")
     return FileResponse(path)
 
