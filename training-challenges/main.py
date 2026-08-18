@@ -71,7 +71,10 @@ async def security_headers(request: Any, call_next: Any) -> Any:
     response = await call_next(request)
     response.headers["Cache-Control"] = "no-store"
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'"
+    # The trainer is intentionally a single-file offline UI. Allow its inline
+    # style/script blocks while keeping network and media sources bounded to the
+    # local service origins used by the training flow.
+    response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http: https:; frame-ancestors 'none'"
     return response
 
 
