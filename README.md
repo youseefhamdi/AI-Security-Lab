@@ -544,7 +544,7 @@ The health responses should report `166` scenarios and `83` hard gates. The brow
 
 ### 1. Start the smallest core
 
-Use the branded helper so the ZODIAC constellation activation appears in the terminal:
+Use the branded helper so the ZODIAC fighter activation appears in the terminal:
 
 ```bash
 RUNTIME=1 ./scripts/start_all.sh

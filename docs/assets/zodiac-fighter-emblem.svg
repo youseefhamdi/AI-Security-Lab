@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Zodiac fighter emblem</title>
+  <desc id="desc">Premium gladiator helmet emblem for the Zodiac AI Security Lab.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="34%" r="78%">
+      <stop offset="0" stop-color="#16263a"/>
+      <stop offset=".5" stop-color="#0b1726"/>
+      <stop offset="1" stop-color="#050a12"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".18"/>
+      <stop offset=".55" stop-color="#22d3ee" stop-opacity=".06"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5d78a"/>
+      <stop offset=".45" stop-color="#c9932f"/>
+      <stop offset=".72" stop-color="#8a5a1e"/>
+      <stop offset="1" stop-color="#f2d489"/>
+    </linearGradient>
+    <linearGradient id="bronze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9bd72"/>
+      <stop offset=".28" stop-color="#c98f3f"/>
+      <stop offset=".6" stop-color="#a4692a"/>
+      <stop offset="1" stop-color="#6f4218"/>
+    </linearGradient>
+    <linearGradient id="bronzeDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a06a2c"/>
+      <stop offset=".55" stop-color="#7c4b1d"/>
+      <stop offset="1" stop-color="#4c2c10"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef2f7"/>
+      <stop offset=".4" stop-color="#b9c4d1"/>
+      <stop offset="1" stop-color="#6b7684"/>
+    </linearGradient>
+    <linearGradient id="crest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f43f5e"/>
+      <stop offset=".5" stop-color="#c0203a"/>
+      <stop offset="1" stop-color="#7c0f24"/>
+    </linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity=".5"/>
+    </filter>
+  </defs>
+
+  <!-- backplate -->
+  <circle cx="256" cy="256" r="250" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="250" fill="url(#glow)"/>
+  <circle cx="256" cy="256" r="238" fill="none" stroke="url(#ring)" stroke-width="9" opacity=".95"/>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="#7dd3fc" stroke-opacity=".16" stroke-width="1.5" stroke-dasharray="2 8"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#f5d78a" stroke-opacity=".12" stroke-width="1"/>
+
+  <!-- crossed blades behind helmet -->
+  <g filter="url(#soft)" opacity=".9">
+    <path d="M256 70 L272 330 L256 372 L240 330 Z" fill="url(#steel)" transform="rotate(32 256 256)"/>
+    <path d="M256 70 L272 330 L256 372 L240 330 Z" fill="url(#steel)" transform="rotate(-32 256 256)"/>
+    <path d="M256 74 L266 322 L256 360 L246 322 Z" fill="#0b1726" opacity=".55" transform="rotate(32 256 256)"/>
+    <path d="M256 74 L266 322 L256 360 L246 322 Z" fill="#0b1726" opacity=".55" transform="rotate(-32 256 256)"/>
+  </g>
+
+  <!-- crest plume -->
+  <g filter="url(#shadow)">
+    <path d="M180 200 C196 96 236 56 256 52 C276 56 316 96 332 200 C300 178 212 178 180 200 Z" fill="url(#crest)"/>
+    <path d="M196 186 C210 120 236 86 256 82 C276 86 302 120 316 186 C290 168 222 168 196 186 Z" fill="#e8486a" opacity=".55"/>
+  </g>
+
+  <!-- helmet dome -->
+  <g filter="url(#shadow)">
+    <path d="M146 250 C144 150 186 104 256 100 C326 104 368 150 366 250 C366 268 362 282 356 294 L156 294 C150 282 146 268 146 250 Z" fill="url(#bronze)"/>
+    <path d="M176 232 C190 158 214 126 246 122 C232 170 224 200 222 236 Z" fill="#f6e3b6" opacity=".5"/>
+    <path d="M256 100 C288 104 322 138 336 196 L326 210 C306 150 284 126 256 122 Z" fill="#7c4b1d" opacity=".5"/>
+  </g>
+
+  <!-- brow band -->
+  <path d="M150 258 C150 244 160 236 178 232 L334 232 C352 236 362 244 362 258 L362 272 L150 272 Z" fill="url(#bronzeDark)"/>
+  <path d="M150 262 L362 262" stroke="#f2d489" stroke-width="3" opacity=".6"/>
+
+  <!-- face opening (dark) -->
+  <path d="M196 276 L316 276 L316 332 C316 344 300 350 256 350 C212 350 196 344 196 332 Z" fill="#0a0f16"/>
+  <path d="M196 276 L316 276 L308 292 L204 292 Z" fill="#17222e"/>
+
+  <!-- nose guard -->
+  <path d="M248 276 L264 276 L264 344 L248 344 Z" fill="url(#bronze)"/>
+  <path d="M250 276 L262 276 L262 344 L250 344 Z" fill="#f2d489" opacity=".4"/>
+
+  <!-- eye slit -->
+  <path d="M200 300 C232 288 280 288 312 300 L312 306 C280 294 232 294 200 306 Z" fill="#0a0f16"/>
+
+  <!-- cheek guards -->
+  <g filter="url(#shadow)">
+    <path d="M146 258 C150 282 156 302 164 320 L170 344 L196 344 L196 300 C176 292 160 278 150 258 Z" fill="url(#bronze)"/>
+    <path d="M366 258 C362 282 356 302 348 320 L342 344 L316 344 L316 300 C336 292 352 278 362 258 Z" fill="url(#bronze)"/>
+    <path d="M156 300 C166 288 180 280 196 276 L196 300 Z" fill="#f6e3b6" opacity=".35"/>
+    <path d="M356 300 C346 288 332 280 316 276 L316 300 Z" fill="#f6e3b6" opacity=".35"/>
+  </g>
+
+  <!-- cheek guard hinges (rivets) -->
+  <g fill="url(#ring)" stroke="#4c2c10" stroke-width="1">
+    <circle cx="162" cy="286" r="5"/>
+    <circle cx="170" cy="318" r="5"/>
+    <circle cx="350" cy="286" r="5"/>
+    <circle cx="342" cy="318" r="5"/>
+  </g>
+
+  <!-- brow rivets -->
+  <g fill="url(#ring)">
+    <circle cx="196" cy="252" r="3.5"/>
+    <circle cx="224" cy="250" r="3.5"/>
+    <circle cx="256" cy="250" r="3.5"/>
+    <circle cx="288" cy="250" r="3.5"/>
+    <circle cx="316" cy="252" r="3.5"/>
+  </g>
+
+  <!-- neck guard -->
+  <path d="M236 350 L276 350 L288 384 L224 384 Z" fill="url(#bronzeDark)"/>
+  <path d="M236 352 L276 352 L286 382 L226 382 Z" fill="#0a0f16" opacity=".6"/>
+</svg>
